@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<script type="text/javascript">
+    const eventSource = new EventSource(`http://localhost:3000/governator/sse`);
+    eventSource.onmessage = ({ data, lastEventId }) => {
+        const message = document.createElement('li');
+        message.innerText = 'New message: ' + data + lastEventId;
+        document.body.appendChild(message);
+    }
+</script>
