@@ -24,17 +24,17 @@ export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
     // set cors origin policy from .env
     app.enableCors({
         origin:
-      configService.get('API_CORS_ORIGIN') === 'true' ||
-      configService.get('API_CORS_ORIGIN') === 'false'
-          ? configService.get('API_CORS_ORIGIN') === 'true'
-          : configService.get('API_CORS_ORIGIN'),
+      configService.get('CORS_ORIGIN') === 'true' ||
+      configService.get('CORS_ORIGIN') === 'false'
+          ? configService.get('CORS_ORIGIN') === 'true'
+          : configService.get('CORS_ORIGIN'),
     });
 
     // Swagger setup
     const swaggerConfig = new DocumentBuilder()
         .setTitle('Governator API')
         .setDescription('REST API for Governator')
-        .setVersion('0.1')
+        .setVersion(configService.get('npm_package_version'))
         .build();
     const document = SwaggerModule.createDocument(app, swaggerConfig);
     if (setupSwaggerModule) SwaggerModule.setup(globalPrefix, app, document);
