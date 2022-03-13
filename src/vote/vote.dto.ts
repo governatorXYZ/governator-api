@@ -1,5 +1,5 @@
 import { IsMongoId } from 'class-validator';
-import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { ObjectId } from 'mongodb';
 import { PollOption } from './types';
 
@@ -31,6 +31,19 @@ export class CreateVoteDto {
     })
         vote_record: VoteRecordDto;
 
+    @ApiProperty({
+        description: 'Provider ID of requesting platform, e.g. discord',
+        required: true,
+        // TODO: create common enum SupportedProviders
+        // type: SupportedProviders,
+    })
+        provider_id: string;
+
+    @ApiProperty({
+        description: 'Provider account ID of requesting platform, e.g. discord user ID',
+        required: true,
+    })
+        provider_account_id: string;
 }
 
-export class UpdateVoteDto extends PartialType(CreateVoteDto) {}
+export class VoteRequestDto extends OmitType(CreateVoteDto, ['provider_id', 'poll_id'] as const) {}

@@ -16,7 +16,6 @@ export class PollController {
         // do nothing
     }
 
-    // @eslint-ignore
     @Post('poll/create')
     @ApiOperation({ description: 'Create a new poll' })
     @ApiCreatedResponse({ description: 'The record has been successfully created.', type: CreatePollDto })

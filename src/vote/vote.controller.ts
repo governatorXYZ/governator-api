@@ -1,13 +1,7 @@
-import {
-    Body,
-    Controller, Delete,
-    Get,
-    Param,
-    Post, Put,
-} from '@nestjs/common';
-import {ApiCreatedResponse, ApiOperation, ApiParam, ApiTags} from '@nestjs/swagger';
-import { CreatePollDto } from '../poll/poll.dtos';
+import { Body, Controller, Param, Post } from '@nestjs/common';
+import { ApiCreatedResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { VoteMongoService } from './vote.mongo.service';
+import { VoteRequestDto } from './vote.dto';
 
 @ApiTags('Vote')
 @Controller()
@@ -16,11 +10,11 @@ export class VoteController {
         // do nothing
     }
 
-    // // @eslint-ignore
-    // @Post('vote/create')
-    // @ApiOperation({ description: 'Create a new poll' })
-    // @ApiCreatedResponse({ description: 'The record has been successfully created.', type: CreatePollDto })
-    // async createPoll(@Body() params: CreatePollDto): Promise<void> {
-    //     await this.mongoService.createVote(params);
-    // }
+    @Post('vote/:poll_id')
+    @ApiParam({ name: 'poll_id', description: 'ID of poll to vote on' })
+    @ApiOperation({ description: 'Submit a vote' })
+    @ApiCreatedResponse({ description: 'Vote has been accepted.', type: VoteRequestDto })
+    async createVote(@Param('poll_id') poll_id, @Body() voteRequest: VoteRequestDto): Promise<void> {
+        await this.mongoService.validateVoteRequest(poll_id, voteRequest);
+    }
 }

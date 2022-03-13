@@ -22,7 +22,6 @@ export class SseController {
     }
 
     // TODO: this is for development only and has to be removed
-    // @eslint-ignore
     @Post('pass-through')
     @ApiOperation({
         description: 'Pass through endpoint for testing',
