@@ -5,10 +5,11 @@ import {
     Param,
     Post, Put,
 } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOperation, ApiParam } from '@nestjs/swagger';
-import { CreatePollDto } from '../dtos/poll.dtos';
-import { VoteMongoService } from '../services/vote.mongo.service';
+import {ApiCreatedResponse, ApiOperation, ApiParam, ApiTags} from '@nestjs/swagger';
+import { CreatePollDto } from '../poll/poll.dtos';
+import { VoteMongoService } from './vote.mongo.service';
 
+@ApiTags('Vote')
 @Controller()
 export class VoteController {
     constructor(protected mongoService: VoteMongoService) {

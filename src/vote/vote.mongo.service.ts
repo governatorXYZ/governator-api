@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { Vote, VoteDocument } from '../schemas/vote.schema';
+import { Vote, VoteDocument } from './vote.schema';
 // import { CreateVoteDto } from '../dtos/vote.dtos';
 
 @Injectable()

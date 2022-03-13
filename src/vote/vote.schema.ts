@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document } from 'mongoose';
-import { VoteRecordDto } from '../dtos/vote.dto';
+import { VoteRecordDto } from './vote.dto';
 
 export type VoteDocument = Vote & Document;
 

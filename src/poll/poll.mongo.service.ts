@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { Poll, PollDocument } from '../schemas/poll.schema';
-import { CreatePollDto } from '../dtos/poll.dtos';
+import { Poll, PollDocument } from './poll.schema';
+import { CreatePollDto } from './poll.dtos';
 
 @Injectable()
 export class PollMongoService {

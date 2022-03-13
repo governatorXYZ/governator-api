@@ -5,9 +5,10 @@ import {
     Sse,
 } from '@nestjs/common';
 import { Observable, Subject } from 'rxjs';
-import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
-import { DummyDataDto } from '../dtos/passTrough.dtos';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { DummyDataDto } from './passTrough.dtos';
 
+@ApiTags('Server Sent Events')
 @Controller()
 export class SseController {
     private readonly eventStream: Subject<any>;

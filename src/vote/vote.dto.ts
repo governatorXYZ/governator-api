@@ -1,7 +1,7 @@
 import { IsMongoId } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { ObjectId } from 'mongodb';
-import { PollOption } from '../types/types';
+import { PollOption } from './types';
 
 export class VoteRecordDto {
     user_id: PollOption;
