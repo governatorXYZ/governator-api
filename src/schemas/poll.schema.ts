@@ -5,7 +5,7 @@ export type PollDocument = Poll & Document;
 
 @Schema({ collection: 'poll', toObject: { getters: true }, optimisticConcurrency: true, timestamps: true })
 export class Poll {
-    @Prop({ required: true, type: mongoose.Schema.Types.ObjectId })
+    @Prop({ required: true, auto: true, type: mongoose.Schema.Types.ObjectId })
         _id: string;
 
     @Prop({ required: true })
@@ -33,7 +33,7 @@ export class Poll {
         role_restrictions: Array<string>;
 
     @Prop({ required: true })
-        author_discord_id: string;
+        author_user_id: string;
 }
 
 export const PollSchema = SchemaFactory.createForClass(Poll);

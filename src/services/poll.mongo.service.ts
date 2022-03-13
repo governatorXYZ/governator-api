@@ -5,7 +5,7 @@ import { Poll, PollDocument } from '../schemas/poll.schema';
 import { CreatePollDto } from '../dtos/poll.dtos';
 
 @Injectable()
-export class MongoService {
+export class PollMongoService {
     constructor(@InjectModel(Poll.name) private pollModel: Model<PollDocument>) {
         // do nothing
     }
@@ -23,15 +23,19 @@ export class MongoService {
     }
 
     async updatePoll(id, poll): Promise<Poll> {
-        return this.pollModel.findByIdAndUpdate(id, poll, { new: true });
+        return this.pollModel.findByIdAndUpdate(id, poll, { new: true }).exec();
+    }
+
+    async deletePoll(id): Promise<any> {
+        return this.pollModel.deleteOne({ _id: id }).exec();
     }
 
     async fetchPollByUser(user_id): Promise<Poll[]> {
-        return this.pollModel.find({ author_discord_id: user_id }).exec();
+        return this.pollModel.find({ author_user_id: user_id }).exec();
     }
 
     async fetchPollByUserOngoing(user_id): Promise<Poll[]> {
-        return this.pollModel.find({ author_discord_id: user_id,
+        return this.pollModel.find({ author_user_id: user_id,
             end_time: {
                 $gt:  new Date(Date.now()),
             } }).exec();
