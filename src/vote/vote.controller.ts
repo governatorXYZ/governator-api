@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post } from '@nestjs/common';
+import {Body, Controller, HttpCode, Param, Post} from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { VoteMongoService } from './vote.mongo.service';
 import { VoteRequestDto } from './vote.dto';
@@ -10,6 +10,7 @@ export class VoteController {
         // do nothing
     }
 
+    @HttpCode(200)
     @Post('vote/:poll_id')
     @ApiParam({ name: 'poll_id', description: 'ID of poll to vote on' })
     @ApiOperation({ description: 'Submit a vote' })

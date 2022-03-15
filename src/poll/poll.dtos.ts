@@ -11,6 +11,12 @@ import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { ObjectId } from 'mongodb';
 
+export class PollOptionsDto {
+    _id: string;
+    vote_option_name: string;
+    vote_option_emoji: string;
+}
+
 export class CreatePollDto {
 
     @IsMongoId()

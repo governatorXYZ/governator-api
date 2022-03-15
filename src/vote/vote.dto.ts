@@ -1,11 +1,6 @@
 import { IsMongoId } from 'class-validator';
 import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { ObjectId } from 'mongodb';
-import { PollOption } from './types';
-
-export class VoteRecordDto {
-    user_id: PollOption;
-}
 
 export class CreateVoteDto {
 
@@ -27,9 +22,9 @@ export class CreateVoteDto {
     @ApiProperty({
         description: 'Vote record object',
         required: true,
-        type: VoteRecordDto,
+        // type: VoteOptionDto,
     })
-        vote_record: VoteRecordDto;
+        poll_option_index: number;
 
     @ApiProperty({
         description: 'Provider ID of requesting platform, e.g. discord',
