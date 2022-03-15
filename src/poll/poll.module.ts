@@ -10,5 +10,6 @@ import { PollController } from './poll.controller';
     ],
     controllers: [PollController],
     providers: [PollMongoService],
+    exports: [MongooseModule.forFeature([{ name: Poll.name, schema: PollSchema }])],
 })
 export class PollModule {}

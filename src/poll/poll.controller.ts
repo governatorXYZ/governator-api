@@ -3,11 +3,12 @@ import {
     Controller, Delete,
     Get,
     Param,
-    Post, Put,
+    Post, Put, UseFilters,
 } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { CreatePollDto, UpdatePollDto } from './poll.dtos';
 import { PollMongoService } from './poll.mongo.service';
+import { Poll } from './poll.schema';
 
 @ApiTags('Poll')
 @Controller()
@@ -19,8 +20,8 @@ export class PollController {
     @Post('poll/create')
     @ApiOperation({ description: 'Create a new poll' })
     @ApiCreatedResponse({ description: 'The record has been successfully created.', type: CreatePollDto })
-    async createPoll(@Body() params: CreatePollDto): Promise<void> {
-        await this.mongoService.createPoll(params);
+    async createPoll(@Body() params: CreatePollDto): Promise<Poll> {
+        return await this.mongoService.createPoll(params);
     }
 
     @Get('poll/list')
