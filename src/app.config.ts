@@ -20,6 +20,7 @@ export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
     app.setGlobalPrefix(globalPrefix);
 
     // Enable validation pipeline globally
+    // set { transform: true } to enable default values in dtos
     app.useGlobalPipes(new ValidationPipe());
 
     // TODO: this is for development only and has to be changed

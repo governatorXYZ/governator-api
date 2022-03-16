@@ -98,7 +98,7 @@ export class VoteResponseDto {
     @ApiProperty({
         description: 'POST method used (create, update or delete)',
         required: false,
-        default: 'create',
+        example: 'create',
     })
         method: string;
 

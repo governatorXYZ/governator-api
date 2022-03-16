@@ -89,7 +89,7 @@ export class VoteMongoService {
         }
     }
 
-    async getVotes(pollId, providerId, providerAccountId): Promise<any> {
+    async getVotes(pollId, providerId, providerAccountId): Promise<Record<string, any>> {
         try {
             return await this.voteModel.find({ poll_id: pollId, provider_id: providerId, provider_account_id: providerAccountId }).exec();
 
