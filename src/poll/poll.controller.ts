@@ -79,6 +79,7 @@ export class PollController {
         return deletePoll;
     }
 
+    // TODO remove if not needed
     // // @eslint-ignore
     // @Post('find-one-poll')
     // @ApiOperation({ description: 'Retrieve a poll by filter' })

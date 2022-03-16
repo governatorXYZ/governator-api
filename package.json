@@ -30,6 +30,7 @@
     "class-validator": "^0.13.2",
     "cron": "^1.8.2",
     "eventsource": "^1.1.0",
+    "helmet": "^5.0.2",
     "joi": "^17.6.0",
     "mongoose": "^6.2.4",
     "openapi-types": "^10.0.0",

@@ -32,6 +32,7 @@ export class CreatePollDto {
     @ApiProperty({
         description: 'Poll title',
         required: true,
+        default: 'my Poll',
     })
         title: string;
 
