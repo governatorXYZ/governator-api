@@ -63,7 +63,7 @@ export class PollMongoService {
 
     async deletePoll(id): Promise<any> {
         try {
-            return this.pollModel.deleteOne({ _id: id }).exec();
+            return this.pollModel.findOneAndDelete({ _id: id }).exec();
 
         } catch (e) {
             this.logger.error('Failed to delete poll from db', e);
