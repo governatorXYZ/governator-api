@@ -11,9 +11,16 @@ import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { ObjectId } from 'mongodb';
 
+export class PollOptionsDto {
+    _id: string;
+    vote_option_name: string;
+    vote_option_emoji: string;
+}
+
 export class CreatePollDto {
 
     @IsMongoId()
+    @IsOptional()
     @ApiProperty({
         description: 'Poll ID - (auto generated if left blank)',
         required: false,
@@ -86,12 +93,13 @@ export class CreatePollDto {
     })
         role_restrictions: Array<string>;
 
-    @IsNumberString()
+    @IsMongoId()
     @ApiProperty({
-        description: 'Discord user ID of poll author',
+        description: 'Governator user ID of poll author',
         required: true,
+        default: new ObjectId(),
     })
-        author_discord_id: string;
+        author_user_id: string;
 }
 
 export class UpdatePollDto extends PartialType(CreatePollDto) {}

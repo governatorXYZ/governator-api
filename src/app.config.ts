@@ -21,6 +21,7 @@ export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
     // Enable validation pipeline globally
     app.useGlobalPipes(new ValidationPipe());
 
+    // TODO: this is for development only and has to be changed
     // set cors origin policy from .env
     app.enableCors({
         origin:

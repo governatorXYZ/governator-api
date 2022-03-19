@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
 import * as Joi from 'joi';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Poll, PollSchema } from './schemas/poll.schema';
-import { MongoService } from './services/mongo.service';
+import { AccountModule } from './account/account.module';
+import { PollModule } from './poll/poll.module';
+import { SseModule } from './sse/sse.module';
+import { UserModule } from './user/user.module';
+import { VoteModule } from './vote/vote.module';
 
 @Module({
     imports: [
@@ -26,10 +28,11 @@ import { MongoService } from './services/mongo.service';
             }),
             inject: [ConfigService],
         }),
-        // MongooseModule.forRoot(`${process.env.MONGODB_PREFIX}://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASS}@${process.env.MONGODB_CLUSTER}/`),
-        MongooseModule.forFeature([{ name: Poll.name, schema: PollSchema }]),
+        AccountModule,
+        PollModule,
+        SseModule,
+        UserModule,
+        VoteModule,
     ],
-    controllers: [AppController],
-    providers: [MongoService],
 })
 export class AppModule {}
