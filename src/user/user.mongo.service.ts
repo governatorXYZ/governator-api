@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './user.schema';
-import { CreateUserDto } from './user.dtos';
+import { UserCreateDto } from './user.dtos';
 import { Account, AccountDocument } from '../account/account.schema';
 
 @Injectable()
@@ -38,11 +38,11 @@ export class UserMongoService {
         }
     }
 
-    async createUser(createUserDto: CreateUserDto): Promise<User> {
+    async createUser(userCreateDto: UserCreateDto): Promise<User> {
         this.logger.debug('Creating new user in db');
 
         try {
-            const createdUser = new this.userModel(createUserDto);
+            const createdUser = new this.userModel(userCreateDto);
 
             return await createdUser.save();
 

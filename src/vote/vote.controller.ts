@@ -9,7 +9,7 @@ export class VoteController {
     constructor(protected mongoService: VoteMongoService) {
         // do nothing
     }
-
+    // TODO revisit and see if better split up into create update delete
     @Post('vote/:poll_id')
     @ApiParam({ name: 'poll_id', description: 'ID of poll to vote on' })
     @ApiOperation({ description: 'Submit a vote' })
@@ -19,3 +19,5 @@ export class VoteController {
     }
 
 }
+
+// TODO add vote get endpoints for result display

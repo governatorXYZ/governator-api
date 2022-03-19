@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
-import { CreatePollDto, UpdatePollDto } from './poll.dtos';
+import { PollCreateDto, PollUpdateDto } from './poll.dtos';
 import { PollMongoService } from './poll.mongo.service';
 import { Poll } from './poll.schema';
 import { SseService } from '../sse/sse.service';
@@ -45,8 +45,8 @@ export class PollController {
 
     @Post('poll/create')
     @ApiOperation({ description: 'Create a new poll' })
-    @ApiCreatedResponse({ description: `Returns the created poll object and emits ${constants.EVENT_POLL_CREATE} event`, type: CreatePollDto })
-    async createPoll(@Body() params: CreatePollDto): Promise<Poll> {
+    @ApiCreatedResponse({ description: `Returns the created poll object and emits ${constants.EVENT_POLL_CREATE} event`, type: PollCreateDto })
+    async createPoll(@Body() params: PollCreateDto): Promise<Poll> {
         const poll = await this.mongoService.createPoll(params);
         await this.sseService.emit({
             data: poll,
@@ -57,8 +57,8 @@ export class PollController {
 
     @Put('poll/update/:id')
     @ApiParam({ name: 'id', description: 'ID of poll to be updated' })
-    @ApiCreatedResponse({ description: `Returns the updated poll object and emits ${constants.EVENT_POLL_UPDATE} event`, type: CreatePollDto })
-    async updatePoll(@Param('id') id, @Body() poll: UpdatePollDto): Promise<Poll> {
+    @ApiCreatedResponse({ description: `Returns the updated poll object and emits ${constants.EVENT_POLL_UPDATE} event`, type: PollCreateDto })
+    async updatePoll(@Param('id') id, @Body() poll: PollUpdateDto): Promise<Poll> {
         const updatePoll = await this.mongoService.updatePoll(id, poll);
         await this.sseService.emit({
             data: updatePoll,
@@ -69,7 +69,7 @@ export class PollController {
 
     @Delete('poll/delete/:id')
     @ApiParam({ name: 'id', description: 'ID of poll to be deleted' })
-    @ApiCreatedResponse({ description: `Returns the deleted poll object and emits ${constants.EVENT_POLL_DELETE} event`, type: CreatePollDto })
+    @ApiCreatedResponse({ description: `Returns the deleted poll object and emits ${constants.EVENT_POLL_DELETE} event`, type: PollCreateDto })
     async deletePoll(@Param('id') id): Promise<Poll> {
         const deletePoll = await this.mongoService.deletePoll(id);
         await this.sseService.emit({

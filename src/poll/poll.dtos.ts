@@ -7,7 +7,7 @@ import {
     IsBoolean,
     MinDate, MaxDate, IsNumberString, IsMongoId,
 } from 'class-validator';
-import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { ApiProperty, OmitType, PartialType } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { ObjectId } from 'mongodb';
 
@@ -17,7 +17,7 @@ export class PollOptionsDto {
     vote_option_emoji: string;
 }
 
-export class CreatePollDto {
+export class PollResponseDto {
 
     @IsMongoId()
     @IsOptional()
@@ -100,6 +100,20 @@ export class CreatePollDto {
         default: new ObjectId(),
     })
         author_user_id: string;
+
+    @ApiProperty({
+        description: 'Datetime when record was created',
+        required: false,
+    })
+        createdAt: string;
+
+    @ApiProperty({
+        description: 'Datetime when record was last updated',
+        required: false,
+    })
+        updatedAt: string;
 }
 
-export class UpdatePollDto extends PartialType(CreatePollDto) {}
+export class PollCreateDto extends OmitType(PollResponseDto, ['_id', 'createdAt', 'updatedAt'] as const) {}
+
+export class PollUpdateDto extends PartialType(PollCreateDto) {}

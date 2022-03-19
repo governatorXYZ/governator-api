@@ -1,6 +1,6 @@
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
-import { CreateUserDto, UpdateUserDto } from './user.dtos';
+import { UserCreateDto, UserUpdateDto } from './user.dtos';
 import { User } from './user.schema';
 import { UserMongoService } from './user.mongo.service';
 import { CreateAccountDto } from '../account/account.dtos';
@@ -29,14 +29,14 @@ export class UserController {
     @Post('user/create')
     @ApiOperation({ description: 'Create a new user' })
     @ApiCreatedResponse({ description: 'Returns the created user object', type: User })
-    async createUser(@Body() user: CreateUserDto): Promise<User> {
+    async createUser(@Body() user: UserCreateDto): Promise<User> {
         return await this.mongoService.createUser(user);
     }
 
     @Put('user/:id/update')
     @ApiParam({ name: 'id', description: 'Governator user ID of user to be updated' })
     @ApiCreatedResponse({ description: 'Returns the updated user object', type: User })
-    async updateUser(@Param('id') id, @Body() user: UpdateUserDto): Promise<User> {
+    async updateUser(@Param('id') id, @Body() user: UserUpdateDto): Promise<User> {
         return await this.mongoService.updateUser(id, user);
     }
 
