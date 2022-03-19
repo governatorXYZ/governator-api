@@ -2,6 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import { VersioningType, ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { OpenAPI } from 'openapi-types';
+import helmet from 'helmet';
 
 export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
     // Makes .env available
@@ -19,6 +20,7 @@ export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
     app.setGlobalPrefix(globalPrefix);
 
     // Enable validation pipeline globally
+    // set { transform: true } to enable default values in dtos
     app.useGlobalPipes(new ValidationPipe());
 
     // TODO: this is for development only and has to be changed
@@ -30,6 +32,9 @@ export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
           ? configService.get('CORS_ORIGIN') === 'true'
           : configService.get('CORS_ORIGIN'),
     });
+
+    // Put a helmet on
+    app.use(helmet());
 
     // Swagger setup
     const swaggerConfig = new DocumentBuilder()

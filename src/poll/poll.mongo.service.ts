@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Poll, PollDocument } from './poll.schema';
-import { CreatePollDto } from './poll.dtos';
+import { PollCreateDto } from './poll.dtos';
 
 @Injectable()
 export class PollMongoService {
@@ -11,11 +11,11 @@ export class PollMongoService {
     constructor(@InjectModel(Poll.name) private pollModel: Model<PollDocument>) {
         // do nothing
     }
-    async createPoll(createPollDto: CreatePollDto): Promise<Poll> {
+    async createPoll(pollCreateDto: PollCreateDto): Promise<Poll> {
         this.logger.debug('Creating new poll in db');
 
         try {
-            const createdPoll = new this.pollModel(createPollDto);
+            const createdPoll = new this.pollModel(pollCreateDto);
 
             return await createdPoll.save();
 
@@ -63,7 +63,7 @@ export class PollMongoService {
 
     async deletePoll(id): Promise<any> {
         try {
-            return this.pollModel.deleteOne({ _id: id }).exec();
+            return this.pollModel.findOneAndDelete({ _id: id }).exec();
 
         } catch (e) {
             this.logger.error('Failed to delete poll from db', e);

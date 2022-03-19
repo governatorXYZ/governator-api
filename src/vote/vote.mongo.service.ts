@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Vote, VoteDocument } from './vote.schema';
-import { CreateVoteDto, VoteRawResponseDto, VoteRequestDto, VoteResponseDto } from './vote.dto';
+import { VoteCreateDto, VoteRawResponseDto, VoteRequestDto, VoteResponseDto } from './vote.dto';
 import { Poll, PollDocument } from '../poll/poll.schema';
 
 @Injectable()
@@ -19,7 +19,7 @@ export class VoteMongoService {
     // TODO: on bot: check if user is part of role allow list, check reaction allow list
     async validateVoteRequest(pollId: string, voteRequestDto: VoteRequestDto) {
 
-        this.logger.log(`Attempting to validate vote request for pollID: ${pollId}, with request body: ${voteRequestDto}`);
+        if (process.env.NODE_ENV === 'development') this.logger.log(`Attempting to validate vote request for pollID: ${pollId}, with request body: ${voteRequestDto}`);
 
         this.logger.debug('Attempting to retrieve provider_id of vote request provider');
         const providerId = this.getProviderId();
@@ -30,31 +30,31 @@ export class VoteMongoService {
 
         this.logger.debug('Checking if user has already voted on this poll with this provider_account');
         const userVotes = await this.getVotes(pollId, providerId, voteRequestDto.provider_account_id);
-        this.logger.debug(`userVotes: Vote[] length: ${Object.keys(userVotes).length}`);
-        this.logger.debug(`userVotes: Vote[] length: ${userVotes}`);
+        if (process.env.NODE_ENV === 'development') this.logger.debug(`userVotes: Vote[] length: ${Object.keys(userVotes).length}`);
+        if (process.env.NODE_ENV === 'development') this.logger.debug(`userVotes: Vote[] length: ${userVotes}`);
 
         this.logger.debug('Preparing createVoteDto');
-        const createVoteDto: CreateVoteDto = { ...voteRequestDto, poll_id: pollId, provider_id: providerId };
-        this.logger.debug(`createVoteDto: CreateVoteDto: ${JSON.stringify(createVoteDto)}`);
+        const voteCreateDto: VoteCreateDto = { ...voteRequestDto, poll_id: pollId, provider_id: providerId };
+        if (process.env.NODE_ENV === 'development') this.logger.debug(`createVoteDto: CreateVoteDto: ${JSON.stringify(voteCreateDto)}`);
 
         if(Object.keys(userVotes).length === 0) {
             this.logger.debug('first time vote of user/platform on this poll');
-            return await this.createVote(createVoteDto);
+            return await this.createVote(voteCreateDto);
         }
 
-        const isDuplicate = this.isDuplicateVote(userVotes, createVoteDto);
+        const isDuplicate = this.isDuplicateVote(userVotes, voteCreateDto);
 
         if(Object.keys(userVotes).length > 0) {
             this.logger.debug('not a first-time vote, user/platform has voted on this poll before');
 
-            if (isDuplicate) return this.deleteVote(createVoteDto);
+            if (isDuplicate) return this.deleteVote(voteCreateDto);
 
             if (!isDuplicate) {
                 // poll is single vote type --> update vote
-                if (poll.single_vote) return this.updateVote(createVoteDto);
+                if (poll.single_vote) return this.updateVote(voteCreateDto);
 
                 // poll is multi vote type --> create vote
-                if (!poll.single_vote) return await this.createVote(createVoteDto);
+                if (!poll.single_vote) return await this.createVote(voteCreateDto);
             }
         }
     }
@@ -63,7 +63,7 @@ export class VoteMongoService {
         const voteOptions: number[] = [];
         userVotes.map((value) => voteOptions.push(value.poll_option_index));
         this.logger.debug('checking if vote is a duplicate');
-        this.logger.debug(`IsDuplicateVote ${voteOptions} ; ${createVoteDto.poll_option_index} --> ${voteOptions.includes(createVoteDto.poll_option_index)}`);
+        if (process.env.NODE_ENV === 'development') this.logger.debug(`IsDuplicateVote ${voteOptions} ; ${createVoteDto.poll_option_index} --> ${voteOptions.includes(createVoteDto.poll_option_index)}`);
         return voteOptions.includes(createVoteDto.poll_option_index);
     }
 
@@ -89,7 +89,7 @@ export class VoteMongoService {
         }
     }
 
-    async getVotes(pollId, providerId, providerAccountId): Promise<any> {
+    async getVotes(pollId, providerId, providerAccountId): Promise<Record<string, any>> {
         try {
             return await this.voteModel.find({ poll_id: pollId, provider_id: providerId, provider_account_id: providerAccountId }).exec();
 
@@ -100,10 +100,10 @@ export class VoteMongoService {
         }
     }
 
-    async createVote(createVoteDto: CreateVoteDto): Promise<VoteResponseDto> {
+    async createVote(voteCreateDto: VoteCreateDto): Promise<VoteResponseDto> {
         this.logger.debug('Creating vote in db');
 
-        const createdVote = new this.voteModel(createVoteDto);
+        const createdVote = new this.voteModel(voteCreateDto);
 
         try {
             const result: VoteRawResponseDto = await createdVote.save();
@@ -116,7 +116,7 @@ export class VoteMongoService {
         }
     }
 
-    async updateVote(createVoteDto: CreateVoteDto): Promise<VoteResponseDto> {
+    async updateVote(voteCreateDto: VoteCreateDto): Promise<VoteResponseDto> {
 
         // TODO double check that _id will persist in DB
 
@@ -125,11 +125,11 @@ export class VoteMongoService {
         try {
             const result: VoteRawResponseDto = await this.voteModel.findOneAndUpdate(
                 {
-                    poll_id: createVoteDto.poll_id,
-                    provider_id: createVoteDto.provider_id,
-                    provider_account_id: createVoteDto.provider_account_id,
+                    poll_id: voteCreateDto.poll_id,
+                    provider_id: voteCreateDto.provider_id,
+                    provider_account_id: voteCreateDto.provider_account_id,
                 },
-                createVoteDto,
+                voteCreateDto,
                 { new: true }).exec();
 
             return this.transformResult('update', result);
@@ -141,11 +141,11 @@ export class VoteMongoService {
         }
     }
 
-    async deleteVote(createVoteDto: CreateVoteDto): Promise<VoteResponseDto> {
+    async deleteVote(voteCreateDto: VoteCreateDto): Promise<VoteResponseDto> {
         this.logger.debug('Deleting vote from db');
 
         try {
-            const result: VoteRawResponseDto = await this.voteModel.findOneAndDelete({ createVoteDto }).exec();
+            const result: VoteRawResponseDto = await this.voteModel.findOneAndDelete({ voteCreateDto }).exec();
 
             return this.transformResult('delete', result);
 

@@ -1,9 +1,16 @@
 <!DOCTYPE html>
 <script type="text/javascript">
     const eventSource = new EventSource(`http://localhost:3000/governator/sse`);
-    eventSource.onmessage = ({ data, lastEventId }) => {
-        const message = document.createElement('li');
-        message.innerText = 'New message: ' + data + lastEventId;
-        document.body.appendChild(message);
-    }
+
+    eventSource.addEventListener("POLL_CREATE", function(event) {
+        const newElement = document.createElement("li");
+        newElement.textContent = "DATA: " + event.data;
+        document.body.appendChild(newElement);
+    });
+
+    // eventSource.onmessage = ({ type, data, lastEventId }) => {
+    //     const message = document.createElement('li');
+    //     message.innerText = 'New message: ' + type + '\n' + data + '\n' + lastEventId;
+    //     document.body.appendChild(message);
+    // }
 </script>

@@ -1,8 +1,9 @@
 import { IsBoolean, IsEmail, IsMongoId } from 'class-validator';
-import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { ApiProperty, OmitType, PartialType } from '@nestjs/swagger';
 import { ObjectId } from 'mongodb';
 
-export class CreateUserDto {
+// TODO refine user model after MVP
+export class UserResponseDto {
 
     @IsMongoId()
     @ApiProperty({
@@ -38,6 +39,20 @@ export class CreateUserDto {
     })
         email_verified: boolean;
 
+    @ApiProperty({
+        description: 'Datetime when record was created',
+        required: false,
+    })
+        createdAt: string;
+
+    @ApiProperty({
+        description: 'Datetime when record was last updated',
+        required: false,
+    })
+        updatedAt: string;
+
 }
 
-export class UpdateUserDto extends PartialType(CreateUserDto) {}
+export class UserCreateDto extends OmitType(UserResponseDto, ['_id', 'createdAt', 'updatedAt'] as const) {}
+
+export class UserUpdateDto extends PartialType(UserCreateDto) {}
