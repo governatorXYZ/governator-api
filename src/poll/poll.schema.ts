@@ -12,7 +12,7 @@ export class Poll {
         title: string;
 
     @Prop({ required: true })
-        channel_id: number;
+        channel_id: string;
 
     @Prop({ required: false, type: Object })
         poll_options: Record<string, any>;
