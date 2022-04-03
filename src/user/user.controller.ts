@@ -3,7 +3,7 @@ import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common'
 import { UserCreateDto, UserUpdateDto } from './user.dtos';
 import { User } from './user.schema';
 import { UserMongoService } from './user.mongo.service';
-import { CreateAccountDto } from '../account/account.dtos';
+import { AccountCreateDto } from '../account/account.dtos';
 import { Account } from '../account/account.schema';
 
 @ApiTags('User')
@@ -59,7 +59,7 @@ export class UserController {
     @ApiOperation({ description: 'Add a provider account to  a user' })
     @ApiParam({ name: 'id', description: 'Governator user ID' })
     @ApiCreatedResponse({ description: 'Returns the new account object', type: Account })
-    async addProviderAccount(@Param('id') id, @Body() account: CreateAccountDto): Promise<Account> {
+    async addProviderAccount(@Param('id') id, @Body() account: AccountCreateDto): Promise<Account> {
         return await this.mongoService.addProviderAccount(id, account);
     }
 
@@ -67,7 +67,7 @@ export class UserController {
     @ApiOperation({ description: 'Remove a provider account from  a user' })
     @ApiParam({ name: 'id', description: 'Governator user ID' })
     @ApiCreatedResponse({ description: 'Returns the deleted account object', type: Account })
-    async removeProviderAccount(@Param('id') id, @Body() account: CreateAccountDto): Promise<Account> {
+    async removeProviderAccount(@Param('id') id, @Body() account: AccountCreateDto): Promise<Account> {
         return await this.mongoService.removeProviderAccount(id, account);
     }
 

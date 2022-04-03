@@ -12,7 +12,7 @@ export class Vote {
         poll_id: string;
 
     @Prop({ required: true })
-        poll_option_index: number;
+        poll_option_id: string;
 
     @Prop({ required: true })
         provider_id: string;

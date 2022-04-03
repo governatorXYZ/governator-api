@@ -11,10 +11,22 @@ import { ApiProperty, OmitType, PartialType } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { ObjectId } from 'mongodb';
 
-export class PollOptionsDto {
-    _id: string;
-    vote_option_name: string;
-    vote_option_emoji: string;
+export class PollOptionDto {
+    @ApiProperty({
+        description: 'Poll option id',
+        required: true,
+    })
+        _id: string;
+    @ApiProperty({
+        description: 'Poll option id',
+        required: true,
+    })
+        poll_option_name: string;
+    @ApiProperty({
+        description: 'Poll option emoji',
+        required: true,
+    })
+        poll_option_emoji: string;
 }
 
 export class PollResponseDto {
@@ -46,8 +58,10 @@ export class PollResponseDto {
     @ApiProperty({
         description: 'Poll options object',
         required: false,
+        type: PollOptionDto,
+        isArray: true,
     })
-        poll_options: Record<string, any>;
+        poll_options: PollOptionDto[];
 
     @IsOptional()
     @IsBoolean()

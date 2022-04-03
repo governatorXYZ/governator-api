@@ -61,10 +61,10 @@ export class VoteMongoService {
 
     isDuplicateVote(userVotes, createVoteDto): boolean {
         const voteOptions: number[] = [];
-        userVotes.map((value) => voteOptions.push(value.poll_option_index));
+        userVotes.map((value) => voteOptions.push(value.poll_option_id));
         this.logger.debug('checking if vote is a duplicate');
-        if (process.env.NODE_ENV === 'development') this.logger.debug(`IsDuplicateVote ${voteOptions} ; ${createVoteDto.poll_option_index} --> ${voteOptions.includes(createVoteDto.poll_option_index)}`);
-        return voteOptions.includes(createVoteDto.poll_option_index);
+        if (process.env.NODE_ENV === 'development') this.logger.debug(`IsDuplicateVote ${voteOptions} ; ${createVoteDto.poll_option_id} --> ${voteOptions.includes(createVoteDto.poll_option_id)}`);
+        return voteOptions.includes(createVoteDto.poll_option_id);
     }
 
     transformResult(method: string, data: VoteRawResponseDto): VoteResponseDto {

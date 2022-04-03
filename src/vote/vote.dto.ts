@@ -21,7 +21,7 @@ export class VoteRawResponseDto {
         required: true,
         // type: VoteOptionDto,
     })
-        poll_option_index: number;
+        poll_option_id: string;
 
     @ApiProperty({
         description: 'Provider ID of requesting platform, e.g. discord',

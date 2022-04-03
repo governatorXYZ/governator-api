@@ -2,8 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { SseService } from './sse.service';
 import { MessageEvent } from './types';
 import { SseController } from './sse.controller';
-import constants from "../common/constants";
-import {lastValueFrom, of} from "rxjs";
+import constants from '../common/constants';
 
 describe('Test SseController', () => {
 

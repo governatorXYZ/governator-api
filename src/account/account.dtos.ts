@@ -1,9 +1,9 @@
 import { IsDate, IsMongoId } from 'class-validator';
-import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { ApiProperty, OmitType, PartialType } from '@nestjs/swagger';
 import { ObjectId } from 'mongodb';
 import { Transform } from 'class-transformer';
 
-export class CreateAccountDto {
+export class AccountResponseDto {
 
     @IsMongoId()
     @ApiProperty({
@@ -58,6 +58,19 @@ export class CreateAccountDto {
     })
         access_token_expires: Date;
 
+    @ApiProperty({
+        description: 'Datetime when record was created',
+        required: false,
+    })
+        createdAt: string;
+
+    @ApiProperty({
+        description: 'Datetime when record was last updated',
+        required: false,
+    })
+        updatedAt: string;
 }
 
-export class UpdateAccountDto extends PartialType(CreateAccountDto) {}
+export class AccountCreateDto extends OmitType(AccountResponseDto, ['_id', 'createdAt', 'updatedAt'] as const) {}
+
+export class AccountUpdateDto extends PartialType(AccountCreateDto) {}
