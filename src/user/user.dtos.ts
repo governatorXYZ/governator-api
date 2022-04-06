@@ -37,7 +37,7 @@ export class UserResponseDto {
         description: 'whether email is verified',
         required: false,
     })
-        email_verified: boolean;
+        emailVerified: boolean;
 
     @ApiProperty({
         description: 'Datetime when record was created',

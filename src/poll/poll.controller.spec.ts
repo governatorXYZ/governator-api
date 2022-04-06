@@ -12,7 +12,13 @@ describe('Test PollController', () => {
     const testPoll = {
         title: 'string',
         channel_id: '12345678901234567',
-        poll_options: {},
+        poll_options:  [
+            {
+                _id: '123',
+                poll_option_name: 'option1',
+                poll_option_emoji: ':)',
+            },
+        ],
         allow_options_for_anyone: true,
         single_vote: true,
         end_time: new Date (Date.now() + (1000 * 60 * 60 * 24 * 3)),

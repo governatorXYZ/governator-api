@@ -42,9 +42,7 @@ export class UserMongoService {
         this.logger.debug('Creating new user in db');
 
         try {
-            const createdUser = new this.userModel(userCreateDto);
-
-            return await createdUser.save();
+            return await this.userModel.create(userCreateDto);
 
         } catch (e) {
 

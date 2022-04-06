@@ -12,7 +12,7 @@ describe('Test UserController', () => {
         name: 'Tiki',
         image: 'some/image',
         email: 'email@email.com',
-        email_verified: true,
+        emailVerified: true,
     };
 
     const testAccount = {
@@ -75,17 +75,17 @@ describe('Validation Unit Tests - test DTO against nestjs validation pipeline', 
 
         const testUser = {
             email: 'email@email.com',
-            email_verified: true,
+            emailVerified: true,
         };
 
         const testUserInvalidEmail = {
             email: 'just a string',
-            email_verified: true,
+            emailVerified: true,
         };
 
         const testUserInvalidBool = {
             email: 'email@email.com',
-            email_verified: 'true',
+            emailVerified: 'true',
         };
 
         const target: ValidationPipe = new ValidationPipe({ transform: true, whitelist: true });

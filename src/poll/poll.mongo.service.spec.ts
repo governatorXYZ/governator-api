@@ -13,7 +13,13 @@ const mockPoll = (
     _id = '623a8681e47db28bf073366d',
     title = 'string',
     channel_id = '12345678901234567',
-    poll_options = {},
+    poll_options = [
+        {
+            _id: '123',
+            poll_option_name: 'option1',
+            poll_option_emoji: ':)',
+        },
+    ],
     allow_options_for_anyone = true,
     single_vote = true,
     end_time = date,
@@ -39,7 +45,13 @@ const mockPollDoc = (mock?: Partial<Poll>): Partial<PollDocument> => ({
     _id: mock?._id || '623a8681e47db28bf073366d',
     title: mock?.title || 'string',
     channel_id: mock?.channel_id || '12345678901234567',
-    poll_options: mock?.poll_options || {},
+    poll_options: mock?.poll_options || [
+        {
+            _id: '123',
+            poll_option_name: 'option1',
+            poll_option_emoji: ':)',
+        },
+    ],
     allow_options_for_anyone: mock?.allow_options_for_anyone || true,
     single_vote: mock?.single_vote || true,
     end_time: mock?.end_time || date,
@@ -56,7 +68,13 @@ const pollArray = [
     mockPoll('111a8681e4734rtg5678366d',
         'title 2',
         '32434243324324',
-        { one:'one' },
+        [
+            {
+                _id: '123',
+                poll_option_name: 'option1',
+                poll_option_emoji: ':)',
+            },
+        ],
         true,
         true,
         date,
@@ -66,7 +84,13 @@ const pollArray = [
     mockPoll('222a8681e4734rtg56783222',
         'title 3',
         '11111111111',
-        { one:'one' },
+        [
+            {
+                _id: '123',
+                poll_option_name: 'option1',
+                poll_option_emoji: ':)',
+            },
+        ],
         true,
         true,
         date,
@@ -81,7 +105,13 @@ const pollDocArray = [
         _id: '111a8681e4734rtg5678366d',
         title: 'title 2',
         channel_id: '32434243324324',
-        poll_options: { one:'one' },
+        poll_options:  [
+            {
+                _id: '123',
+                poll_option_name: 'option1',
+                poll_option_emoji: ':)',
+            },
+        ],
         allow_options_for_anyone: false,
         single_vote: true,
         end_time: date,
@@ -92,7 +122,13 @@ const pollDocArray = [
         _id: '222a8681e4734rtg56783222',
         title: 'title 3',
         channel_id: '11111111111',
-        poll_options: { one:'one' },
+        poll_options:  [
+            {
+                _id: '123',
+                poll_option_name: 'option1',
+                poll_option_emoji: ':)',
+            },
+        ],
         allow_options_for_anyone: false,
         single_vote: true,
         end_time: date,
@@ -143,7 +179,13 @@ describe('PollMongoService test series', () => {
                 _id: '623a8681e47db28bf073366d',
                 title: 'string',
                 channel_id: '12345678901234567',
-                poll_options: {},
+                poll_options:  [
+                    {
+                        _id: '123',
+                        poll_option_name: 'option1',
+                        poll_option_emoji: ':)',
+                    },
+                ],
                 allow_options_for_anyone: true,
                 end_time: date,
                 single_vote: true,
@@ -156,7 +198,13 @@ describe('PollMongoService test series', () => {
             // _id: '623a8681e47db28bf073366d',
             title: 'string',
             channel_id: '12345678901234567',
-            poll_options: {},
+            poll_options: [
+                {
+                    _id: '123',
+                    poll_option_name: 'option1',
+                    poll_option_emoji: ':)',
+                },
+            ],
             allow_options_for_anyone: true,
             end_time: date,
             single_vote: true,
@@ -267,7 +315,13 @@ describe('PollMongoService test series', () => {
                     _id: '623a8681e47db28bf073366d',
                     title: 'string',
                     channel_id: '12345678901234567',
-                    poll_options: {},
+                    poll_options:  [
+                        {
+                            _id: '123',
+                            poll_option_name: 'option1',
+                            poll_option_emoji: ':)',
+                        },
+                    ],
                     allow_options_for_anyone: true,
                     end_time: date,
                     single_vote: true,
@@ -281,7 +335,13 @@ describe('PollMongoService test series', () => {
             _id: '623a8681e47db28bf073366d',
             title: 'string',
             channel_id: '12345678901234567',
-            poll_options: {},
+            poll_options:  [
+                {
+                    _id: '123',
+                    poll_option_name: 'option1',
+                    poll_option_emoji: ':)',
+                },
+            ],
             allow_options_for_anyone: true,
             end_time: date,
             single_vote: true,
@@ -308,7 +368,13 @@ describe('PollMongoService test series', () => {
                     _id: '623a8681e47db28bf073366d',
                     title: 'string',
                     channel_id: '12345678901234567',
-                    poll_options: {},
+                    poll_options:  [
+                        {
+                            _id: '123',
+                            poll_option_name: 'option1',
+                            poll_option_emoji: ':)',
+                        },
+                    ],
                     allow_options_for_anyone: true,
                     end_time: date,
                     single_vote: true,

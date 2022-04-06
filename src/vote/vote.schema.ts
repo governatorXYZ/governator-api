@@ -15,10 +15,7 @@ export class Vote {
         poll_option_id: string;
 
     @Prop({ required: true })
-        provider_id: string;
-
-    @Prop({ required: true })
-        provider_account_id: string;
+        user_id: string;
 
     @Prop({ required: false })
         createdAt: string;
