@@ -20,11 +20,11 @@ export class AccountResponseDto {
     })
         user_id: string;
 
-    @ApiProperty({
-        description: 'Type of auth provider - e.g. oauth',
-        required: true,
-    })
-        provider_type: string;
+    // @ApiProperty({
+    //     description: 'Type of auth provider - e.g. oauth',
+    //     required: true,
+    // })
+    //     provider_type: string;
 
     @ApiProperty({
         description: 'ID of auth provider e.g. discord',
@@ -38,25 +38,25 @@ export class AccountResponseDto {
     })
         provider_account_id: string;
 
-    @ApiProperty({
-        description: 'Provider refresh token',
-        required: false,
-    })
-        refresh_token: string;
+    // @ApiProperty({
+    //     description: 'Provider refresh token',
+    //     required: false,
+    // })
+    //     refresh_token: string;
 
-    @ApiProperty({
-        description: 'Provider access token',
-        required: false,
-    })
-        access_token: string;
+    // @ApiProperty({
+    //     description: 'Provider access token',
+    //     required: false,
+    // })
+    //     access_token: string;
 
-    @IsDate()
-    @Transform(({ value }) => new Date(value), { toClassOnly: true })
-    @ApiProperty({
-        description: 'User Id for provider',
-        required: false,
-    })
-        access_token_expires: Date;
+    // @IsDate()
+    // @Transform(({ value }) => new Date(value), { toClassOnly: true })
+    // @ApiProperty({
+    //     description: 'Access token expiration date',
+    //     required: false,
+    // })
+    //     access_token_expires: Date;
 
     @ApiProperty({
         description: 'Datetime when record was created',

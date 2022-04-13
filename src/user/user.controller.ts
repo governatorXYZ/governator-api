@@ -51,16 +51,15 @@ export class UserController {
     @ApiOperation({ description: 'Fetch user by provider' })
     @ApiParam({ name: 'provider_id', description: 'Provider ID, e.g. discord' })
     @ApiParam({ name: 'provider_account_id', description: 'Provider account ID, e.g. discord user ID' })
-    async fetchUserByProvider(@Param('provider_id') provider_id, @Param('provider_id') provider_account_id) {
+    async fetchUserByProvider(@Param('provider_id') provider_id, @Param('provider_account_id') provider_account_id) {
         return await this.mongoService.fetchUserByProvider(provider_id, provider_account_id);
     }
 
-    @Post('user/:id/add_provider_account')
+    @Post('user/add_provider_account')
     @ApiOperation({ description: 'Add a provider account to  a user' })
-    @ApiParam({ name: 'id', description: 'Governator user ID' })
     @ApiCreatedResponse({ description: 'Returns the new account object', type: Account })
-    async addProviderAccount(@Param('id') id, @Body() account: AccountCreateDto): Promise<Account> {
-        return await this.mongoService.addProviderAccount(id, account);
+    async addProviderAccount(@Body() account: AccountCreateDto): Promise<Account> {
+        return await this.mongoService.addProviderAccount(account);
     }
 
     @Delete('user/:id/remove_provider_account')
