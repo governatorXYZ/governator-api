@@ -1,5 +1,6 @@
-export type PollOptionName = string;
+import { VoteRawResponseDto } from './vote.dto';
 
-export type PollOptionEmoteId = string;
-
-export type PollOption = Record<PollOptionName, PollOptionEmoteId>;
+export interface VoteRawResponseUpdate {
+    oldVote: VoteRawResponseDto,
+    updatedVote: VoteRawResponseDto,
+}

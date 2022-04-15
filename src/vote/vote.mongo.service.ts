@@ -5,6 +5,7 @@ import { Vote, VoteDocument } from './vote.schema';
 import { VoteCreateDto, VoteRawResponseDto, VoteRequestDto, VoteResponseDto } from './vote.dto';
 import { Poll, PollDocument } from '../poll/poll.schema';
 import { User, UserDocument } from '../user/user.schema';
+import {VoteRawResponseUpdate} from "./types";
 
 @Injectable()
 export class VoteMongoService {
@@ -107,7 +108,7 @@ export class VoteMongoService {
         return voteOptions.includes(createVoteDto.poll_option_id);
     }
 
-    transformResult(method: string, data: VoteRawResponseDto): VoteResponseDto {
+    transformResult(method: string, data: VoteRawResponseDto | VoteRawResponseUpdate): VoteResponseDto {
         return { method: method, data: data } as VoteResponseDto;
     }
 
@@ -170,15 +171,20 @@ export class VoteMongoService {
         this.logger.debug('Updating vote in db');
 
         try {
-            const result: VoteRawResponseDto = await this.voteModel.findOneAndUpdate(
+            const oldVote = await this.voteModel.findOne(
                 {
                     poll_id: voteCreateDto.poll_id,
                     user_id: voteCreateDto.user_id,
-                    // provider_id: voteCreateDto.provider_id,
-                    // provider_account_id: voteCreateDto.provider_account_id,
+                }).exec();
+            const updated: VoteRawResponseDto = await this.voteModel.findOneAndUpdate(
+                {
+                    poll_id: voteCreateDto.poll_id,
+                    user_id: voteCreateDto.user_id,
                 },
                 voteCreateDto,
                 { new: true }).exec();
+
+            const result = { oldVote: oldVote, updatedVote: updated };
 
             return this.transformResult('update', result);
 

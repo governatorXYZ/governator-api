@@ -1,5 +1,6 @@
 import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { ObjectId } from 'mongodb';
+import {VoteRawResponseUpdate} from "./types";
 
 // TODO: fix this to work with user instead of provider/provider account
 export class VoteRawResponseDto {
@@ -56,7 +57,7 @@ export class VoteResponseDto {
         description: 'created/updated/deleted db object',
         required: false,
     })
-        data: VoteRawResponseDto;
+        data: VoteRawResponseDto | VoteRawResponseUpdate;
 }
 
 export class VoteCreateDto extends OmitType(VoteRawResponseDto, ['_id', 'createdAt', 'updatedAt'] as const) {}
