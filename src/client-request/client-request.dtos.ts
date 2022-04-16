@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsIn, IsNumberString, IsUUID } from 'class-validator';
 import constants from '../common/constants';
 
-const getDataProviderMethods = () => {
+export const getDataProviderMethods = () => {
     const methods = [];
     Array.from(constants.PROVIDERS.values()).forEach((value) => {
         value.methods.forEach(datasource => methods.push(datasource));
