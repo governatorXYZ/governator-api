@@ -17,12 +17,12 @@ describe('Test UserController', () => {
 
     const testAccount = {
         user_id: '999a8681e47db28bf0000222',
-        provider_type: 'oauth',
+        // provider_type: 'oauth',
         provider_id: 'discord',
         provider_account_id: '1234567',
-        refresh_token: 'string',
-        access_token: 'string',
-        access_token_expires: new Date(Date.now()),
+        // refresh_token: 'string',
+        // access_token: 'string',
+        // access_token_expires: new Date(Date.now()),
     };
 
     let userController: UserController;
@@ -38,7 +38,7 @@ describe('Test UserController', () => {
             deleteUser(id) { return testUser; }
             // eslint-disable-next-line
             fetchUserByProvider(provider_id, provider_account_id) { return testUser; }
-            addProviderAccount(id, account: AccountCreateDto) { return account; }
+            addProviderAccount(account: AccountCreateDto) { return account; }
             removeProviderAccount(id, account: AccountCreateDto) { return account; }
         }
 
@@ -64,7 +64,7 @@ describe('Test UserController', () => {
         expect(await userController.updateUser(testObjectId, testUser)).toEqual(testUser);
         expect(await userController.deleteUser(testObjectId)).toEqual(testUser);
         expect(await userController.fetchUserByProvider('provider', '1')).toEqual(testUser);
-        expect(await userController.addProviderAccount(testObjectId, testAccount)).toEqual(testAccount);
+        expect(await userController.addProviderAccount(testAccount)).toEqual(testAccount);
         expect(await userController.removeProviderAccount(testObjectId, testAccount)).toEqual(testAccount);
     });
 });

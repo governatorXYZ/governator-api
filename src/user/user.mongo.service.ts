@@ -65,7 +65,7 @@ export class UserMongoService {
 
     }
 
-    // TODO extend to delete existing user accounts
+    // TODO extend to delete existing accounts linked to this user
     async deleteUser(id): Promise<User> {
         try {
             return this.userModel.findOneAndDelete({ _id: id }).exec();

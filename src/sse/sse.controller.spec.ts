@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SseService } from './sse.service';
-import { MessageEvent } from './types';
+import { MessageEvent } from '@nestjs/common';
 import { SseController } from './sse.controller';
 import constants from '../common/constants';
 
