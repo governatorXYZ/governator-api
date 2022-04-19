@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
-import {Model, Query} from 'mongoose';
+import { Model, Query } from 'mongoose';
 import { UserResponseDto } from '../user/user.dtos';
 import { UserMongoService } from '../user/user.mongo.service';
 import { UserDocument } from '../user/user.schema';
@@ -12,8 +12,8 @@ import { UserCreateDto, UserUpdateDto } from '../user/user.dtos';
 import { PollCreateDto, PollResponseDto } from '../poll/poll.dtos';
 import { PollMongoService } from '../poll/poll.mongo.service';
 import { VoteRawResponseDto } from './vote.dto';
-import {HttpException, HttpStatus} from "@nestjs/common";
-import {createMock} from "@golevelup/ts-jest";
+import { HttpException, HttpStatus } from '@nestjs/common';
+import { createMock } from '@golevelup/ts-jest';
 
 
 const mockVote = (
@@ -33,31 +33,31 @@ const mockVoteDoc = (mock?: Partial<Vote>): Partial<VoteDocument> => ({
 });
 
 
-const voteArray = [
-    mockVote(),
-    mockVote('111a8681e4734rtg56783222',
-        '222a8681e4734rtg56783222',
-        'B',
-    ),
-    mockVote('222a8681e4734rtg56783333',
-        '333a8681e4734rtg56783222',
-        'C',
-    ),
-];
+// const voteArray = [
+//     mockVote(),
+//     mockVote('111a8681e4734rtg56783222',
+//         '222a8681e4734rtg56783222',
+//         'B',
+//     ),
+//     mockVote('222a8681e4734rtg56783333',
+//         '333a8681e4734rtg56783222',
+//         'C',
+//     ),
+// ];
 
-const voteDocArray = [
-    mockVoteDoc(),
-    mockVoteDoc({
-        user_id: '111a8681e4734rtg56783222',
-        poll_id: '222a8681e4734rtg56783222',
-        poll_option_id: 'B',
-    }),
-    mockVoteDoc({
-        user_id: '222a8681e4734rtg56783333',
-        poll_id: '333a8681e4734rtg56783222',
-        poll_option_id: 'C',
-    }),
-];
+// const voteDocArray = [
+//     mockVoteDoc(),
+//     mockVoteDoc({
+//         user_id: '111a8681e4734rtg56783222',
+//         poll_id: '222a8681e4734rtg56783222',
+//         poll_option_id: 'B',
+//     }),
+//     mockVoteDoc({
+//         user_id: '222a8681e4734rtg56783333',
+//         poll_id: '333a8681e4734rtg56783222',
+//         poll_option_id: 'C',
+//     }),
+// ];
 
 const mockUser = (
     _id = '623a8681e47db28bf073366d',
@@ -334,8 +334,10 @@ describe('VoteMongoService test series', () => {
     });
 
     it('should not delete a user and error correctly', async () => {
+        // eslint-disable-next-line
         // @ts-ignore
         await expect(service.deleteVote('a bad id')).rejects.toThrow(HttpException);
+        // eslint-disable-next-line
         // @ts-ignore
         await expect(service.deleteVote('a bad id')).rejects.toEqual(new HttpException('Failed to delete from db', HttpStatus.BAD_REQUEST));
 
@@ -401,6 +403,7 @@ describe('VoteMongoService test series', () => {
         );
 
         const validatedVote = await service.validateVoteRequest('623a8681e47db28bf07399', mockVote());
+        // eslint-disable-next-line
         // @ts-ignore
         expect(validatedVote).toEqual(service.transformResult('create', 'created!'));
 
@@ -456,6 +459,7 @@ describe('VoteMongoService test series', () => {
         );
 
         const validatedVote = await service.validateVoteRequest('623a8681e47db28bf07399', mockVote());
+        // eslint-disable-next-line
         // @ts-ignore
         expect(validatedVote).toEqual(service.transformResult('update', { oldVote: 'updated!', updatedVote: 'updated!' }));
 
@@ -510,6 +514,7 @@ describe('VoteMongoService test series', () => {
         );
 
         const validatedVote = await service.validateVoteRequest('623a8681e47db28bf07399', mockVote());
+        // eslint-disable-next-line
         // @ts-ignore
         expect(validatedVote).toEqual(service.transformResult('delete', 'deleted!'));
 

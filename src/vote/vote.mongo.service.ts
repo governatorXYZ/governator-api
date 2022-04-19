@@ -5,7 +5,7 @@ import { Vote, VoteDocument } from './vote.schema';
 import { VoteCreateDto, VoteRawResponseDto, VoteRequestDto, VoteResponseDto } from './vote.dto';
 import { Poll, PollDocument } from '../poll/poll.schema';
 import { User, UserDocument } from '../user/user.schema';
-import {VoteRawResponseUpdate} from "./types";
+import { VoteRawResponseUpdate } from './types';
 
 @Injectable()
 export class VoteMongoService {

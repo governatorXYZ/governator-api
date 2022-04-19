@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { VoteController } from './vote.controller';
 import { VoteMongoService } from './vote.mongo.service';
 import { VoteRequestDto } from './vote.dto';
-import {ArgumentMetadata, ValidationPipe} from "@nestjs/common";
+import { ArgumentMetadata, ValidationPipe } from '@nestjs/common';
 
 describe('Test VoteController', () => {
 
