@@ -151,10 +151,8 @@ export class VoteMongoService {
     async createVote(voteCreateDto: VoteCreateDto): Promise<VoteResponseDto> {
         this.logger.debug('Creating vote in db');
 
-        const createdVote = new this.voteModel(voteCreateDto);
-
         try {
-            const result: VoteRawResponseDto = await createdVote.save();
+            const result: VoteRawResponseDto = await this.voteModel.create(voteCreateDto);
             return this.transformResult('create', result);
 
         } catch (e) {

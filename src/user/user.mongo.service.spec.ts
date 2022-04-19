@@ -1,15 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { getModelToken, Prop } from '@nestjs/mongoose';
+import { getModelToken } from '@nestjs/mongoose';
 import { Model, Query } from 'mongoose';
-import { UserCreateDto, UserResponseDto, UserUpdateDto } from './user.dtos';
+import { UserResponseDto } from './user.dtos';
 import { UserMongoService } from './user.mongo.service';
 import { User, UserDocument } from './user.schema';
-import { AccountModule } from '../account/account.module';
 import { AccountMongoService } from '../account/account.mongo.service';
 import { AccountCreateDto } from '../account/account.dtos';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { createMock } from '@golevelup/ts-jest';
-import {Account, AccountDocument} from "../account/account.schema";
+import { Account, AccountDocument } from '../account/account.schema';
 
 
 const mockUser = (
@@ -76,7 +75,7 @@ const userDocArray = [
     }),
 ];
 
-const mockAccount = (user_id= '111a8681e4734rtg5678366d', provider_id = 'discord', provider_account_id = '1234') => {
+const mockAccount = (user_id = '111a8681e4734rtg5678366d', provider_id = 'discord', provider_account_id = '1234') => {
     return {
         _id: '222a8681e4734rtg56783333',
         user_id: user_id,
@@ -115,8 +114,8 @@ describe('UserMongoService test series', () => {
                 {
                     provide: getModelToken('Account'),
                     useValue: {
-                        new: jest.fn().mockResolvedValue(mockUser()),
-                        constructor: jest.fn().mockResolvedValue(mockUser()),
+                        new: jest.fn().mockResolvedValue(mockAccount()),
+                        constructor: jest.fn().mockResolvedValue(mockAccount()),
                         create: jest.fn(),
                         find: jest.fn(),
                         findOne: jest.fn(),

@@ -1,6 +1,7 @@
 import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { ObjectId } from 'mongodb';
 import {VoteRawResponseUpdate} from "./types";
+import {IsMongoId, IsString} from "class-validator";
 
 // TODO: fix this to work with user instead of provider/provider account
 export class VoteRawResponseDto {
@@ -18,6 +19,7 @@ export class VoteRawResponseDto {
     })
         poll_id: string;
 
+    @IsString()
     @ApiProperty({
         description: 'Vote record object',
         required: true,
@@ -25,6 +27,7 @@ export class VoteRawResponseDto {
     })
         poll_option_id: string;
 
+    @IsMongoId()
     @ApiProperty({
         description: 'Governator user ID',
         required: true,
