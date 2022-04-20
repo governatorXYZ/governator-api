@@ -8,6 +8,7 @@ import { SseModule } from './sse/sse.module';
 import { UserModule } from './user/user.module';
 import { VoteModule } from './vote/vote.module';
 import { ClientRequestModule } from './client-request/client-request.module';
+import { AuthModule } from './auth/auth.modute';
 
 @Module({
     imports: [
@@ -35,6 +36,7 @@ import { ClientRequestModule } from './client-request/client-request.module';
         UserModule,
         VoteModule,
         ClientRequestModule,
+        AuthModule,
     ],
 })
 export class AppModule {}

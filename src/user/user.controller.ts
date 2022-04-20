@@ -1,12 +1,15 @@
-import { ApiCreatedResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import {ApiCreatedResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags} from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { UserCreateDto, UserUpdateDto } from './user.dtos';
 import { User } from './user.schema';
 import { UserMongoService } from './user.mongo.service';
 import { AccountCreateDto } from '../account/account.dtos';
 import { Account } from '../account/account.schema';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('User')
+@UseGuards(AuthGuard('api-key'))
+@ApiSecurity('api_key')
 @Controller()
 export class UserController {
     constructor(protected mongoService: UserMongoService) {

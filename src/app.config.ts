@@ -41,6 +41,7 @@ export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
         .setTitle('Governator API')
         .setDescription('REST API for Governator')
         .setVersion(configService.get('npm_package_version'))
+        .addApiKey({ type: 'apiKey', name: 'X-API-KEY', in: 'header' })
         .build();
     const document = SwaggerModule.createDocument(app, swaggerConfig);
     if (setupSwaggerModule) SwaggerModule.setup(globalPrefix, app, document);

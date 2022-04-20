@@ -683,6 +683,11 @@
   resolved "https://registry.yarnpkg.com/@nestjs/mongoose/-/mongoose-9.0.3.tgz#0b7d1829051c2f1441142070077fdbd060bdfe5a"
   integrity sha512-y3M4LKVUP28HSp7hO7dXGvhs4PzpVI6LyIDqunlnzDdQhWtqaaxhW7VomqY8esOSv7otpF1v/vcCvoQVtSW4qA==
 
+"@nestjs/passport@^8.2.1":
+  version "8.2.1"
+  resolved "https://registry.yarnpkg.com/@nestjs/passport/-/passport-8.2.1.tgz#a2abff9f51b3857b3423f5380a00f475aa298fe7"
+  integrity sha512-HXEKMLX1x865+lsJB4srwKHBciDNAhWY1Ha+xbxYRbk7J5leGDoHJAmeqe+Wb3NDn5nkboggLV87t0q2mbYc8w==
+
 "@nestjs/platform-express@^8.4.4":
   version "8.4.4"
   resolved "https://registry.yarnpkg.com/@nestjs/platform-express/-/platform-express-8.4.4.tgz#c01de14ddc9ba6f26e3290cc165c784a64071d98"
@@ -896,7 +901,7 @@
     "@types/qs" "*"
     "@types/range-parser" "*"
 
-"@types/express@^4.17.13":
+"@types/express@*", "@types/express@^4.17.13":
   version "4.17.13"
   resolved "https://registry.yarnpkg.com/@types/express/-/express-4.17.13.tgz#a76e2995728999bab51a33fabce1d705a3709034"
   integrity sha512-6bSZTPaTIACxn48l50SR+axgrqm6qXFIxrdAKaG6PaJk3+zuUr35hBlgT7vOmJcum+OEaIBLtHV/qloEAFITeA==
@@ -969,6 +974,21 @@
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/@types/parse-json/-/parse-json-4.0.0.tgz#2f8bb441434d163b35fb8ffdccd7138927ffb8c0"
   integrity sha512-//oorEZjL6sbPcKUaCdIGlIUeH26mgzimjBB77G6XRgnDl/L5wOnpyBGRe/Mmf5CVW3PwEBE1NjiMZ/ssFh4wA==
+
+"@types/passport-http@^0.3.9":
+  version "0.3.9"
+  resolved "https://registry.yarnpkg.com/@types/passport-http/-/passport-http-0.3.9.tgz#268e483ade820d4f0edb3d35cec090d1990cc081"
+  integrity sha512-uQ4vyRdvM0jdWuKpLmi6Q6ri9Nwt8YnHmF7kE6snbthxPrsMWcjRCVc5WcPaQ356ODSZTDgiRYURMPIspCkn3Q==
+  dependencies:
+    "@types/express" "*"
+    "@types/passport" "*"
+
+"@types/passport@*", "@types/passport@^1.0.7":
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/@types/passport/-/passport-1.0.7.tgz#85892f14932168158c86aecafd06b12f5439467a"
+  integrity sha512-JtswU8N3kxBYgo+n9of7C97YQBT+AYPP2aBfNGTzABqPAZnK/WOAaKfh3XesUYMZRrXFuoPc2Hv0/G/nQFveHw==
+  dependencies:
+    "@types/express" "*"
 
 "@types/prettier@^2.1.5":
   version "2.4.4"
@@ -3675,7 +3695,7 @@ lodash.merge@^4.6.2:
   resolved "https://registry.yarnpkg.com/lodash.merge/-/lodash.merge-4.6.2.tgz#558aa53b43b661e1925a0afdfa36a9a1085fe57a"
   integrity sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==
 
-lodash@4.17.21, lodash@^4.17.19, lodash@^4.17.21, lodash@^4.7.0:
+lodash@4.17.21, lodash@^4.17.15, lodash@^4.17.19, lodash@^4.17.21, lodash@^4.7.0:
   version "4.17.21"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
   integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
@@ -4139,6 +4159,27 @@ parseurl@~1.3.3:
   resolved "https://registry.yarnpkg.com/parseurl/-/parseurl-1.3.3.tgz#9da19e7bee8d12dff0513ed5b76957793bc2e8d4"
   integrity sha512-CiyeOxFT/JZyN5m0z9PfXw4SCBJ6Sygz1Dpl0wqjlhDEGGBP1GnsUVEL0p63hoG1fcj3fHynXi9NYO4nWOL+qQ==
 
+passport-headerapikey@^1.2.2:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/passport-headerapikey/-/passport-headerapikey-1.2.2.tgz#b71960523999c9864151b8535c919e3ff5ba75ce"
+  integrity sha512-4BvVJRrWsNJPrd3UoZfcnnl4zvUWYKEtfYkoDsaOKBsrWHYmzTApCjs7qUbncOLexE9ul0IRiYBFfBG0y9IVQA==
+  dependencies:
+    lodash "^4.17.15"
+    passport-strategy "^1.0.0"
+
+passport-strategy@1.x.x, passport-strategy@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/passport-strategy/-/passport-strategy-1.0.0.tgz#b5539aa8fc225a3d1ad179476ddf236b440f52e4"
+  integrity sha1-tVOaqPwiWj0a0XlHbd8ja0QPUuQ=
+
+passport@^0.5.2:
+  version "0.5.2"
+  resolved "https://registry.yarnpkg.com/passport/-/passport-0.5.2.tgz#0cb38dd8a71552c8390dfa6a9a6f7f3909954bcf"
+  integrity sha512-w9n/Ot5I7orGD4y+7V3EFJCQEznE5RxHamUxcqLT2QoJY0f2JdN8GyHonYFvN0Vz+L6lUJfVhrk2aZz2LbuREw==
+  dependencies:
+    passport-strategy "1.x.x"
+    pause "0.0.1"
+
 path-exists@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/path-exists/-/path-exists-4.0.0.tgz#513bdbe2d3b95d7762e8c1137efa195c6c61b5b3"
@@ -4173,6 +4214,11 @@ path-type@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/path-type/-/path-type-4.0.0.tgz#84ed01c0a7ba380afe09d90a8c180dcd9d03043b"
   integrity sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==
+
+pause@0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/pause/-/pause-0.0.1.tgz#1d408b3fdb76923b9543d96fb4c9dfd535d9cb5d"
+  integrity sha1-HUCLP9t2kjuVQ9lvtMnf1TXZy10=
 
 picocolors@^1.0.0:
   version "1.0.0"

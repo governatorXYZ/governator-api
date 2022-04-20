@@ -1,9 +1,12 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {ApiCreatedResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags} from '@nestjs/swagger';
 import { VoteMongoService } from './vote.mongo.service';
 import { VoteRequestDto, VoteResponseDto } from './vote.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('Vote')
+@UseGuards(AuthGuard('api-key'))
+@ApiSecurity('api_key')
 @Controller()
 export class VoteController {
     constructor(protected mongoService: VoteMongoService) {
