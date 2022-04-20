@@ -42,9 +42,7 @@ export class UserMongoService {
         this.logger.debug('Creating new user in db');
 
         try {
-            const createdUser = new this.userModel(userCreateDto);
-
-            return await createdUser.save();
+            return await this.userModel.create(userCreateDto);
 
         } catch (e) {
 
@@ -67,7 +65,7 @@ export class UserMongoService {
 
     }
 
-    // TODO extend to delete existing user accounts
+    // TODO extend to delete existing accounts linked to this user
     async deleteUser(id): Promise<User> {
         try {
             return this.userModel.findOneAndDelete({ _id: id }).exec();
@@ -84,7 +82,10 @@ export class UserMongoService {
         let account: Account | null;
 
         try {
-            account = await this.accountModel.findOne({ provider_id: providerId, provider_account_id: providerAccountId }).exec();
+            account = await this.accountModel.findOne({ provider_id: providerId, provider_account_id: providerAccountId }).exec().catch((e) => {
+                this.logger.error(e);
+                return null;
+            });
 
         } catch (e) {
             this.logger.error('Failed to fetch account from db', e);
@@ -101,14 +102,10 @@ export class UserMongoService {
     }
 
     // TODO add validation to make sure user has not linked a provider account already
-    async addProviderAccount(id, account): Promise<Account> {
-
-        account.user_id = id;
+    async addProviderAccount(account): Promise<Account> {
 
         try {
-            const createdAccount = new this.accountModel(account);
-
-            return await createdAccount.save();
+            return this.accountModel.create(account);
 
         } catch (e) {
             this.logger.error('Failed to create account', e);

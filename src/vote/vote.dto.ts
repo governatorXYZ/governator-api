@@ -1,6 +1,9 @@
 import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { ObjectId } from 'mongodb';
+import { VoteRawResponseUpdate } from './types';
+import { IsMongoId, IsString } from 'class-validator';
 
+// TODO: fix this to work with user instead of provider/provider account
 export class VoteRawResponseDto {
 
     @ApiProperty({
@@ -16,26 +19,20 @@ export class VoteRawResponseDto {
     })
         poll_id: string;
 
+    @IsString()
     @ApiProperty({
         description: 'Vote record object',
         required: true,
         // type: VoteOptionDto,
     })
-        poll_option_index: number;
+        poll_option_id: string;
 
+    @IsMongoId()
     @ApiProperty({
-        description: 'Provider ID of requesting platform, e.g. discord',
-        required: true,
-        // TODO: create common enum SupportedProviders
-        // type: SupportedProviders,
-    })
-        provider_id: string;
-
-    @ApiProperty({
-        description: 'Provider account ID of requesting platform, e.g. discord user ID',
+        description: 'Governator user ID',
         required: true,
     })
-        provider_account_id: string;
+        user_id: string;
 
     @ApiProperty({
         description: 'Datetime when record was created',
@@ -63,9 +60,9 @@ export class VoteResponseDto {
         description: 'created/updated/deleted db object',
         required: false,
     })
-        data: VoteRawResponseDto;
+        data: VoteRawResponseDto | VoteRawResponseUpdate;
 }
 
 export class VoteCreateDto extends OmitType(VoteRawResponseDto, ['_id', 'createdAt', 'updatedAt'] as const) {}
 
-export class VoteRequestDto extends OmitType(VoteCreateDto, ['provider_id', 'poll_id'] as const) {}
+export class VoteRequestDto extends OmitType(VoteCreateDto, ['poll_id'] as const) {}

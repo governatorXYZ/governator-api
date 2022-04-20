@@ -15,9 +15,7 @@ export class PollMongoService {
         this.logger.debug('Creating new poll in db');
 
         try {
-            const createdPoll = new this.pollModel(pollCreateDto);
-
-            return await createdPoll.save();
+            return await this.pollModel.create(pollCreateDto);
 
         } catch (e) {
 
@@ -96,14 +94,4 @@ export class PollMongoService {
             throw new HttpException('Failed to fetch poll from db', HttpStatus.BAD_REQUEST);
         }
     }
-
-    // TODO: remove if not needed
-    // async find(filter: UpdatePollDto = {}): Promise<Poll[]> {
-    //     console.log(await this.pollModel.find(filter).exec());
-    //     return await this.pollModel.find(filter).exec();
-    // }
-    //
-    // async findOne(filter: UpdatePollDto = {}): Promise<Poll> {
-    //     return await this.pollModel.findOne(filter).exec();
-    // }
 }

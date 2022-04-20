@@ -3,7 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { PollMongoService } from './poll.mongo.service';
 import { Poll, PollSchema } from './poll.schema';
 import { PollController } from './poll.controller';
-import {SseModule} from "../sse/sse.module";
+import { SseModule } from '../sse/sse.module';
 
 @Module({
     imports: [

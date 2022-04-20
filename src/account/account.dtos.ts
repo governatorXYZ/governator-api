@@ -1,9 +1,8 @@
-import { IsDate, IsMongoId } from 'class-validator';
-import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { IsMongoId } from 'class-validator';
+import { ApiProperty, OmitType, PartialType } from '@nestjs/swagger';
 import { ObjectId } from 'mongodb';
-import { Transform } from 'class-transformer';
 
-export class CreateAccountDto {
+export class AccountResponseDto {
 
     @IsMongoId()
     @ApiProperty({
@@ -20,11 +19,11 @@ export class CreateAccountDto {
     })
         user_id: string;
 
-    @ApiProperty({
-        description: 'Type of auth provider - e.g. oauth',
-        required: true,
-    })
-        provider_type: string;
+    // @ApiProperty({
+    //     description: 'Type of auth provider - e.g. oauth',
+    //     required: true,
+    // })
+    //     provider_type: string;
 
     @ApiProperty({
         description: 'ID of auth provider e.g. discord',
@@ -38,26 +37,39 @@ export class CreateAccountDto {
     })
         provider_account_id: string;
 
-    @ApiProperty({
-        description: 'Provider refresh token',
-        required: false,
-    })
-        refresh_token: string;
+    // @ApiProperty({
+    //     description: 'Provider refresh token',
+    //     required: false,
+    // })
+    //     refresh_token: string;
+
+    // @ApiProperty({
+    //     description: 'Provider access token',
+    //     required: false,
+    // })
+    //     access_token: string;
+
+    // @IsDate()
+    // @Transform(({ value }) => new Date(value), { toClassOnly: true })
+    // @ApiProperty({
+    //     description: 'Access token expiration date',
+    //     required: false,
+    // })
+    //     access_token_expires: Date;
 
     @ApiProperty({
-        description: 'Provider access token',
+        description: 'Datetime when record was created',
         required: false,
     })
-        access_token: string;
+        createdAt: string;
 
-    @IsDate()
-    @Transform(({ value }) => new Date(value), { toClassOnly: true })
     @ApiProperty({
-        description: 'User Id for provider',
+        description: 'Datetime when record was last updated',
         required: false,
     })
-        access_token_expires: Date;
-
+        updatedAt: string;
 }
 
-export class UpdateAccountDto extends PartialType(CreateAccountDto) {}
+export class AccountCreateDto extends OmitType(AccountResponseDto, ['_id', 'createdAt', 'updatedAt'] as const) {}
+
+export class AccountUpdateDto extends PartialType(AccountCreateDto) {}

@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, MessageEvent } from '@nestjs/common';
 import { Subject } from 'rxjs';
-import { MessageEvent } from './types';
+// import { MessageEvent } from './types';
 
 @Injectable()
 export class SseService {

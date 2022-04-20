@@ -3,7 +3,7 @@ import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common'
 import { UserCreateDto, UserUpdateDto } from './user.dtos';
 import { User } from './user.schema';
 import { UserMongoService } from './user.mongo.service';
-import { CreateAccountDto } from '../account/account.dtos';
+import { AccountCreateDto } from '../account/account.dtos';
 import { Account } from '../account/account.schema';
 
 @ApiTags('User')
@@ -51,23 +51,22 @@ export class UserController {
     @ApiOperation({ description: 'Fetch user by provider' })
     @ApiParam({ name: 'provider_id', description: 'Provider ID, e.g. discord' })
     @ApiParam({ name: 'provider_account_id', description: 'Provider account ID, e.g. discord user ID' })
-    async fetchUserByProvider(@Param('provider_id') provider_id, @Param('provider_id') provider_account_id) {
+    async fetchUserByProvider(@Param('provider_id') provider_id, @Param('provider_account_id') provider_account_id) {
         return await this.mongoService.fetchUserByProvider(provider_id, provider_account_id);
     }
 
-    @Post('user/:id/add_provider_account')
+    @Post('user/add_provider_account')
     @ApiOperation({ description: 'Add a provider account to  a user' })
-    @ApiParam({ name: 'id', description: 'Governator user ID' })
     @ApiCreatedResponse({ description: 'Returns the new account object', type: Account })
-    async addProviderAccount(@Param('id') id, @Body() account: CreateAccountDto): Promise<Account> {
-        return await this.mongoService.addProviderAccount(id, account);
+    async addProviderAccount(@Body() account: AccountCreateDto): Promise<Account> {
+        return await this.mongoService.addProviderAccount(account);
     }
 
     @Delete('user/:id/remove_provider_account')
     @ApiOperation({ description: 'Remove a provider account from  a user' })
     @ApiParam({ name: 'id', description: 'Governator user ID' })
     @ApiCreatedResponse({ description: 'Returns the deleted account object', type: Account })
-    async removeProviderAccount(@Param('id') id, @Body() account: CreateAccountDto): Promise<Account> {
+    async removeProviderAccount(@Param('id') id, @Body() account: AccountCreateDto): Promise<Account> {
         return await this.mongoService.removeProviderAccount(id, account);
     }
 
