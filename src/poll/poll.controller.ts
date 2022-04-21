@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, MessageEvent } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { PollCreateDto, PollUpdateDto } from './poll.dtos';
 import { PollMongoService } from './poll.mongo.service';
 import { Poll } from './poll.schema';
@@ -7,6 +7,7 @@ import { SseService } from '../sse/sse.service';
 import constants from '../common/constants';
 
 @ApiTags('Poll')
+@ApiSecurity('api_key')
 @Controller()
 export class PollController {
     constructor(

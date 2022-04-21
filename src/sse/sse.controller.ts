@@ -1,9 +1,10 @@
 import { Body, Controller, MessageEvent, Post, Sse } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { SseService } from './sse.service';
 
 @ApiTags('Server Sent Events')
+@ApiSecurity('api_key')
 @Controller()
 export class SseController {
     constructor(protected sseService: SseService) {
