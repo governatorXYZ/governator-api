@@ -1,13 +1,11 @@
-import { Body, Controller, Post, MessageEvent, HttpException, HttpStatus, Param, Get, UseGuards } from '@nestjs/common';
-import {ApiCreatedResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags} from '@nestjs/swagger';
+import { Body, Controller, Post, MessageEvent, HttpException, HttpStatus, Param, Get } from '@nestjs/common';
+import { ApiCreatedResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { SseService } from '../sse/sse.service';
 import constants from '../common/constants';
 import { DiscordRequestDto, DiscordResponsetDto } from './client-request.dtos';
 import { v4 as uuidv4 } from 'uuid';
-import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('Request data from client')
-@UseGuards(AuthGuard('api-key'))
 @ApiSecurity('api_key')
 @Controller()
 export class ClientRequestController {

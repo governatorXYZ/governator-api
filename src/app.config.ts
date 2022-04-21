@@ -3,8 +3,11 @@ import { VersioningType, ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { OpenAPI } from 'openapi-types';
 import helmet from 'helmet';
+import { Reflector } from '@nestjs/core';
+import { AuthGuard } from './auth/auth.guard';
 
 export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
+
     // Makes .env available
     const configService = app.get(ConfigService);
 
@@ -35,6 +38,10 @@ export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
 
     // Put a helmet on
     app.use(helmet());
+
+    // use global auth guard
+    const reflector = app.get(Reflector);
+    app.useGlobalGuards(new AuthGuard(reflector));
 
     // Swagger setup
     const swaggerConfig = new DocumentBuilder()
