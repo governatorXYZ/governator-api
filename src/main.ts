@@ -8,6 +8,6 @@ async function bootstrap() {
 
     configure(app);
 
-    await app.listen(app.get(ConfigService).get('API_PORT'));
+    await app.listen(app.get(ConfigService).get('PORT'));
 }
 bootstrap();

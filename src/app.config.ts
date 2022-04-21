@@ -26,15 +26,12 @@ export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
     // set { transform: true } to enable default values in dtos
     app.useGlobalPipes(new ValidationPipe());
 
-    // TODO: this is for development only and has to be changed
     // set cors origin policy from .env
-    app.enableCors({
-        origin:
-      configService.get('CORS_ORIGIN') === 'true' ||
-      configService.get('CORS_ORIGIN') === 'false'
-          ? configService.get('CORS_ORIGIN') === 'true'
-          : configService.get('CORS_ORIGIN'),
-    });
+    if (configService.get('NODE_ENV') === 'development') {
+        app.enableCors();
+    } else if (configService.get('NODE_ENV') === 'production') {
+        app.enableCors({ origin: configService.get('CORS_ORIGIN').split(' ') });
+    }
 
     // Put a helmet on
     app.use(helmet());

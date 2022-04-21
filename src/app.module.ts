@@ -10,17 +10,19 @@ import { VoteModule } from './vote/vote.module';
 import { ClientRequestModule } from './client-request/client-request.module';
 import { AuthModule } from './auth/auth.modute';
 
+const ENV = process.env.NODE_ENV;
+
 @Module({
     imports: [
         ConfigModule.forRoot({
             isGlobal: true,
+            envFilePath: !ENV ? '.env' : `.env.${ENV}`,
             validationSchema: Joi.object({
                 NODE_ENV: Joi.string()
                     .valid('development', 'production', 'test')
                     .default('development'),
-                LQS_PORT: Joi.number().default(3000),
-                LQS_GLOBAL_PREFIX: Joi.string().default('api'),
-                API_CORS_ORIGIN: Joi.string().default('false'),
+                API_PORT: Joi.number().default(3000),
+                API_GLOBAL_PREFIX: Joi.string().default('api'),
             }),
         }),
         MongooseModule.forRootAsync({
