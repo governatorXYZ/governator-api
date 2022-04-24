@@ -1,6 +1,5 @@
 import { Injectable, Logger, MessageEvent } from '@nestjs/common';
 import { Subject } from 'rxjs';
-// import { MessageEvent } from './types';
 
 @Injectable()
 export class SseService {
@@ -10,9 +9,13 @@ export class SseService {
         this.eventStream = new Subject();
     }
 
-    emit(message: MessageEvent): void {
-        this.logger.debug(`Publishing event ${message.type}`);
-        this.eventStream.next(message);
+    emit(event: MessageEvent): void {
+        this.logger.debug(`Publishing event ${event.type}`);
+        try {
+            this.eventStream.next(event);
+        } catch (e) {
+            this.logger.error('Failed to publish event', e);
+        }
     }
 
 }
