@@ -1,4 +1,15 @@
-import { Body, Controller, Post, MessageEvent, HttpException, HttpStatus, Param, Get, Logger } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Post,
+    MessageEvent,
+    HttpException,
+    HttpStatus,
+    Param,
+    Get,
+    Logger,
+    HttpCode
+} from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { SseService } from '../sse/sse.service';
 import constants from '../common/constants';
@@ -62,15 +73,9 @@ export class ClientRequestController {
 
     @Post('client/discord/data-response')
     @ApiOperation({ description: 'Client can submit requested data to this endpoint' })
-    @ApiCreatedResponse({ description: `Emits the specified ${constants.EVENT_RESPONSE_CLIENT_DATA} event with specified payload`, type: DiscordResponsetDto })
+    @ApiCreatedResponse({ description: 'Forwards client response to the get request observable' })
     async sendResponse(@Body() params: DiscordResponsetDto): Promise<void> {
         await this.clientRequestService.emit(params);
-        // const event = {
-        //     data: params,
-        //     type: constants.EVENT_RESPONSE_CLIENT_DATA,
-        // };
-        // await this.sseService.emit(event as MessageEvent);
-        // return event;
     }
 
 }
