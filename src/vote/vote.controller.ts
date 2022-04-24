@@ -38,5 +38,3 @@ export class VoteController {
     }
 
 }
-
-// TODO add vote get endpoints for result display

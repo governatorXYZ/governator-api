@@ -79,27 +79,4 @@ export class PollController {
         } as MessageEvent);
         return deletePoll;
     }
-
-    // TODO remove if not needed
-    // // @eslint-ignore
-    // @Post('find-one-poll')
-    // @ApiOperation({ description: 'Retrieve a poll by filter' })
-    // @ApiOkResponse({ description: 'Successfully returned poll object', type: UpdatePollDto })
-    // async findOne(
-    //     @Body() params: UpdatePollDto,
-    // ): Promise<any> {
-    //     return await this.mongoService.findOne(params);
-    // }
-    //
-    // // @eslint-ignore
-    // @Post('find-many-poll')
-    // @ApiOperation({ description: 'Retrieve a poll by filter' })
-    // @ApiOkResponse({ description: 'Successfully returned poll object', type: UpdatePollDto })
-    // async find(
-    //     @Body() params: UpdatePollDto,
-    // ): Promise<any> {
-    //     return await this.mongoService.find(params);
-    // }
-
-
 }

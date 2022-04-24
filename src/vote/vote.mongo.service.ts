@@ -136,7 +136,6 @@ export class VoteMongoService {
         }
     }
 
-    // TODO: Decide upon user source of truth
     async getVotes(pollId, userId): Promise<Record<string, any>> {
         try {
             return await this.voteModel.find({ poll_id: pollId, user_id: userId }).exec();
@@ -163,8 +162,6 @@ export class VoteMongoService {
     }
 
     async updateVote(voteCreateDto: VoteCreateDto): Promise<VoteResponseDto> {
-
-        // TODO double check that _id will persist in DB
 
         this.logger.debug('Updating vote in db');
 
