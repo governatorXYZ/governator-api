@@ -21,7 +21,17 @@ export class VoteMongoService {
 
     async fetchVoteByPoll(pollId) {
         try {
-            // const votes = await this.voteModel.find({ poll_id: pollId }).exec();
+            return await this.voteModel.find({ poll_id: pollId }, '-user_id -__v').exec();
+
+        } catch (e) {
+            this.logger.error('Failed to fetch votes from db', e);
+
+            throw new HttpException('Failed to fetch votes from db', HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    async fetchVoteByPollAggregate(pollId) {
+        try {
             return await this.voteModel.aggregate([
                 { '$match': { 'poll_id': pollId } },
                 { '$group': { '_id': '$poll_option_id', count:{ $sum:1 } } },
@@ -34,9 +44,8 @@ export class VoteMongoService {
         }
     }
 
-    async fetchVoteByPollAndUser(pollId, userId) {
+    async fetchVoteByPollAndUserAggregate(pollId, userId) {
         try {
-            // const votes = await this.voteModel.find({ poll_id: pollId }).exec();
             return await this.voteModel.aggregate([
                 { '$match': { 'poll_id': pollId, 'user_id': userId } },
                 { '$group': { '_id': '$poll_option_id', count:{ $sum:1 } } },
@@ -52,7 +61,6 @@ export class VoteMongoService {
     // TODO: maybe place this part in separate file / service
     // below methods are handling vote logic and should not be accessed by other public endpoints
 
-    // TODO: on bot: check if user is part of role allow list
     async validateVoteRequest(pollId: string, voteRequestDto: VoteRequestDto) {
 
         if (process.env.NODE_ENV === 'development') this.logger.log(`Attempting to validate vote request for pollID: ${pollId}, with request body: ${JSON.stringify(voteRequestDto)}`);

@@ -228,7 +228,7 @@ describe('VoteMongoService test series', () => {
     // TODO: get error pathway to work
 
     it('should return vote aggregate', async () => {
-        jest.spyOn(model, 'aggregate').mockReturnValue({
+        jest.spyOn(model, 'find').mockReturnValue({
             exec: jest.fn().mockResolvedValueOnce({ poll_option_id: 'A', count: 2 }),
         } as any);
         const result = await service.fetchVoteByPoll('123');
@@ -245,6 +245,24 @@ describe('VoteMongoService test series', () => {
         await expect(service.fetchVoteByPoll('123')).rejects.toEqual(new HttpException('Failed to fetch votes from db', HttpStatus.BAD_REQUEST));
     });
 
+    it('should return vote aggregate', async () => {
+        jest.spyOn(model, 'aggregate').mockReturnValue({
+            exec: jest.fn().mockResolvedValueOnce({ poll_option_id: 'A', count: 2 }),
+        } as any);
+        const result = await service.fetchVoteByPollAggregate('123');
+        expect(result).toEqual({ poll_option_id: 'A', count: 2 });
+    });
+
+    it('fetchVoteByPoll() should return correct error type and message', async () => {
+        jest.spyOn(model, 'aggregate').mockReturnValue({
+            exec: jest.fn().mockImplementation(() => {
+                throw new HttpException('error testing', HttpStatus.BAD_REQUEST);
+            }),
+        } as any);
+        await expect(service.fetchVoteByPollAggregate('123')).rejects.toThrow(HttpException);
+        await expect(service.fetchVoteByPollAggregate('123')).rejects.toEqual(new HttpException('Failed to fetch votes from db', HttpStatus.BAD_REQUEST));
+    });
+
     it('should return aggregate', async () => {
         jest.spyOn(model, 'aggregate').mockReturnValueOnce(
             createMock<Query<VoteDocument, VoteDocument>>({
@@ -254,7 +272,7 @@ describe('VoteMongoService test series', () => {
             }) as any,
         );
         const findMockVote = mockVote('623a8681e47db28bf073366d', '623a8681e47db28bf07399', 'A');
-        const foundVote = await service.fetchVoteByPollAndUser('623a8681e47db28bf07399', '623a8681e47db28bf073366d');
+        const foundVote = await service.fetchVoteByPollAndUserAggregate('623a8681e47db28bf07399', '623a8681e47db28bf073366d');
         expect(foundVote).toEqual(findMockVote);
     });
 
@@ -264,8 +282,8 @@ describe('VoteMongoService test series', () => {
                 throw new HttpException('error testing', HttpStatus.BAD_REQUEST);
             }),
         } as any);
-        await expect(service.fetchVoteByPollAndUser('623a8681e47db28bf07399', '623a8681e47db28bf073366d')).rejects.toThrow(HttpException);
-        await expect(service.fetchVoteByPollAndUser('623a8681e47db28bf07399', '623a8681e47db28bf073366d')).rejects.toEqual(new HttpException('Failed to fetch votes from db', HttpStatus.BAD_REQUEST));
+        await expect(service.fetchVoteByPollAndUserAggregate('623a8681e47db28bf07399', '623a8681e47db28bf073366d')).rejects.toThrow(HttpException);
+        await expect(service.fetchVoteByPollAndUserAggregate('623a8681e47db28bf07399', '623a8681e47db28bf073366d')).rejects.toEqual(new HttpException('Failed to fetch votes from db', HttpStatus.BAD_REQUEST));
     });
 
     it('should fetch all votes of a user', async () => {

@@ -22,19 +22,22 @@ export class VoteController {
     @Get('vote/results/:poll_id')
     @ApiOperation({ description: 'Fetch votes by poll' })
     @ApiParam({ name: 'poll_id', description: 'Poll ID' })
-    async fetchVoteByPoll(@Param('poll_id') poll_id) {
-        return await this.mongoService.fetchVoteByPoll(poll_id);
+    async fetchVoteByPollAggregate(@Param('poll_id') poll_id) {
+        return {
+            aggregate: await this.mongoService.fetchVoteByPollAggregate(poll_id),
+            votes: await this.mongoService.fetchVoteByPoll(poll_id),
+        };
     }
 
     @Get('vote/results/:poll_id/:user_id')
     @ApiOperation({ description: 'Fetch votes by poll and user' })
     @ApiParam({ name: 'poll_id', description: 'Poll ID' })
     @ApiParam({ name: 'user_id', description: 'Governator user ID' })
-    async fetchVoteByPollAndUser(
+    async fetchVoteByPollAndUserAggregate(
         @Param('poll_id') poll_id,
         @Param('user_id') user_id,
     ) {
-        return await this.mongoService.fetchVoteByPollAndUser(poll_id, user_id);
+        return await this.mongoService.fetchVoteByPollAndUserAggregate(poll_id, user_id);
     }
 
 }

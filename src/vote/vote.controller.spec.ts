@@ -15,7 +15,6 @@ describe('Test VoteController', () => {
     };
 
     let voteController: VoteController;
-    // let mockSseService: any;
     beforeEach(async () => {
 
         class VoteMongoServiceMock {
@@ -23,7 +22,9 @@ describe('Test VoteController', () => {
             // eslint-disable-next-line
             fetchVoteByPoll(pollId) { return true; }
             // eslint-disable-next-line
-            fetchVoteByPollAndUser(pollId, userId) { return true; }
+            fetchVoteByPollAggregate(pollId) { return true; }
+            // eslint-disable-next-line
+            fetchVoteByPollAndUserAggregate(pollId, userId) { return true; }
         }
 
         // Mock mongo service response
@@ -43,8 +44,8 @@ describe('Test VoteController', () => {
     it('checks if controller invokes VoteMongoService', async () => {
 
         expect(await voteController.createVote(testPollId, testVoteRequest)).toBe(true);
-        expect(await voteController.fetchVoteByPoll(testPollId)).toEqual(true);
-        expect(await voteController.fetchVoteByPollAndUser(testPollId, testUserId)).toEqual(true);
+        expect(await voteController.fetchVoteByPollAggregate(testPollId)).toEqual({ aggregate: true, votes: true });
+        expect(await voteController.fetchVoteByPollAndUserAggregate(testPollId, testUserId)).toEqual(true);
     });
 });
 
