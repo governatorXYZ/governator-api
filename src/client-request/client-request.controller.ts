@@ -8,7 +8,6 @@ import {
     Param,
     Get,
     Logger,
-    HttpCode
 } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { SseService } from '../sse/sse.service';
