@@ -3,7 +3,6 @@ import { ObjectId } from 'mongodb';
 import { VoteRawResponseUpdate } from './types';
 import { IsMongoId, IsString } from 'class-validator';
 
-// TODO: fix this to work with user instead of provider/provider account
 export class VoteRawResponseDto {
 
     @ApiProperty({

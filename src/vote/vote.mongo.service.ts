@@ -21,7 +21,17 @@ export class VoteMongoService {
 
     async fetchVoteByPoll(pollId) {
         try {
-            // const votes = await this.voteModel.find({ poll_id: pollId }).exec();
+            return await this.voteModel.find({ poll_id: pollId }, '-user_id -__v').exec();
+
+        } catch (e) {
+            this.logger.error('Failed to fetch votes from db', e);
+
+            throw new HttpException('Failed to fetch votes from db', HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    async fetchVoteByPollAggregate(pollId) {
+        try {
             return await this.voteModel.aggregate([
                 { '$match': { 'poll_id': pollId } },
                 { '$group': { '_id': '$poll_option_id', count:{ $sum:1 } } },
@@ -34,9 +44,8 @@ export class VoteMongoService {
         }
     }
 
-    async fetchVoteByPollAndUser(pollId, userId) {
+    async fetchVoteByPollAndUserAggregate(pollId, userId) {
         try {
-            // const votes = await this.voteModel.find({ poll_id: pollId }).exec();
             return await this.voteModel.aggregate([
                 { '$match': { 'poll_id': pollId, 'user_id': userId } },
                 { '$group': { '_id': '$poll_option_id', count:{ $sum:1 } } },
@@ -52,12 +61,11 @@ export class VoteMongoService {
     // TODO: maybe place this part in separate file / service
     // below methods are handling vote logic and should not be accessed by other public endpoints
 
-    // TODO: on bot: check if user is part of role allow list
     async validateVoteRequest(pollId: string, voteRequestDto: VoteRequestDto) {
 
-        if (process.env.NODE_ENV === 'development') this.logger.log(`Attempting to validate vote request for pollID: ${pollId}, with request body: ${voteRequestDto}`);
+        if (process.env.NODE_ENV === 'development') this.logger.log(`Attempting to validate vote request for pollID: ${pollId}, with request body: ${JSON.stringify(voteRequestDto)}`);
 
-        this.logger.debug('Attempting to retrieve provider_id of vote request provider');
+        // this.logger.debug('Attempting to retrieve provider_id of vote request provider');
         // const providerId = this.getProviderId();
 
         this.logger.debug('Validating Poll ID');
@@ -72,11 +80,11 @@ export class VoteMongoService {
         this.logger.debug('Checking if user has already voted on this poll with this provider_account');
         const userVotes = await this.getVotes(pollId, voteRequestDto.user_id);
         if (process.env.NODE_ENV === 'development') this.logger.debug(`userVotes: Vote[] length: ${Object.keys(userVotes).length}`);
-        if (process.env.NODE_ENV === 'development') this.logger.debug(`userVotes: Vote[] length: ${userVotes}`);
+        if (process.env.NODE_ENV === 'development') this.logger.debug(`userVotes: Vote[] ${JSON.stringify(userVotes)}`);
 
         this.logger.debug('Preparing createVoteDto');
         const voteCreateDto: VoteCreateDto = { ...voteRequestDto, poll_id: pollId };
-        if (process.env.NODE_ENV === 'development') this.logger.debug(`createVoteDto: CreateVoteDto: ${JSON.stringify(voteCreateDto)}`);
+        if (process.env.NODE_ENV === 'development') this.logger.debug(`voteCreateDto: VoteCreateDto: ${JSON.stringify(voteCreateDto)}`);
 
         if(Object.keys(userVotes).length === 0) {
             this.logger.debug('first time vote of user/platform on this poll');
@@ -114,7 +122,9 @@ export class VoteMongoService {
 
     async getPoll(pollId): Promise<Poll> {
         try {
-            return await this.pollModel.findById(pollId).exec();
+            const poll = await this.pollModel.findById(pollId).exec();
+            this.logger.debug('POLL found ', poll);
+            return poll;
 
         } catch (e) {
             this.logger.error('Invalid Poll ID', e);
@@ -136,7 +146,6 @@ export class VoteMongoService {
         }
     }
 
-    // TODO: Decide upon user source of truth
     async getVotes(pollId, userId): Promise<Record<string, any>> {
         try {
             return await this.voteModel.find({ poll_id: pollId, user_id: userId }).exec();
@@ -163,8 +172,6 @@ export class VoteMongoService {
     }
 
     async updateVote(voteCreateDto: VoteCreateDto): Promise<VoteResponseDto> {
-
-        // TODO double check that _id will persist in DB
 
         this.logger.debug('Updating vote in db');
 
@@ -197,7 +204,9 @@ export class VoteMongoService {
         this.logger.debug('Deleting vote from db');
 
         try {
-            const result: VoteRawResponseDto = await this.voteModel.findOneAndDelete({ voteCreateDto }).exec();
+            const result: VoteRawResponseDto = await this.voteModel.findOneAndDelete(voteCreateDto).exec();
+
+            if (process.env.NODE_ENV === 'development') this.logger.debug(`found vote to DELETE: ${JSON.stringify(result)}`);
 
             return this.transformResult('delete', result);
 

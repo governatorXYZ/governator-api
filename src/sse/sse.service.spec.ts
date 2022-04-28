@@ -24,7 +24,6 @@ describe('Test SseService', () => {
 
         const testMsg = { data: 'test', type: constants.EVENT_POLL_CREATE };
 
-        // await sseController.publish(testMsg);
         await sseService.emit(testMsg);
 
         jest.spyOn(sseController, 'stream').mockImplementationOnce(() => of (testMsg));

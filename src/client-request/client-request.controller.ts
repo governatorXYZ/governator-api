@@ -1,16 +1,30 @@
-import { Body, Controller, Post, MessageEvent, HttpException, HttpStatus, Param, Get } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Post,
+    MessageEvent,
+    HttpException,
+    HttpStatus,
+    Param,
+    Get,
+    Logger,
+} from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { SseService } from '../sse/sse.service';
 import constants from '../common/constants';
 import { DiscordRequestDto, DiscordResponsetDto } from './client-request.dtos';
 import { v4 as uuidv4 } from 'uuid';
+import { ClientRequestService } from './client-request.service';
+import { firstValueFrom, throwError, timeout } from 'rxjs';
 
 @ApiTags('Request data from client')
 @ApiSecurity('api_key')
 @Controller()
 export class ClientRequestController {
+    private readonly logger = new Logger(ClientRequestController.name);
     constructor(
         protected sseService: SseService,
+        protected clientRequestService: ClientRequestService,
     ) {
         // do nothing
     }
@@ -45,20 +59,22 @@ export class ClientRequestController {
             data: data,
             type: constants.EVENT_REQUEST_CLIENT_DATA,
         };
-        await this.sseService.emit(event as MessageEvent);
-        return event;
+        const observable = this.clientRequestService.eventStream.asObservable().pipe(
+            timeout({
+                each: 3000,
+                with: () => throwError(() => new HttpException('Client response timed out, check if bot is running', HttpStatus.SERVICE_UNAVAILABLE)),
+            }),
+        );
+        this.sseService.emit(event as MessageEvent);
+        this.logger.debug('awaiting client response');
+        return await firstValueFrom(observable);
     }
 
     @Post('client/discord/data-response')
     @ApiOperation({ description: 'Client can submit requested data to this endpoint' })
-    @ApiCreatedResponse({ description: `Emits the specified ${constants.EVENT_RESPONSE_CLIENT_DATA} event with specified payload`, type: DiscordResponsetDto })
-    async sendResponse(@Body() params: DiscordResponsetDto): Promise<MessageEvent> {
-        const event = {
-            data: params,
-            type: constants.EVENT_RESPONSE_CLIENT_DATA,
-        };
-        await this.sseService.emit(event as MessageEvent);
-        return event;
+    @ApiCreatedResponse({ description: 'Forwards client response to the get request observable' })
+    async sendResponse(@Body() params: DiscordResponsetDto): Promise<void> {
+        await this.clientRequestService.emit(params);
     }
 
 }
