@@ -5,23 +5,33 @@ import {
     IsString,
     MaxLength,
     IsBoolean,
-    MinDate, MaxDate, IsNumberString, IsMongoId,
+    MinDate,
+    MaxDate,
+    IsNumberString,
+    IsMongoId,
+    IsNotEmpty,
+    ValidateNested,
 } from 'class-validator';
 import { ApiProperty, OmitType, PartialType } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { ObjectId } from 'mongodb';
 
 export class PollOptionDto {
+    @IsNotEmpty()
     @ApiProperty({
         description: 'Poll option id',
         required: true,
     })
         _id: string;
+
+    @IsNotEmpty()
     @ApiProperty({
         description: 'Poll option id',
         required: true,
     })
         poll_option_name: string;
+
+    @IsNotEmpty()
     @ApiProperty({
         description: 'Poll option emoji',
         required: true,
@@ -54,7 +64,9 @@ export class PollResponseDto {
     })
         channel_id: string;
 
-    @IsOptional()
+    // @IsOptional()
+    @ValidateNested({ each: true })
+    @Type(() => PollOptionDto)
     @ApiProperty({
         description: 'Poll options object',
         required: false,
