@@ -10,7 +10,7 @@ import {
     IsNumberString,
     IsMongoId,
     IsNotEmpty,
-    ValidateNested,
+    ValidateNested, ArrayMaxSize,
 } from 'class-validator';
 import { ApiProperty, OmitType, PartialType } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
@@ -65,6 +65,7 @@ export class PollResponseDto {
         channel_id: string;
 
     // @IsOptional()
+    @ArrayMaxSize(8)
     @ValidateNested({ each: true })
     @Type(() => PollOptionDto)
     @ApiProperty({
