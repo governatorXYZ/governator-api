@@ -9,6 +9,8 @@ import { UserModule } from './user/user.module';
 import { VoteModule } from './vote/vote.module';
 import { ClientRequestModule } from './client-request/client-request.module';
 import { AuthModule } from './auth/auth.modute';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 const ENV = process.env.NODE_ENV;
 
@@ -32,6 +34,10 @@ const ENV = process.env.NODE_ENV;
             }),
             inject: [ConfigService],
         }),
+        ThrottlerModule.forRoot({
+            ttl: 50,
+            limit: 50 * 50,
+        }),
         AccountModule,
         PollModule,
         SseModule,
@@ -39,6 +45,12 @@ const ENV = process.env.NODE_ENV;
         VoteModule,
         ClientRequestModule,
         AuthModule,
+    ],
+    providers: [
+        {
+            provide: APP_GUARD,
+            useClass: ThrottlerGuard,
+        },
     ],
 })
 export class AppModule {}
