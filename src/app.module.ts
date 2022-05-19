@@ -11,6 +11,7 @@ import { ClientRequestModule } from './client-request/client-request.module';
 import { AuthModule } from './auth/auth.modute';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { Web3Module } from './web3/web3.module';
 
 const ENV = process.env.NODE_ENV;
 
@@ -45,6 +46,7 @@ const ENV = process.env.NODE_ENV;
         VoteModule,
         ClientRequestModule,
         AuthModule,
+        Web3Module,
     ],
     providers: [
         {
