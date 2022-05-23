@@ -1,6 +1,62 @@
-import { IsMongoId } from 'class-validator';
+import { IsIn, IsMongoId, IsNumberString, IsOptional } from 'class-validator';
 import { ApiProperty, OmitType, PartialType } from '@nestjs/swagger';
 import { ObjectId } from 'mongodb';
+import constants from '../common/constants';
+import { IsEthAddress } from '../common/isEthAddress.decorator';
+
+export class DiscordAccount {
+
+    @IsNumberString()
+    @ApiProperty({
+        description: 'Discord user Id',
+        required: true,
+    })
+        provider_account_id: string;
+
+    @ApiProperty({
+        description: 'Discord username',
+        required: true,
+    })
+        discord_username: string;
+}
+
+export class EthereumAccount {
+
+    @ApiProperty({
+        description: 'Ethereum network',
+        required: true,
+        default: 'mainnet',
+    })
+        network: string;
+
+    @IsEthAddress()
+    @ApiProperty({
+        description: 'Ethereum account address',
+        required: true,
+    })
+        provider_account_id: string;
+
+    @IsOptional()
+    @ApiProperty({
+        description: 'Message to be signed',
+        required: false,
+    })
+        verification_message: string;
+
+    @IsOptional()
+    @ApiProperty({
+        description: 'Signed message',
+        required: false,
+    })
+        signed_message: string;
+
+    @ApiProperty({
+        description: 'Whether signature has been verified',
+        required: true,
+        default: false,
+    })
+        verified: boolean;
+}
 
 export class AccountResponseDto {
 
@@ -19,43 +75,22 @@ export class AccountResponseDto {
     })
         user_id: string;
 
-    // @ApiProperty({
-    //     description: 'Type of auth provider - e.g. oauth',
-    //     required: true,
-    // })
-    //     provider_type: string;
-
+    @IsIn(Array.from(constants.PROVIDERS.keys()))
     @ApiProperty({
         description: 'ID of auth provider e.g. discord',
         required: true,
+        enum: Array.from(constants.PROVIDERS.keys()),
     })
         provider_id: string;
 
+    @IsOptional()
     @ApiProperty({
-        description: 'User Id for provider',
-        required: true,
+        enum: [EthereumAccount, DiscordAccount],
+        description: 'Provider account object',
+        required: false,
+        example: 'EthereumAccount {network: "mainnnet", provider_account_id: "0x123.."} | DiscordAccount {provider_account_id: "12345..", discord_username: "governator"}',
     })
-        provider_account_id: string;
-
-    // @ApiProperty({
-    //     description: 'Provider refresh token',
-    //     required: false,
-    // })
-    //     refresh_token: string;
-
-    // @ApiProperty({
-    //     description: 'Provider access token',
-    //     required: false,
-    // })
-    //     access_token: string;
-
-    // @IsDate()
-    // @Transform(({ value }) => new Date(value), { toClassOnly: true })
-    // @ApiProperty({
-    //     description: 'Access token expiration date',
-    //     required: false,
-    // })
-    //     access_token_expires: Date;
+        provider_account: EthereumAccount | DiscordAccount;
 
     @ApiProperty({
         description: 'Datetime when record was created',

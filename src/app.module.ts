@@ -39,14 +39,14 @@ const ENV = process.env.NODE_ENV;
             ttl: 50,
             limit: 50 * 50,
         }),
-        AccountModule,
         PollModule,
-        SseModule,
         UserModule,
+        AccountModule,
+        Web3Module,
         VoteModule,
         ClientRequestModule,
+        SseModule,
         AuthModule,
-        Web3Module,
     ],
     providers: [
         {

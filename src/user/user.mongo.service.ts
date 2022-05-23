@@ -3,7 +3,8 @@ import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './user.schema';
 import { UserCreateDto } from './user.dtos';
-import { Account, AccountDocument } from '../account/account.schema';
+import { AccountMongoService } from '../account/account.mongo.service';
+import {AccountCreateDto, AccountUpdateDto} from "../account/account.dtos";
 
 @Injectable()
 export class UserMongoService {
@@ -11,7 +12,7 @@ export class UserMongoService {
 
     constructor(
         @InjectModel(User.name) private userModel: Model<UserDocument>,
-        @InjectModel(Account.name) private accountModel: Model<AccountDocument>,
+        protected accountMongoService: AccountMongoService,
     ) {
         // do nothing
     }
@@ -38,11 +39,11 @@ export class UserMongoService {
         }
     }
 
-    async createUser(userCreateDto: UserCreateDto): Promise<User> {
+    async createUser(): Promise<User> {
         this.logger.debug('Creating new user in db');
 
         try {
-            return await this.userModel.create(userCreateDto);
+            return await this.userModel.create({});
 
         } catch (e) {
 
@@ -52,7 +53,6 @@ export class UserMongoService {
         }
     }
 
-    // TODO make sure ID can not be updated
     async updateUser(id, user): Promise<User> {
         try {
             return this.userModel.findByIdAndUpdate(id, user, { new: true }).exec();
@@ -65,9 +65,21 @@ export class UserMongoService {
 
     }
 
-    // TODO extend to delete existing accounts linked to this user
     async deleteUser(id): Promise<User> {
         try {
+
+            this.logger.log('deleting linked user accounts');
+
+            const accounts = await this.accountMongoService.findManyAccount({ user_id: id });
+
+            this.logger.debug(`found the following user accounts for user ${id}`);
+
+            accounts.forEach((account) => this.logger.debug(account));
+
+            await this.accountMongoService.deleteManyAccount(accounts);
+
+            this.logger.log('accounts deleted successfully');
+
             return this.userModel.findOneAndDelete({ _id: id }).exec();
 
         } catch (e) {
@@ -79,19 +91,7 @@ export class UserMongoService {
 
     async fetchUserByProvider(providerId, providerAccountId): Promise<User> {
 
-        let account: Account | null;
-
-        try {
-            account = await this.accountModel.findOne({ provider_id: providerId, provider_account_id: providerAccountId }).exec().catch((e) => {
-                this.logger.error(e);
-                return null;
-            });
-
-        } catch (e) {
-            this.logger.error('Failed to fetch account from db', e);
-
-            throw new HttpException('Failed to fetch account from db', HttpStatus.BAD_REQUEST);
-        }
+        const account = await this.accountMongoService.findOneAccount({ provider_id: providerId, provider_account: { provider_account_id: providerAccountId } });
 
         if (!account) {
             throw new HttpException('Account not found', HttpStatus.NOT_FOUND);
@@ -101,30 +101,25 @@ export class UserMongoService {
 
     }
 
-    // TODO add validation to make sure user has not linked a provider account already
-    async addProviderAccount(account): Promise<Account> {
+    async createUserWithAccounts(accounts: AccountUpdateDto[]): Promise<User> {
+        this.logger.debug('Creating new user with accounts');
 
         try {
-            return this.accountModel.create(account);
+            const user = await this.userModel.create({});
+
+            accounts.forEach((account) => {
+                const createAccount: AccountCreateDto = (account.user_id = user.id);
+                this.accountMongoService.createAccount(createAccount);
+            });
+
+            return user;
 
         } catch (e) {
-            this.logger.error('Failed to create account', e);
 
-            throw new HttpException('Failed to create account', HttpStatus.BAD_REQUEST);
+            this.logger.error('Failed to create user in db', e);
+
+            throw new HttpException('Failed to create user in db', HttpStatus.BAD_REQUEST);
         }
-
     }
 
-    async removeProviderAccount(id, account): Promise<Account> {
-
-        try {
-            return this.accountModel.findOneAndDelete({ user_id: id, provider_id: account.provider_id }).exec();
-
-        } catch (e) {
-            this.logger.error('Failed to delete account', e);
-
-            throw new HttpException('Failed to delete account', HttpStatus.BAD_REQUEST);
-        }
-
-    }
 }

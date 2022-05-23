@@ -11,23 +11,13 @@ export class Account {
     @Prop({ required: true, type: mongoose.Schema.Types.ObjectId })
         user_id: string;
 
-    // @Prop({ required: true })
-    //     provider_type: string;
-
+    // e.g. discord, ethereum_mainnet
     @Prop({ required: true })
         provider_id: string;
 
-    @Prop({ required: true })
-        provider_account_id: string;
 
-    // @Prop({ required: false })
-    //     refresh_token: string;
-
-    // @Prop({ required: false })
-    //     access_token: string;
-
-    // @Prop({ required: false, type: mongoose.Schema.Types.Date })
-    //     access_token_expires: Date;
+    @Prop({ required: false, type: mongoose.Schema.Types.Mixed })
+        provider_account: mongoose.Schema.Types.Mixed;
 }
 
 export const AccountSchema = SchemaFactory.createForClass(Account);

@@ -1,10 +1,9 @@
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
-import { UserCreateDto, UserUpdateDto } from './user.dtos';
+import { UserResponseDto, UserUpdateDto } from './user.dtos';
 import { User } from './user.schema';
 import { UserMongoService } from './user.mongo.service';
-import { AccountCreateDto } from '../account/account.dtos';
-import { Account } from '../account/account.schema';
+import { AccountUpdateDto } from '../account/account.dtos';
 
 @ApiTags('User')
 @ApiSecurity('api_key')
@@ -27,11 +26,26 @@ export class UserController {
         return await this.mongoService.fetchUserById(id);
     }
 
+    @Get('user/:provider_id/:provider_account_id')
+    @ApiOperation({ description: 'Fetch user by provider' })
+    @ApiParam({ name: 'provider_id', description: 'Provider ID, e.g. discord' })
+    @ApiParam({ name: 'provider_account_id', description: 'Provider account ID, e.g. discord user ID' })
+    async fetchUserByProvider(@Param('provider_id') provider_id, @Param('provider_account_id') provider_account_id) {
+        return await this.mongoService.fetchUserByProvider(provider_id, provider_account_id);
+    }
+
     @Post('user/create')
     @ApiOperation({ description: 'Create a new user' })
-    @ApiCreatedResponse({ description: 'Returns the created user object', type: User })
-    async createUser(@Body() user: UserCreateDto): Promise<User> {
-        return await this.mongoService.createUser(user);
+    @ApiCreatedResponse({ description: 'Returns the created user object', type: UserResponseDto })
+    async createUser(): Promise<User> {
+        return await this.mongoService.createUser();
+    }
+
+    @Post('user/create-user-with-accounts')
+    @ApiOperation({ description: 'Create a new user and link an array of user accounts to it' })
+    @ApiCreatedResponse({ description: 'Returns the created user object', type: UserResponseDto })
+    async createUserWithAccounts(@Body() accounts: AccountUpdateDto[]): Promise<User> {
+        return await this.mongoService.createUserWithAccounts(accounts);
     }
 
     @Put('user/:id/update')
@@ -46,29 +60,6 @@ export class UserController {
     @ApiCreatedResponse({ description: 'Returns the deleted user object', type: User })
     async deleteUser(@Param('id') id): Promise<User> {
         return await this.mongoService.deleteUser(id);
-    }
-
-    @Get('user/:provider_id/:provider_account_id')
-    @ApiOperation({ description: 'Fetch user by provider' })
-    @ApiParam({ name: 'provider_id', description: 'Provider ID, e.g. discord' })
-    @ApiParam({ name: 'provider_account_id', description: 'Provider account ID, e.g. discord user ID' })
-    async fetchUserByProvider(@Param('provider_id') provider_id, @Param('provider_account_id') provider_account_id) {
-        return await this.mongoService.fetchUserByProvider(provider_id, provider_account_id);
-    }
-
-    @Post('user/add_provider_account')
-    @ApiOperation({ description: 'Add a provider account to  a user' })
-    @ApiCreatedResponse({ description: 'Returns the new account object', type: Account })
-    async addProviderAccount(@Body() account: AccountCreateDto): Promise<Account> {
-        return await this.mongoService.addProviderAccount(account);
-    }
-
-    @Delete('user/:id/remove_provider_account')
-    @ApiOperation({ description: 'Remove a provider account from  a user' })
-    @ApiParam({ name: 'id', description: 'Governator user ID' })
-    @ApiCreatedResponse({ description: 'Returns the deleted account object', type: Account })
-    async removeProviderAccount(@Param('id') id, @Body() account: AccountCreateDto): Promise<Account> {
-        return await this.mongoService.removeProviderAccount(id, account);
     }
 
 }

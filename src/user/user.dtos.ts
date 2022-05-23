@@ -1,4 +1,4 @@
-import { IsBoolean, IsEmail, IsMongoId, IsOptional } from 'class-validator';
+import { IsMongoId } from 'class-validator';
 import { ApiProperty, OmitType, PartialType } from '@nestjs/swagger';
 import { ObjectId } from 'mongodb';
 
@@ -11,35 +11,6 @@ export class UserResponseDto {
         default: new ObjectId(),
     })
         _id: string;
-
-    @ApiProperty({
-        description: 'Governator username',
-        required: true,
-    })
-        name: string;
-
-    @IsOptional()
-    @ApiProperty({
-        description: 'Governator pfp',
-        required: false,
-    })
-        image: string;
-
-    @IsEmail()
-    @IsOptional()
-    @ApiProperty({
-        description: 'user email',
-        required: false,
-    })
-        email: string;
-
-    @IsBoolean()
-    @IsOptional()
-    @ApiProperty({
-        description: 'whether email is verified',
-        required: false,
-    })
-        emailVerified: boolean;
 
     @ApiProperty({
         description: 'Datetime when record was created',
