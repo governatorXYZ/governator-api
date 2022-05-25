@@ -3,7 +3,7 @@ import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common'
 import { UserResponseDto, UserUpdateDto } from './user.dtos';
 import { User } from './user.schema';
 import { UserMongoService } from './user.mongo.service';
-import { AccountUpdateDto } from '../account/account.dtos';
+// import { AccountUpdateDto } from '../account/account.dtos';
 
 @ApiTags('User')
 @ApiSecurity('api_key')
@@ -41,12 +41,12 @@ export class UserController {
         return await this.mongoService.createUser();
     }
 
-    @Post('user/create-user-with-accounts')
-    @ApiOperation({ description: 'Create a new user and link an array of user accounts to it' })
-    @ApiCreatedResponse({ description: 'Returns the created user object', type: UserResponseDto })
-    async createUserWithAccounts(@Body() accounts: AccountUpdateDto[]): Promise<User> {
-        return await this.mongoService.createUserWithAccounts(accounts);
-    }
+    // @Post('user/create-user-with-accounts')
+    // @ApiOperation({ description: 'Create a new user and link an array of user accounts to it' })
+    // @ApiCreatedResponse({ description: 'Returns the created user object', type: UserResponseDto })
+    // async createUserWithAccounts(@Body() accounts: AccountUpdateDto[]): Promise<User> {
+    //     return await this.mongoService.createUserWithAccounts(accounts);
+    // }
 
     @Put('user/:id/update')
     @ApiParam({ name: 'id', description: 'Governator user ID of user to be updated' })

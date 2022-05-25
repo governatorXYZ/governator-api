@@ -1,37 +1,40 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsMongoId, IsNumber, IsString } from 'class-validator';
+import { ApiProperty, PartialType, PickType } from '@nestjs/swagger';
+import { IsArray, IsNumber, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
-import { IsEthAddress } from '../common/isEthAddress.decorator';
+import { EthereumAccountResponseDto } from '../account/account.dtos';
 
-export class EthAddressVerificationDto {
+export class EthereumAccountVerifyDto extends PartialType(PickType(EthereumAccountResponseDto, ['user_id', 'provider_account_id', 'signed_message'] as const)) {}
 
-    @IsMongoId()
-    @ApiProperty({
-        description: 'Governator user ID',
-        required: true,
-    })
-        user_id: string;
 
-    @IsEthAddress()
-    @ApiProperty({
-        description: 'Ethereum address of signer account',
-        required: true,
-        example: '0x123..',
-    })
-        address: string;
-
-    @ApiProperty({
-        description: 'Signature of signer account',
-        required: true,
-    })
-        signature: string;
-
-    @ApiProperty({
-        description: 'Message that has been signed',
-        required: true,
-    })
-        verification_message: string;
-}
+// export class EthAddressVerificationDto {
+//
+//     @IsMongoId()
+//     @ApiProperty({
+//         description: 'Governator user ID',
+//         required: true,
+//     })
+//         user_id: string;
+//
+//     @IsEthAddress()
+//     @ApiProperty({
+//         description: 'Ethereum address of signer account',
+//         required: true,
+//         example: '0x123..',
+//     })
+//         address: string;
+//
+//     @ApiProperty({
+//         description: 'Signature of signer account',
+//         required: true,
+//     })
+//         signature: string;
+//
+//     @ApiProperty({
+//         description: 'Message that has been signed',
+//         required: true,
+//     })
+//         verification_message: string;
+// }
 
 export class TokenList {
 

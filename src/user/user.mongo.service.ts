@@ -2,9 +2,17 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './user.schema';
-import { UserCreateDto } from './user.dtos';
-import { AccountMongoService } from '../account/account.mongo.service';
-import {AccountCreateDto, AccountUpdateDto} from "../account/account.dtos";
+import { UserResponseDto } from './user.dtos';
+import {
+    DiscordAccountResponseDto,
+    EthereumAccountResponseDto,
+} from '../account/account.dtos';
+import { EthereumAccountMongoService } from '../account/ethereumAccount.mongo.service';
+import { DiscordAccountMongoService } from '../account/discordAccount.mongo.service';
+import constants from '../common/constants';
+import { EthereumAccount } from '../account/ethereumAccount.schema';
+import { DiscordAccount } from '../account/discordAccount.schema';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class UserMongoService {
@@ -12,14 +20,17 @@ export class UserMongoService {
 
     constructor(
         @InjectModel(User.name) private userModel: Model<UserDocument>,
-        protected accountMongoService: AccountMongoService,
+        protected ethereumAccountMongoService: EthereumAccountMongoService,
+        protected discordAccountMongoService: DiscordAccountMongoService,
     ) {
         // do nothing
     }
 
-    async fetchAllUsers(): Promise<User[]> {
+    async fetchAllUsers(): Promise<UserResponseDto[]> {
         try {
-            return await this.userModel.find().exec();
+            const users = await this.userModel.find().lean().exec();
+
+            return await Promise.all(users.map(async (user) => await this.castToUserObject(user)));
 
         } catch (e) {
             this.logger.error('Failed to fetch users from db', e);
@@ -28,9 +39,11 @@ export class UserMongoService {
         }
     }
 
-    async fetchUserById(id): Promise<User> {
+    async fetchUserById(id): Promise<UserResponseDto> {
         try {
-            return await this.userModel.findById(id).exec();
+            const user = await this.userModel.findById(id).lean().exec();
+
+            return await this.castToUserObject(user);
 
         } catch (e) {
             this.logger.error('Failed to fetch user from db', e);
@@ -39,11 +52,17 @@ export class UserMongoService {
         }
     }
 
-    async createUser(): Promise<User> {
+    async createUser(): Promise<UserResponseDto> {
         this.logger.debug('Creating new user in db');
 
         try {
-            return await this.userModel.create({});
+            const user = await this.userModel.create({});
+
+            const leanUser = await this.userModel.findById(user.id).lean().exec();
+
+            this.logger.log(leanUser);
+
+            return await this.castToUserObject(leanUser);
 
         } catch (e) {
 
@@ -53,9 +72,11 @@ export class UserMongoService {
         }
     }
 
-    async updateUser(id, user): Promise<User> {
+    async updateUser(id, updateDoc): Promise<UserResponseDto> {
         try {
-            return this.userModel.findByIdAndUpdate(id, user, { new: true }).exec();
+            const user = await this.userModel.findByIdAndUpdate(id, updateDoc, { new: true }).lean().exec();
+
+            return await this.castToUserObject(user);
 
         } catch (e) {
             this.logger.error('Failed to update user in db', e);
@@ -70,13 +91,19 @@ export class UserMongoService {
 
             this.logger.log('deleting linked user accounts');
 
-            const accounts = await this.accountMongoService.findManyAccount({ user_id: id });
+            const ethAccounts = await this.ethereumAccountMongoService.findManyAccount({ user_id: id });
+
+            const discAccounts = await this.discordAccountMongoService.findManyAccount({ user_id: id });
 
             this.logger.debug(`found the following user accounts for user ${id}`);
 
-            accounts.forEach((account) => this.logger.debug(account));
+            ethAccounts.forEach((account) => this.logger.debug(account));
 
-            await this.accountMongoService.deleteManyAccount(accounts);
+            discAccounts.forEach((account) => this.logger.debug(account));
+
+            await this.ethereumAccountMongoService.deleteManyAccount(ethAccounts);
+
+            await this.discordAccountMongoService.deleteManyAccount(discAccounts);
 
             this.logger.log('accounts deleted successfully');
 
@@ -91,7 +118,21 @@ export class UserMongoService {
 
     async fetchUserByProvider(providerId, providerAccountId): Promise<User> {
 
-        const account = await this.accountMongoService.findOneAccount({ provider_id: providerId, provider_account: { provider_account_id: providerAccountId } });
+        if (!Array.from(constants.PROVIDERS.keys()).includes(providerId)) throw new HttpException('Invalid provider Id', HttpStatus.NOT_FOUND);
+
+        let account: EthereumAccount | DiscordAccount | null;
+
+        switch (providerId) {
+        case 'ethereum':
+            account = await this.ethereumAccountMongoService.findOneAccount({ provider_id: providerId, provider_account_id: providerAccountId });
+            break;
+        case 'discord':
+            account = await this.discordAccountMongoService.findOneAccount({ provider_id: providerId, provider_account_id: providerAccountId });
+            break;
+        default:
+            this.logger.error('providerId missmatch - this should not happen');
+            throw new HttpException('Account not found', HttpStatus.BAD_REQUEST);
+        }
 
         if (!account) {
             throw new HttpException('Account not found', HttpStatus.NOT_FOUND);
@@ -101,25 +142,44 @@ export class UserMongoService {
 
     }
 
-    async createUserWithAccounts(accounts: AccountUpdateDto[]): Promise<User> {
-        this.logger.debug('Creating new user with accounts');
+    // async createUserWithAccounts(accounts: (EthereumAccountCreateDto|DiscordAccountCreateDto)[]): Promise<User> {
+    //     this.logger.debug('Creating new user with accounts');
+    //
+    //     try {
+    //         const user = await this.userModel.create({});
+    //
+    //         accounts.forEach((account) => {
+    //             const createAccount: EthereumAccountCreateDto|DiscordAccountCreateDto = (account.user_id = user.id);
+    //             if (account)
+    //             this.accountMongoService.createAccount(createAccount);
+    //         });
+    //
+    //         return user;
+    //
+    //     } catch (e) {
+    //
+    //         this.logger.error('Failed to create user in db', e);
+    //
+    //         throw new HttpException('Failed to create user in db', HttpStatus.BAD_REQUEST);
+    //     }
+    // }
 
-        try {
-            const user = await this.userModel.create({});
+    async castToUserObject(user) {
+        const userObject = plainToInstance(UserResponseDto, user, {
+            excludeExtraneousValues: false,
+        }) as UserResponseDto;
 
-            accounts.forEach((account) => {
-                const createAccount: AccountCreateDto = (account.user_id = user.id);
-                this.accountMongoService.createAccount(createAccount);
-            });
+        this.logger.log(JSON.stringify(userObject));
 
-            return user;
+        const ethAccounts = await this.ethereumAccountMongoService.findManyAccount({ user_id: user.id });
 
-        } catch (e) {
+        ethAccounts.forEach((account) => userObject.provider_accounts.push((account as unknown as EthereumAccountResponseDto)));
 
-            this.logger.error('Failed to create user in db', e);
+        const discAccounts = await this.discordAccountMongoService.findManyAccount({ user_id: user.id });
 
-            throw new HttpException('Failed to create user in db', HttpStatus.BAD_REQUEST);
-        }
+        discAccounts.forEach((account) => userObject.provider_accounts.push((account as unknown as DiscordAccountResponseDto)));
+
+        return userObject;
     }
 
 }

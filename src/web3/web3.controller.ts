@@ -1,8 +1,9 @@
-import { Body, Controller, Param, Post } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Web3Service } from './web3.service';
-import { ERC20TokenBalances, EthAddressVerificationDto, TokenList } from './web3.dto';
-import { Account } from '../account/account.schema';
+import { ERC20TokenBalances, EthereumAccountVerifyDto, TokenList } from './web3.dto';
+import { EthereumAccount } from '../account/ethereumAccount.schema';
+import {EthereumAccountResponseDto} from "../account/account.dtos";
 
 
 @ApiTags('Web 3')
@@ -13,13 +14,13 @@ export class Web3Controller {
         // do nothing
     }
 
-    // @Get('web3/get-login-message/:eth_address')
-    // @ApiParam({ name: 'eth_address', description: 'Eth address to find verification message for' })
-    // @ApiOperation({ description: 'Request a message to be signed by account owner' })
-    // @ApiOkResponse({ description: 'Message sent' })
-    // async getVerificationMessage(@Param('eth_address') ethAddress): Promise<string> {
-    //     return await this.web3Service.getVerificationMessage(ethAddress);
-    // }
+    @Get('web3/get-verification-message/:eth_address')
+    @ApiParam({ name: 'eth_address', description: 'Eth address to find verification message for' })
+    @ApiOperation({ description: 'Request a message to be signed by account owner' })
+    @ApiOkResponse({ description: 'Message sent' })
+    async getVerificationMessage(@Param('eth_address') ethAddress): Promise<string> {
+        return await this.web3Service.getVerificationMessage(ethAddress);
+    }
 
     @Post('web3/token-balance/:eth_address')
     @ApiOperation({
@@ -31,10 +32,10 @@ export class Web3Controller {
         return await this.web3Service.getTokenBalances(ethAddress, tokenList);
     }
 
-    @Post('web3/prove-account-ownership')
+    @Post('web3/verify-signature')
     @ApiOperation({ description: 'Verify signature' })
-    @ApiCreatedResponse({ description: 'Returns the address that signed message producing signature', type: String })
-    async verifySignature(@Body() ethAddressVerificationDto: EthAddressVerificationDto): Promise<Account> {
+    @ApiCreatedResponse({ description: 'Returns the updated ethereum account', type: EthereumAccountResponseDto })
+    async verifySignature(@Body() ethAddressVerificationDto: EthereumAccountVerifyDto): Promise<EthereumAccount> {
         return await this.web3Service.verifySignature(ethAddressVerificationDto);
     }
 }
