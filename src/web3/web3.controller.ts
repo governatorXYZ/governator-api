@@ -14,13 +14,13 @@ export class Web3Controller {
         // do nothing
     }
 
-    @Get('web3/get-verification-message/:eth_address')
-    @ApiParam({ name: 'eth_address', description: 'Eth address to find verification message for' })
-    @ApiOperation({ description: 'Request a message to be signed by account owner' })
-    @ApiOkResponse({ description: 'Message sent' })
-    async getVerificationMessage(@Param('eth_address') ethAddress): Promise<string> {
-        return await this.web3Service.getVerificationMessage(ethAddress);
-    }
+    // @Get('web3/get-verification-message/:eth_address')
+    // @ApiParam({ name: 'eth_address', description: 'Eth address to find verification message for' })
+    // @ApiOperation({ description: 'Request a message to be signed by account owner' })
+    // @ApiOkResponse({ description: 'Message sent' })
+    // async getVerificationMessage(@Param('eth_address') ethAddress): Promise<string> {
+    //     return await this.web3Service.getVerificationMessage(ethAddress);
+    // }
 
     @Post('web3/token-balance/:eth_address')
     @ApiOperation({

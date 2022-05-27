@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { DiscordAccountCreateDto } from './account.dtos';
+import {DiscordAccountCreateDto, DiscordAccountUpdateDto} from './account.dtos';
 import { DiscordAccount, DiscordAccountDocument } from './discordAccount.schema';
 
 @Injectable()
@@ -91,7 +91,7 @@ export class DiscordAccountMongoService {
     async checkAndCreateAccount(account: DiscordAccountCreateDto): Promise<DiscordAccount> {
 
         const existingAccount = await this.findOneAccount({
-            user_id: account.user_id,
+            user_id: (account as DiscordAccountUpdateDto).user_id,
             provider_id: 'discord',
         }).catch((e) => {
             this.logger.error('account not found', e);

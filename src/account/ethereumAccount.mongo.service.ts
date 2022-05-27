@@ -1,5 +1,5 @@
 import {HttpException, HttpStatus, Injectable, Logger} from '@nestjs/common';
-import {Model} from 'mongoose';
+import {Model, Aggregate} from 'mongoose';
 import {InjectModel} from '@nestjs/mongoose';
 import {EthereumAccountCreateDto, EthereumAccountUpdateDto} from './account.dtos';
 import {EthereumAccount, EthereumAccountDocument} from './ethereumAccount.schema';
@@ -13,10 +13,8 @@ export class EthereumAccountMongoService {
     }
 
     async findOneAccount(filter): Promise<EthereumAccount | null> {
-        let account: EthereumAccount | null;
-
         try {
-            account = await this.ethereumAccountModel.findOne(filter).exec().catch((e) => {
+            return await this.ethereumAccountModel.findOne(filter).exec().catch((e) => {
                 this.logger.error(e);
                 return null;
             });
@@ -25,8 +23,6 @@ export class EthereumAccountMongoService {
 
             throw new HttpException('Failed to fetch account from db', HttpStatus.BAD_REQUEST);
         }
-
-        return account;
     }
 
     async findManyAccount(filter): Promise<EthereumAccount[] | null> {
@@ -67,9 +63,9 @@ export class EthereumAccountMongoService {
         }
     }
 
-    async findByIdAndUpdateAccount(id, updateDoc) {
+    async findOneAndUpdateAccount(filter, updateDoc) {
         try {
-            return this.ethereumAccountModel.findByIdAndUpdate(id, updateDoc, { new: true }).exec();
+            return this.ethereumAccountModel.findOneAndUpdate(filter, updateDoc, { new: true }).exec();
         } catch (e) {
             this.logger.error('Failed to update account', e);
 
@@ -91,7 +87,7 @@ export class EthereumAccountMongoService {
     async checkAndCreateAccount(account: EthereumAccountCreateDto): Promise<EthereumAccount> {
 
         const existingAccount = await this.findOneAccount({
-            user_id: account.user_id,
+            user_id: (account as EthereumAccountUpdateDto).user_id,
             provider_id: 'ethereum',
         }).catch((e) => {
             this.logger.error('account not found', e);
@@ -110,6 +106,22 @@ export class EthereumAccountMongoService {
             throw new HttpException('Failed to create account', HttpStatus.BAD_REQUEST);
         }
 
+    }
+
+    async aggregate(filter): Promise<Aggregate<any[]>> {
+        try {
+
+            this.logger.debug(filter);
+
+            return await this.ethereumAccountModel.aggregate(filter).exec().catch((e) => {
+                this.logger.error(e);
+                return null;
+            });
+        } catch (e) {
+            this.logger.error('Failed to fetch account from db', e);
+
+            throw new HttpException('Failed to fetch account from db', HttpStatus.BAD_REQUEST);
+        }
     }
 
     generateVerificationMessage() {

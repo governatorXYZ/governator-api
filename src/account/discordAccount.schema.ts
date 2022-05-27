@@ -21,7 +21,7 @@ export class DiscordAccount {
         provider_account_id: string;
 
     @Prop({ required: true })
-        discord_user_name: string;
+        discord_username: string;
 }
 
 export const DiscordAccountSchema = SchemaFactory.createForClass(DiscordAccount);

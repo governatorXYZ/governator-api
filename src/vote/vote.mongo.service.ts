@@ -4,7 +4,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Vote, VoteDocument } from './vote.schema';
 import { VoteCreateDto, VoteRawResponseDto, VoteRequestDto, VoteResponseDto } from './vote.dto';
 import { Poll, PollDocument } from '../poll/poll.schema';
-import { User, UserDocument } from '../user/user.schema';
+// TODO remove
+// import { User, UserDocument } from '../user/user.schema';
 import { VoteRawResponseUpdate } from './types';
 
 @Injectable()
@@ -14,7 +15,8 @@ export class VoteMongoService {
     constructor(
         @InjectModel(Vote.name) private voteModel: Model<VoteDocument>,
         @InjectModel(Poll.name) private pollModel: Model<PollDocument>,
-        @InjectModel(User.name) private userModel: Model<UserDocument>,
+        // TODO remove
+        // @InjectModel(User.name) private userModel: Model<UserDocument>,
     ) {
         // do nothing
     }
@@ -74,7 +76,8 @@ export class VoteMongoService {
         this.logger.debug('Poll ID is valid');
 
         this.logger.debug('Validating User ID');
-        if (!await this.getUser(voteRequestDto.user_id)) throw new HttpException('User not found', HttpStatus.CONFLICT);
+        // FIXME
+        // if (!await this.getUser(voteRequestDto.user_id)) throw new HttpException('User not found', HttpStatus.CONFLICT);
         this.logger.debug('User ID is valid');
 
         this.logger.debug('Checking if user has already voted on this poll with this provider_account');
@@ -133,18 +136,20 @@ export class VoteMongoService {
         }
     }
 
-    async getUser(userId): Promise<User> {
-        try {
-            const user = await this.userModel.findById(userId).exec();
-            this.logger.debug('USER found ', user);
-            return user;
+    // FIXME
 
-        } catch (e) {
-            this.logger.error('Invalid User ID', e);
-
-            throw new HttpException('Invalid User ID', HttpStatus.CONFLICT);
-        }
-    }
+    // async getUser(userId): Promise<User> {
+    //     try {
+    //         const user = await this.userModel.findById(userId).exec();
+    //         this.logger.debug('USER found ', user);
+    //         return user;
+    //
+    //     } catch (e) {
+    //         this.logger.error('Invalid User ID', e);
+    //
+    //         throw new HttpException('Invalid User ID', HttpStatus.CONFLICT);
+    //     }
+    // }
 
     async getVotes(pollId, userId): Promise<Record<string, any>> {
         try {

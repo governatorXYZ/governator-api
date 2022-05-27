@@ -37,20 +37,20 @@ export abstract class AccountBase {
 
 export class DiscordAccountResponseDto extends AccountBase {
 
-    // @IsMongoId()
-    // @ApiProperty({
-    //     description: 'mongodb ethereum account id - (auto generated)',
-    //     required: false,
-    //     default: new ObjectId(),
-    // })
-    //     _id: string;
-    //
-    // @IsMongoId()
-    // @ApiProperty({
-    //     description: 'Governator user ID',
-    //     required: true,
-    // })
-    //     user_id: string;
+    @IsMongoId()
+    @ApiProperty({
+        description: 'mongodb ethereum account id - (auto generated)',
+        required: false,
+        default: new ObjectId(),
+    })
+        _id: string;
+
+    @IsMongoId()
+    @ApiProperty({
+        description: 'Governator user ID',
+        required: true,
+    })
+        user_id: string;
 
     @ApiProperty({
         description: 'discord',
@@ -75,37 +75,39 @@ export class DiscordAccountResponseDto extends AccountBase {
     })
         discord_username: string;
 
-    // @ApiProperty({
-    //     description: 'Datetime when record was created',
-    //     required: false,
-    // })
-    //     createdAt: string;
-    //
-    // @ApiProperty({
-    //     description: 'Datetime when record was last updated',
-    //     required: false,
-    // })
-    //     updatedAt: string;
+    @ApiProperty({
+        description: 'Datetime when record was created',
+        required: false,
+    })
+        createdAt: string;
+
+    @ApiProperty({
+        description: 'Datetime when record was last updated',
+        required: false,
+    })
+        updatedAt: string;
 }
 
-export class DiscordAccountCreateDto extends OmitType(DiscordAccountResponseDto, ['_id', 'createdAt', 'updatedAt', 'provider_id'] as const) {}
+export class DiscordAccountCreateDto extends OmitType(DiscordAccountResponseDto, ['_id', 'user_id', 'createdAt', 'updatedAt', 'provider_id'] as const) {}
+
+export class DiscordAccountUpdateDto extends OmitType(PartialType(DiscordAccountResponseDto), ['_id', 'createdAt', 'updatedAt', 'provider_id', 'provider_account_id'] as const) {}
 
 export class EthereumAccountResponseDto extends AccountBase {
 
-    // @IsMongoId()
-    // @ApiProperty({
-    //     description: 'mongodb ethereum account id - (auto generated)',
-    //     required: false,
-    //     default: new ObjectId(),
-    // })
-    //     _id: string;
-    //
-    // @IsMongoId()
-    // @ApiProperty({
-    //     description: 'Governator user ID',
-    //     required: true,
-    // })
-    //     user_id: string;
+    @IsMongoId()
+    @ApiProperty({
+        description: 'mongodb ethereum account id - (auto generated)',
+        required: false,
+        default: new ObjectId(),
+    })
+        _id: string;
+
+    @IsMongoId()
+    @ApiProperty({
+        description: 'Governator user ID',
+        required: true,
+    })
+        user_id: string;
 
     @ApiProperty({
         description: 'ethereum',
@@ -132,19 +134,19 @@ export class EthereumAccountResponseDto extends AccountBase {
     // })
     // network_id: number;
 
-    @ApiProperty({
-        description: 'Chain ID - 1 = Mainnet : Ethereum main network, 3 = Ropsten: Ethereum test network (PoW), 4 = Rinkeby : Ethereum test network (PoA), 42 = Kovan : Ethereum test network (PoA), 1284 = Moonbeam, 1287 = Moonbase Alpha',
-        required: true,
-        default: 1,
-    })
-        chain_id: number;
+    // @ApiProperty({
+    //     description: 'Chain ID - 1 = Mainnet : Ethereum main network, 3 = Ropsten: Ethereum test network (PoW), 4 = Rinkeby : Ethereum test network (PoA), 42 = Kovan : Ethereum test network (PoA), 1284 = Moonbeam, 1287 = Moonbase Alpha',
+    //     required: true,
+    //     default: 1,
+    // })
+    //     chain_id: number;
 
-    @ApiProperty({
-        description: 'Ethereum network name',
-        required: true,
-        default: 'Mainnet',
-    })
-        network_name: string;
+    // @ApiProperty({
+    //     description: 'Ethereum network name',
+    //     required: true,
+    //     default: 'Mainnet',
+    // })
+    //     network_name: string;
 
     @IsOptional()
     @ApiProperty({
@@ -170,23 +172,56 @@ export class EthereumAccountResponseDto extends AccountBase {
     })
         verified: boolean;
 
-    // @ApiProperty({
-    //     description: 'Datetime when record was created',
-    //     required: false,
-    // })
-    //     createdAt: string;
-    //
-    // @ApiProperty({
-    //     description: 'Datetime when record was last updated',
-    //     required: false,
-    // })
-    //     updatedAt: string;
+    @ApiProperty({
+        description: 'Datetime when record was created',
+        required: false,
+    })
+        createdAt: string;
+
+    @ApiProperty({
+        description: 'Datetime when record was last updated',
+        required: false,
+    })
+        updatedAt: string;
 
 }
 
-export class EthereumAccountCreateDto extends OmitType(EthereumAccountResponseDto, ['_id', 'createdAt', 'updatedAt', 'provider_id', 'verification_message', 'verified', 'signed_message'] as const) {}
+export class EthereumAccountCreateDto extends OmitType(EthereumAccountResponseDto, ['_id', 'user_id', 'createdAt', 'updatedAt', 'provider_id', 'verification_message', 'verified', 'signed_message'] as const) {}
 
-export class EthereumAccountUpdateDto extends PartialType(OmitType(EthereumAccountResponseDto, ['_id', 'createdAt', 'updatedAt', 'provider_id'] as const)) {}
+export class EthereumAccountUpdateDto extends OmitType(PartialType(EthereumAccountResponseDto), ['_id', 'createdAt', 'updatedAt', 'provider_id', 'provider_account_id'] as const) {}
+
+// TODO remove
+// export abstract class AccountBase {
+//     @IsMongoId()
+//     @ApiProperty({
+//         description: 'mongodb ethereum account id - (auto generated)',
+//         required: false,
+//         default: new ObjectId(),
+//     })
+//         _id: string;
+//
+//     @IsMongoId()
+//     @ApiProperty({
+//         description: 'Governator user ID',
+//         required: true,
+//         example: new ObjectId(),
+//     })
+//         user_id: string;
+//
+//     @ApiProperty({
+//         description: 'Datetime when record was created',
+//         required: false,
+//         example: new Date(Date.now()),
+//     })
+//         createdAt: string;
+//
+//     @ApiProperty({
+//         description: 'Datetime when record was last updated',
+//         required: false,
+//         example: new Date(Date.now()),
+//     })
+//         updatedAt: string;
+// }
 
 // export class AccountResponseDto {
 //

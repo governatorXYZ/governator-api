@@ -9,7 +9,7 @@ export class EthereumAccount {
     @Prop({ required: true, auto: true, type: mongoose.Schema.Types.ObjectId })
         _id: string;
 
-    @Prop({ required: true, type: mongoose.Schema.Types.ObjectId })
+    @Prop({ required: true, auto: true, type: mongoose.Schema.Types.ObjectId })
         user_id: string;
 
     // e.g. discord, ethereum
@@ -23,12 +23,12 @@ export class EthereumAccount {
     // @Prop({ required: false })
     //     network_id: number;
 
-    @Prop({ required: true })
-        chain_id: number;
-
-    // Ethereum Mainnet
-    @Prop({ required: true })
-        network_name: string;
+    // @Prop({ required: true })
+    //     chain_id: number;
+    //
+    // // Ethereum Mainnet
+    // @Prop({ required: true })
+    //     network_name: string;
 
     @Prop({ required: false })
         verification_message: string;
