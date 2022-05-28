@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsIn, IsNumberString, IsUUID } from 'class-validator';
+import { IsArray, IsIn, IsNumberString, IsUUID } from 'class-validator';
 import constants from '../common/constants';
 
 export const getDataProviderMethods = () => {
@@ -11,24 +11,28 @@ export const getDataProviderMethods = () => {
 };
 
 export class DiscordRequestDto {
+    @IsUUID()
     @ApiProperty({
         description: 'Unique Id of this request',
         required: true,
     })
         uuid: string;
 
+    @IsIn(Array.from(constants.PROVIDERS.keys()))
     @ApiProperty({
         description: 'Id of data provider (e.g. discord)',
         required: true,
     })
         provider_id: string;
 
+    @IsIn(getDataProviderMethods())
     @ApiProperty({
-        description: 'Datasource Id',
+        description: 'Datasource Id - e.g. channels or roles',
         required: true,
     })
         method: string;
 
+    @IsNumberString()
     @ApiProperty({
         description: 'Datasource Id',
         required: true,
@@ -65,6 +69,7 @@ export class DiscordResponsetDto {
     })
         guildId: string;
 
+    @IsArray()
     @ApiProperty({
         description: 'Requested data',
         required: true,

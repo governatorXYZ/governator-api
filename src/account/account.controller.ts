@@ -1,9 +1,11 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UsePipes } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import {
     DiscordAccountCreateDto,
     DiscordAccountResponseDto,
-    DiscordAccountUpdateDto, DiscordAccountValidateAccountIdDto, DiscordAccountValidateUserIdDto,
+    DiscordAccountUpdateDto,
+    DiscordAccountValidateAccountIdDto,
+    DiscordAccountValidateUserIdDto,
     EthereumAccountCreateDto,
     EthereumAccountResponseDto,
     EthereumAccountUpdateUserDto,
@@ -12,7 +14,6 @@ import { EthereumAccountMongoService } from './ethereumAccount.mongo.service';
 import { EthereumAccount } from './ethereumAccount.schema';
 import { DiscordAccount } from './discordAccount.schema';
 import { DiscordAccountMongoService } from './discordAccount.mongo.service';
-import { AbstractValidationPipe } from '../common/abstractValidation.pipe';
 
 @ApiTags('Account')
 @ApiSecurity('api_key')
@@ -53,7 +54,6 @@ export class AccountController {
     @Post('account/ethereum/create')
     @ApiOperation({ description: 'Create an unverified ethereum account' })
     @ApiCreatedResponse({ description: 'Returns the new account object', type: EthereumAccountResponseDto })
-    @UsePipes(new AbstractValidationPipe({ whitelist: true, transform: true }, { body: EthereumAccountCreateDto }))
     async checkAndCreateEthereumAccount(@Body() ethAccount: EthereumAccountCreateDto): Promise<EthereumAccount> {
         return await this.ethereumMongoService.checkAndCreateAccount(ethAccount._id);
     }
@@ -61,7 +61,6 @@ export class AccountController {
     @Put('account/ethereum/update/:_id')
     @ApiOperation({ description: 'Update an ethereum account' })
     @ApiCreatedResponse({ description: 'Returns the updated account object', type: EthereumAccountResponseDto })
-    @UsePipes(new AbstractValidationPipe({ whitelist: true, transform: true }, { body: EthereumAccountUpdateUserDto }))
     async findByIdAndUpdateEthereumAccount(@Param() params: EthereumAccountCreateDto, @Body() ethAccount: EthereumAccountUpdateUserDto): Promise<EthereumAccount> {
         return await this.ethereumMongoService.findOneAndUpdateAccount({ _id: params._id }, ethAccount);
     }
@@ -104,7 +103,6 @@ export class AccountController {
     @Post('account/discord/create')
     @ApiOperation({ description: 'Create a discord account' })
     @ApiCreatedResponse({ description: 'Returns the new account object', type: DiscordAccountResponseDto })
-    @UsePipes(new AbstractValidationPipe({ whitelist: true, transform: true }, { body: DiscordAccountCreateDto }))
     async checkAndCreateDiscordAccount(@Body() account: DiscordAccountCreateDto): Promise<DiscordAccount> {
         return await this.discordMongoService.checkAndCreateAccount(account);
     }
@@ -113,7 +111,6 @@ export class AccountController {
     @ApiOperation({ description: 'Update a discord account' })
     @ApiCreatedResponse({ description: 'Returns the updated account object', type: DiscordAccountResponseDto })
     @ApiParam({ name: '_id', description: 'Discord account ID' })
-    @UsePipes(new AbstractValidationPipe({ whitelist: true, transform: true }, { body: DiscordAccountUpdateDto }))
     async findByIdAndUpdateDiscordAccount(@Param() params: DiscordAccountValidateAccountIdDto, @Body() discordAccount: DiscordAccountUpdateDto): Promise<DiscordAccount> {
         return await this.discordMongoService.findOneAndUpdateAccount({ _id: params._id }, discordAccount);
     }

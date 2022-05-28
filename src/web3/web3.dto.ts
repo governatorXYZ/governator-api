@@ -2,15 +2,14 @@ import { ApiProperty, PartialType, PickType } from '@nestjs/swagger';
 import { IsArray, IsNumber, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 import { EthereumAccountResponseDto } from '../account/account.dtos';
+import {IsEthAddress} from "../common/isEthAddress.decorator";
 
 export class EthereumAccountVerifyDto extends PartialType(PickType(EthereumAccountResponseDto, ['_id', 'signed_message'] as const)) {}
 
 export class TokenList {
 
     @IsArray()
-    @IsString({
-        each: true,
-    })
+    @IsString({ each: true })
     @ApiProperty({
         description: 'Array of ERC20 token contract addresses to query for balance',
         required: true,
@@ -21,6 +20,7 @@ export class TokenList {
 
 export class ERC20TokenBalanceDetail {
 
+    @IsEthAddress()
     @ApiProperty({
         description: 'ERC20 token contract address',
         required: true,
@@ -28,6 +28,7 @@ export class ERC20TokenBalanceDetail {
     })
         contractAddress: string;
 
+    @IsString()
     @ApiProperty({
         description: 'ERC20 token name',
         required: true,
@@ -35,6 +36,7 @@ export class ERC20TokenBalanceDetail {
     })
         tokenName: string;
 
+    @IsString()
     @ApiProperty({
         description: 'ERC20 token symbol',
         required: true,
@@ -53,6 +55,7 @@ export class ERC20TokenBalanceDetail {
 
 export class ERC20TokenBalances {
 
+    @IsEthAddress()
     @ApiProperty({
         description: 'Ethereum account address',
         required: true,

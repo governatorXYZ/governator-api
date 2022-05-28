@@ -1,8 +1,8 @@
-import {IsMongoId, IsNumberString, IsOptional, IsString} from 'class-validator';
-import {ApiProperty, OmitType, PartialType, PickType} from '@nestjs/swagger';
+import { IsIn, IsMongoId, IsNumberString, IsOptional, IsString } from 'class-validator';
+import { ApiProperty, OmitType, PartialType, PickType } from '@nestjs/swagger';
 import { ObjectId } from 'mongodb';
 import { IsEthAddress } from '../common/isEthAddress.decorator';
-import {Expose} from "class-transformer";
+import constants from '../common/constants';
 
 export abstract class AccountBase {
     @IsMongoId()
@@ -52,6 +52,7 @@ export class DiscordAccountResponseDto extends AccountBase {
     })
         user_id: string;
 
+    @IsIn(Array.from(constants.PROVIDERS.keys()))
     @ApiProperty({
         description: 'discord',
         required: true,
@@ -59,14 +60,6 @@ export class DiscordAccountResponseDto extends AccountBase {
         example: 'discord',
     })
         provider_id: string;
-
-    // @IsNumberString()
-    // @ApiProperty({
-    //     description: 'Discord user Id',
-    //     required: true,
-    //     example: '123456789873827394',
-    // })
-    //     provider_account_id: string;
 
     @IsString()
     @ApiProperty({
@@ -76,12 +69,14 @@ export class DiscordAccountResponseDto extends AccountBase {
     })
         discord_username: string;
 
+    @IsString()
     @ApiProperty({
         description: 'Datetime when record was created',
         required: false,
     })
         createdAt: string;
 
+    @IsString()
     @ApiProperty({
         description: 'Datetime when record was last updated',
         required: false,
@@ -114,6 +109,7 @@ export class EthereumAccountResponseDto extends AccountBase {
     })
         user_id: string;
 
+    @IsIn(Array.from(constants.PROVIDERS.keys()))
     @ApiProperty({
         description: 'ethereum',
         required: true,
@@ -122,37 +118,7 @@ export class EthereumAccountResponseDto extends AccountBase {
     })
         provider_id: string;
 
-    // @IsOptional()
-    // @IsEthAddress()
-    // @ApiProperty({
-    //     description: 'Ethereum account address',
-    //     required: false,
-    //     example: '0x123...',
-    // })
-    //     provider_account_id: string;
-
-    // @IsOptional()
-    // @ApiProperty({
-    //     description: 'Ethereum network ID',
-    //     required: false,
-    //     default: 1,
-    // })
-    // network_id: number;
-
-    // @ApiProperty({
-    //     description: 'Chain ID - 1 = Mainnet : Ethereum main network, 3 = Ropsten: Ethereum test network (PoW), 4 = Rinkeby : Ethereum test network (PoA), 42 = Kovan : Ethereum test network (PoA), 1284 = Moonbeam, 1287 = Moonbase Alpha',
-    //     required: true,
-    //     default: 1,
-    // })
-    //     chain_id: number;
-
-    // @ApiProperty({
-    //     description: 'Ethereum network name',
-    //     required: true,
-    //     default: 'Mainnet',
-    // })
-    //     network_name: string;
-
+    @IsString()
     @IsOptional()
     @ApiProperty({
         description: 'Message to be signed',
@@ -162,6 +128,7 @@ export class EthereumAccountResponseDto extends AccountBase {
     })
         verification_message: string;
 
+    @IsString()
     @IsOptional()
     @ApiProperty({
         description: 'Signed message',
@@ -170,6 +137,7 @@ export class EthereumAccountResponseDto extends AccountBase {
     })
         signed_message: string;
 
+    @IsString()
     @ApiProperty({
         description: 'Whether signature has been verified',
         required: true,
@@ -177,12 +145,14 @@ export class EthereumAccountResponseDto extends AccountBase {
     })
         verified: boolean;
 
+    @IsString()
     @ApiProperty({
         description: 'Datetime when record was created',
         required: false,
     })
         createdAt: string;
 
+    @IsString()
     @ApiProperty({
         description: 'Datetime when record was last updated',
         required: false,

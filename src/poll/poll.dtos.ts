@@ -128,12 +128,14 @@ export class PollResponseDto {
     })
         author_user_id: string;
 
+    @IsString()
     @ApiProperty({
         description: 'Datetime when record was created',
         required: false,
     })
         createdAt: string;
 
+    @IsString()
     @ApiProperty({
         description: 'Datetime when record was last updated',
         required: false,

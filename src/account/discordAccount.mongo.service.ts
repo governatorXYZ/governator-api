@@ -40,8 +40,6 @@ export class DiscordAccountMongoService {
 
     async createAccount(accountCreateDto: DiscordAccountCreateDto): Promise<DiscordAccount> {
         this.logger.debug('Creating new account');
-        this.logger.debug(JSON.stringify(accountCreateDto));
-
         try {
             return await this.discordAccountModel.create(accountCreateDto);
 
@@ -87,10 +85,7 @@ export class DiscordAccountMongoService {
 
     async checkAndCreateAccount(account: DiscordAccountCreateDto): Promise<DiscordAccount> {
 
-        const existingAccount = await this.findOneAccount({
-            user_id: (account as DiscordAccountUpdateDto).user_id,
-            provider_id: 'discord',
-        }).catch((e) => {
+        const existingAccount = await this.findOneAccount({ _id: account._id }).catch((e) => {
             this.logger.error('account not found', e);
             return null;
         });

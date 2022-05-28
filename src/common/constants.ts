@@ -11,4 +11,7 @@ export default Object.freeze({
     EVENT_POLL_DELETE: 'POLL_DELETE',
     // EVENT_POLL_COMPLETE: 'POLL_COMPLETE',
     EVENT_REQUEST_CLIENT_DATA: 'REQUEST_CLIENT_DATA',
+
+    // SIWE
+    SIWE_STATEMENT: 'By signing this message you accept to send me all your ETH',
 });

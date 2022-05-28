@@ -1,9 +1,8 @@
-import { IsArray, IsMongoId } from 'class-validator';
-import { ApiProperty, getSchemaPath, OmitType, PartialType } from '@nestjs/swagger';
+import { IsArray, IsMongoId, IsString } from 'class-validator';
+import { ApiProperty, OmitType, PartialType } from '@nestjs/swagger';
 import { ObjectId } from 'mongodb';
 import { AccountBase, DiscordAccountResponseDto, EthereumAccountResponseDto } from '../account/account.dtos';
 import { Type } from 'class-transformer';
-import {PollOptionDto} from "../poll/poll.dtos";
 
 export class UserResponseDto {
 
@@ -17,7 +16,6 @@ export class UserResponseDto {
 
     @IsArray()
     @Type(() => AccountBase, {
-        // keepDiscriminatorProperty: true,
         discriminator: {
             property: 'provider_accounts',
             subTypes: [
@@ -31,19 +29,17 @@ export class UserResponseDto {
         isArray: true,
         type: AccountBase,
         required: false,
-        // oneOf: [
-        //     { $ref: getSchemaPath(EthereumAccountResponseDto) },
-        //     { $ref: getSchemaPath(DiscordAccountResponseDto) },
-        // ],
     })
         provider_accounts: (EthereumAccountResponseDto | DiscordAccountResponseDto)[];
 
+    @IsString()
     @ApiProperty({
         description: 'Datetime when record was created',
         required: false,
     })
         createdAt: string;
 
+    @IsString()
     @ApiProperty({
         description: 'Datetime when record was last updated',
         required: false,

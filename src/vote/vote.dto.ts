@@ -1,10 +1,12 @@
 import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { ObjectId } from 'mongodb';
 import { VoteRawResponseUpdate } from './types';
-import { IsMongoId, IsString } from 'class-validator';
+import { IsMongoId, IsOptional, IsString } from 'class-validator';
 
 export class VoteRawResponseDto {
 
+    @IsMongoId()
+    @IsOptional()
     @ApiProperty({
         description: 'Vote ID - (auto generated if left blank)',
         required: false,
@@ -12,9 +14,11 @@ export class VoteRawResponseDto {
     })
         _id: string;
 
+    @IsMongoId()
     @ApiProperty({
         description: 'ObjectId of Poll this Vote relates to',
         required: true,
+        example: new ObjectId(),
     })
         poll_id: string;
 
@@ -22,7 +26,6 @@ export class VoteRawResponseDto {
     @ApiProperty({
         description: 'Vote record object',
         required: true,
-        // type: VoteOptionDto,
     })
         poll_option_id: string;
 
@@ -33,12 +36,14 @@ export class VoteRawResponseDto {
     })
         user_id: string;
 
+    @IsString()
     @ApiProperty({
         description: 'Datetime when record was created',
         required: false,
     })
         createdAt: string;
 
+    @IsString()
     @ApiProperty({
         description: 'Datetime when record was last updated',
         required: false,
@@ -48,6 +53,7 @@ export class VoteRawResponseDto {
 
 export class VoteResponseDto {
 
+    @IsString()
     @ApiProperty({
         description: 'POST method used (create, update or delete)',
         required: false,
@@ -55,6 +61,7 @@ export class VoteResponseDto {
     })
         method: string;
 
+    @IsOptional()
     @ApiProperty({
         description: 'created/updated/deleted db object',
         required: false,

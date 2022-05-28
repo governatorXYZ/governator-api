@@ -3,6 +3,9 @@ import { Model, Aggregate } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { EthereumAccountCreateDto, EthereumAccountUpdateDto } from './account.dtos';
 import { EthereumAccount, EthereumAccountDocument } from './ethereumAccount.schema';
+import * as siwe from 'siwe';
+import constants from '../common/constants';
+
 
 @Injectable()
 export class EthereumAccountMongoService {
@@ -99,7 +102,7 @@ export class EthereumAccountMongoService {
         updateAccount._id = accountId;
 
         try {
-            (updateAccount as EthereumAccountUpdateDto).verification_message = this.generateVerificationMessage();
+            (updateAccount as EthereumAccountUpdateDto).verification_message = this.generateVerificationMessage(accountId);
             return this.createAccount(updateAccount);
 
         } catch (e) {
@@ -126,7 +129,21 @@ export class EthereumAccountMongoService {
         }
     }
 
-    generateVerificationMessage() {
-        return 'Please sign this message: \n By signing this you accept anything and everything';
+    generateVerificationMessage(address) {
+
+        const domain = 'governator.xyz';
+        const origin = 'https://governator.xyz/siwe';
+        const statement = constants.SIWE_STATEMENT;
+
+        const siweMessage = new siwe.SiweMessage({
+            domain,
+            address,
+            statement,
+            uri: origin,
+            version: '1',
+            chainId: 1,
+        });
+
+        return siweMessage.prepareMessage();
     }
 }
