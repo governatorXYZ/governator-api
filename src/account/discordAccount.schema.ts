@@ -12,7 +12,7 @@ export class DiscordAccount {
     @Prop({ required: true, type: String })
         _id: string;
 
-    @Prop({ required: true, type: mongoose.Schema.Types.ObjectId })
+    @Prop({ required: true, auto: true, type: mongoose.Schema.Types.ObjectId })
         user_id: string;
 
     // e.g. discord, ethereum

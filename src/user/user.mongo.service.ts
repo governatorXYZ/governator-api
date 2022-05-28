@@ -34,11 +34,8 @@ export class UserMongoService {
 
             if (users.length === 0) return;
 
-            const x = await Promise.all(users.flatMap(async (user) => {
-                this.logger.debug(user._id);
-                const userObject = await this.castToUserObject(user._id);
-                this.logger.debug(userObject);
-                return userObject;
+            const x = await Promise.all(users.map(async (user) => {
+                return await this.castToUserObject(user._id);
             }));
 
             this.logger.debug(x);

@@ -3,38 +3,7 @@ import { IsArray, IsNumber, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 import { EthereumAccountResponseDto } from '../account/account.dtos';
 
-export class EthereumAccountVerifyDto extends PartialType(PickType(EthereumAccountResponseDto, ['user_id', '_id', 'signed_message'] as const)) {}
-
-
-// export class EthAddressVerificationDto {
-//
-//     @IsMongoId()
-//     @ApiProperty({
-//         description: 'Governator user ID',
-//         required: true,
-//     })
-//         user_id: string;
-//
-//     @IsEthAddress()
-//     @ApiProperty({
-//         description: 'Ethereum address of signer account',
-//         required: true,
-//         example: '0x123..',
-//     })
-//         address: string;
-//
-//     @ApiProperty({
-//         description: 'Signature of signer account',
-//         required: true,
-//     })
-//         signature: string;
-//
-//     @ApiProperty({
-//         description: 'Message that has been signed',
-//         required: true,
-//     })
-//         verification_message: string;
-// }
+export class EthereumAccountVerifyDto extends PartialType(PickType(EthereumAccountResponseDto, ['_id', 'signed_message'] as const)) {}
 
 export class TokenList {
 

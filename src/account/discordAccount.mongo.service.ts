@@ -40,6 +40,7 @@ export class DiscordAccountMongoService {
 
     async createAccount(accountCreateDto: DiscordAccountCreateDto): Promise<DiscordAccount> {
         this.logger.debug('Creating new account');
+        this.logger.debug(JSON.stringify(accountCreateDto));
 
         try {
             return await this.discordAccountModel.create(accountCreateDto);
@@ -65,7 +66,7 @@ export class DiscordAccountMongoService {
 
     async findOneAndUpdateAccount(filter, updateDoc) {
         try {
-            return this.discordAccountModel.findOneAndUpdate(filter, updateDoc, { new: true }).exec();
+            return this.discordAccountModel.findOneAndUpdate(filter, updateDoc, { new: true, upsert: false }).exec();
         } catch (e) {
             this.logger.error('Failed to update account', e);
 

@@ -65,7 +65,7 @@ export class EthereumAccountMongoService {
 
     async findOneAndUpdateAccount(filter, updateDoc) {
         try {
-            return this.ethereumAccountModel.findOneAndUpdate(filter, updateDoc, { new: true }).exec();
+            return this.ethereumAccountModel.findOneAndUpdate(filter, updateDoc, { new: true, upsert: false }).exec();
         } catch (e) {
             this.logger.error('Failed to update account', e);
 
@@ -84,21 +84,23 @@ export class EthereumAccountMongoService {
         }
     }
 
-    async checkAndCreateAccount(account: EthereumAccountCreateDto): Promise<EthereumAccount> {
+    async checkAndCreateAccount(accountId): Promise<EthereumAccount> {
 
         const existingAccount = await this.findOneAccount({
-            user_id: (account as EthereumAccountUpdateDto).user_id,
-            provider_id: 'ethereum',
+            _id: accountId,
         }).catch((e) => {
-            this.logger.error('account not found', e);
+            this.logger.debug('account not found', e);
             return null;
         });
 
         if (existingAccount !== null) throw new HttpException('Account exists', HttpStatus.BAD_REQUEST);
 
+        const updateAccount = new EthereumAccountCreateDto();
+        updateAccount._id = accountId;
+
         try {
-            (account as EthereumAccountUpdateDto).verification_message = this.generateVerificationMessage();
-            return this.createAccount(account);
+            (updateAccount as EthereumAccountUpdateDto).verification_message = this.generateVerificationMessage();
+            return this.createAccount(updateAccount);
 
         } catch (e) {
             this.logger.error('Failed to create account', e);

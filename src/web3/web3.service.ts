@@ -81,21 +81,15 @@ export class Web3Service {
     async verifySignature(ethAddressVerificationDto: EthereumAccountVerifyDto) {
         this.logger.log(`Verifying signature for address ${ethAddressVerificationDto._id}`);
 
-        const account = await this.ethereumAccountMongoService.findOneAccount({ _id: ethAddressVerificationDto._id, provider_id: 'ethereum' });
+        const account = await this.ethereumAccountMongoService.findOneAccount({ _id: ethAddressVerificationDto._id });
 
-        if (!account) throw new HttpException('userId not found. Failed to fetch account from db', HttpStatus.BAD_REQUEST);
+        if (!account) throw new HttpException('Ethereum address not found. Failed to fetch account from db', HttpStatus.BAD_REQUEST);
 
-        const verifiedAccount = await this.ethereumAccountMongoService.findOneAccount({ provider_id: 'ethereum', _id: ethAddressVerificationDto._id, verified: true }).catch(() => null);
-
-        if (verifiedAccount) throw new HttpException('Account already verified', HttpStatus.BAD_REQUEST);
-
-        // const message = (account.provider_account as EthereumAccount).verification_message;
-
-        const message = account.verification_message;
+        if (account.verified) throw new HttpException('Account already verified', HttpStatus.BAD_REQUEST);
 
         let signerAddress: string;
         try {
-            signerAddress = ethers.utils.verifyMessage(message, ethAddressVerificationDto.signed_message);
+            signerAddress = ethers.utils.verifyMessage(account.verification_message, ethAddressVerificationDto.signed_message);
 
         } catch (e) {
             this.logger.error(e);
@@ -112,9 +106,7 @@ export class Web3Service {
 
         account.verified = true;
 
-        account._id = signerAddress;
-
-        this.logger.log(`Ethereum user account updated for user ${ethAddressVerificationDto.user_id}`);
+        this.logger.log(`Ethereum user account updated for address ${ethAddressVerificationDto._id}`);
 
         return await this.ethereumAccountMongoService.findOneAndUpdateAccount({ _id: signerAddress }, account).catch((e) => {
             this.logger.error('Failed to update account', e);
@@ -122,17 +114,4 @@ export class Web3Service {
             throw new HttpException('Failed to update account', HttpStatus.BAD_REQUEST);
         });
     }
-
-    // async getVerificationMessage(ethAddress) {
-    //     try {
-    //         const account = await this.ethereumAccountMongoService.findOneAccount({ provider_id: 'ethereum', provider_account_id: ethAddress });
-    //
-    //         return account.verification_message;
-    //
-    //     } catch (e) {
-    //         this.logger.error('Failed to fetch account from db', e);
-    //
-    //         throw new HttpException('Failed to fetch account', HttpStatus.BAD_REQUEST);
-    //     }
-    // }
 }

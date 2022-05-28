@@ -1,15 +1,18 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, UsePipes } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import {
     DiscordAccountCreateDto,
-    DiscordAccountResponseDto, DiscordAccountUpdateDto,
+    DiscordAccountResponseDto,
+    DiscordAccountUpdateDto, DiscordAccountValidateAccountIdDto, DiscordAccountValidateUserIdDto,
     EthereumAccountCreateDto,
-    EthereumAccountResponseDto, EthereumAccountUpdateDto,
+    EthereumAccountResponseDto,
+    EthereumAccountUpdateUserDto,
 } from './account.dtos';
 import { EthereumAccountMongoService } from './ethereumAccount.mongo.service';
 import { EthereumAccount } from './ethereumAccount.schema';
 import { DiscordAccount } from './discordAccount.schema';
 import { DiscordAccountMongoService } from './discordAccount.mongo.service';
+import { AbstractValidationPipe } from '../common/abstractValidation.pipe';
 
 @ApiTags('Account')
 @ApiSecurity('api_key')
@@ -31,43 +34,44 @@ export class AccountController {
         return await this.ethereumMongoService.findManyAccount({});
     }
 
-    @Get('account/ethereum/get-many/:user_id')
+    @Get('account/ethereum/get-by-user-id/:user_id')
     @ApiOperation({ description: 'Find Ethereum accounts' })
     @ApiCreatedResponse({ description: 'Returns an Ethereum account object array', type: EthereumAccountResponseDto, isArray: true })
     @ApiParam({ name: 'user_id', description: 'Governator user ID' })
-    async findOneEthereumAccountByUserId(@Param('user_id') userId): Promise<EthereumAccount[]> {
-        return await this.ethereumMongoService.findManyAccount({ user_id: userId });
+    async findOneEthereumAccountByUserId(@Param() params: EthereumAccountUpdateUserDto): Promise<EthereumAccount[]> {
+        return await this.ethereumMongoService.findManyAccount({ user_id: params.user_id });
     }
 
-    @Get('account/ethereum/get-one/:account_id')
+    @Get('account/ethereum/get-by-account-id/:_id')
     @ApiOperation({ description: 'Find an ethereum account' })
     @ApiCreatedResponse({ description: 'Returns an Ethereum account object', type: EthereumAccountResponseDto })
-    @ApiParam({ name: 'account_id', description: 'Ethereum address' })
-    async findOneEthereumAccountByProviderAccountId(@Param('account_id') accountId): Promise<EthereumAccount> {
-        return await this.ethereumMongoService.findOneAccount({ _id: accountId });
+    @ApiParam({ name: '_id', description: 'Ethereum address' })
+    async findOneEthereumAccountByProviderAccountId(@Param() params: EthereumAccountCreateDto): Promise<EthereumAccount> {
+        return await this.ethereumMongoService.findOneAccount({ _id: params._id });
     }
 
     @Post('account/ethereum/create')
     @ApiOperation({ description: 'Create an unverified ethereum account' })
     @ApiCreatedResponse({ description: 'Returns the new account object', type: EthereumAccountResponseDto })
-    async checkAndCreateEthereumAccount(@Body() account: EthereumAccountCreateDto): Promise<EthereumAccount> {
-        return await this.ethereumMongoService.checkAndCreateAccount(account);
+    @UsePipes(new AbstractValidationPipe({ whitelist: true, transform: true }, { body: EthereumAccountCreateDto }))
+    async checkAndCreateEthereumAccount(@Body() ethAccount: EthereumAccountCreateDto): Promise<EthereumAccount> {
+        return await this.ethereumMongoService.checkAndCreateAccount(ethAccount._id);
     }
 
-    @Put('account/ethereum/update/:account_id')
+    @Put('account/ethereum/update/:_id')
     @ApiOperation({ description: 'Update an ethereum account' })
     @ApiCreatedResponse({ description: 'Returns the updated account object', type: EthereumAccountResponseDto })
-    @ApiParam({ name: 'account_id', description: 'Ethereum address' })
-    async findByIdAndUpdateEthereumAccount(@Param('account_id') ethAddress, @Body() ethAccount: EthereumAccountUpdateDto): Promise<EthereumAccount> {
-        return await this.ethereumMongoService.findOneAndUpdateAccount({ _id: ethAddress }, ethAccount);
+    @UsePipes(new AbstractValidationPipe({ whitelist: true, transform: true }, { body: EthereumAccountUpdateUserDto }))
+    async findByIdAndUpdateEthereumAccount(@Param() params: EthereumAccountCreateDto, @Body() ethAccount: EthereumAccountUpdateUserDto): Promise<EthereumAccount> {
+        return await this.ethereumMongoService.findOneAndUpdateAccount({ _id: params._id }, ethAccount);
     }
 
-    @Delete('account/ethereum/delete/:account_id')
+    @Delete('account/ethereum/delete/:_id')
     @ApiOperation({ description: 'Delete an ethereum account' })
     @ApiCreatedResponse({ description: 'Returns the deleted account object', type: EthereumAccountResponseDto })
-    @ApiParam({ name: 'account_id', description: 'Ethereum address' })
-    async findOneAndDeleteEthereumAccount(@Param('account_id') ethAddress): Promise<EthereumAccount> {
-        return await this.ethereumMongoService.findOneAndDeleteAccount({ _id: ethAddress });
+    @ApiParam({ name: '_id', description: 'Ethereum address' })
+    async findOneAndDeleteEthereumAccount(@Param() params: EthereumAccountCreateDto): Promise<EthereumAccount> {
+        return await this.ethereumMongoService.findOneAndDeleteAccount({ _id: params._id });
     }
 
 
@@ -81,42 +85,44 @@ export class AccountController {
     }
 
 
-    @Get('account/discord/get-many/:user_id')
+    @Get('account/discord/get-by-user-id/:user_id')
     @ApiOperation({ description: 'Find discord accounts by governator id' })
     @ApiCreatedResponse({ description: 'Returns a Discord account object', type: DiscordAccountResponseDto, isArray: true })
     @ApiParam({ name: 'user_id', description: 'Governator ID' })
-    async findOneDiscordAccountByUserId(@Param('user_id') userId): Promise<DiscordAccount[]> {
-        return await this.discordMongoService.findManyAccount({ user_id: userId });
+    async findOneDiscordAccountByUserId(@Param() params: DiscordAccountValidateUserIdDto): Promise<DiscordAccount[]> {
+        return await this.discordMongoService.findManyAccount({ user_id: params.user_id });
     }
 
-    @Get('account/discord/get-one/:account_id')
+    @Get('account/discord/get-by-account-id/:_id')
     @ApiOperation({ description: 'Find a discord account' })
     @ApiCreatedResponse({ description: 'Returns a Discord account object', type: DiscordAccountResponseDto })
-    @ApiParam({ name: 'account_id', description: 'Discord user ID' })
-    async findOneDiscordAccountByProviderAccountId(@Param('account_id') accountId): Promise<DiscordAccount> {
-        return await this.discordMongoService.findOneAccount({ _id: accountId });
+    @ApiParam({ name: '_id', description: 'Discord user ID' })
+    async findOneDiscordAccountByProviderAccountId(@Param() params: DiscordAccountValidateAccountIdDto): Promise<DiscordAccount> {
+        return await this.discordMongoService.findOneAccount({ _id: params._id });
     }
 
     @Post('account/discord/create')
     @ApiOperation({ description: 'Create a discord account' })
     @ApiCreatedResponse({ description: 'Returns the new account object', type: DiscordAccountResponseDto })
+    @UsePipes(new AbstractValidationPipe({ whitelist: true, transform: true }, { body: DiscordAccountCreateDto }))
     async checkAndCreateDiscordAccount(@Body() account: DiscordAccountCreateDto): Promise<DiscordAccount> {
         return await this.discordMongoService.checkAndCreateAccount(account);
     }
 
-    @Put('account/discord/update/:account_id')
+    @Put('account/discord/update/:_id')
     @ApiOperation({ description: 'Update a discord account' })
     @ApiCreatedResponse({ description: 'Returns the updated account object', type: DiscordAccountResponseDto })
-    @ApiParam({ name: 'account_id', description: 'Discord account ID' })
-    async findByIdAndUpdateDiscordAccount(@Param('account_id') discordId, @Body() discordAccount: DiscordAccountUpdateDto): Promise<DiscordAccount> {
-        return await this.discordMongoService.findOneAndUpdateAccount({ _id: discordId }, discordAccount);
+    @ApiParam({ name: '_id', description: 'Discord account ID' })
+    @UsePipes(new AbstractValidationPipe({ whitelist: true, transform: true }, { body: DiscordAccountUpdateDto }))
+    async findByIdAndUpdateDiscordAccount(@Param() params: DiscordAccountValidateAccountIdDto, @Body() discordAccount: DiscordAccountUpdateDto): Promise<DiscordAccount> {
+        return await this.discordMongoService.findOneAndUpdateAccount({ _id: params._id }, discordAccount);
     }
 
-    @Delete('account/discord/delete/:account_id')
+    @Delete('account/discord/delete/:_id')
     @ApiOperation({ description: 'Delete a discord account' })
     @ApiCreatedResponse({ description: 'Returns the deleted account object', type: DiscordAccountResponseDto })
-    @ApiParam({ name: 'account_id', description: 'Discord account ID' })
-    async findOneAndDeleteDiscordAccount(@Param('account_id') discordId): Promise<DiscordAccount> {
-        return await this.discordMongoService.findOneAndDeleteAccount({ _id: discordId });
+    @ApiParam({ name: '_id', description: 'Discord account ID' })
+    async findOneAndDeleteDiscordAccount(@Param() params: DiscordAccountValidateAccountIdDto): Promise<DiscordAccount> {
+        return await this.discordMongoService.findOneAndDeleteAccount({ _id: params._id });
     }
 }
