@@ -3,7 +3,7 @@ import { IsArray, IsNumber, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 import { EthereumAccountResponseDto } from '../account/account.dtos';
 
-export class EthereumAccountVerifyDto extends PartialType(PickType(EthereumAccountResponseDto, ['user_id', 'provider_account_id', 'signed_message'] as const)) {}
+export class EthereumAccountVerifyDto extends PartialType(PickType(EthereumAccountResponseDto, ['user_id', '_id', 'signed_message'] as const)) {}
 
 
 // export class EthAddressVerificationDto {

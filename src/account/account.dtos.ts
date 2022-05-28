@@ -6,7 +6,7 @@ import { IsEthAddress } from '../common/isEthAddress.decorator';
 export abstract class AccountBase {
     @IsMongoId()
     @ApiProperty({
-        description: 'mongodb ethereum account id - (auto generated)',
+        description: 'mongodb account id',
         required: false,
         default: new ObjectId(),
     })
@@ -37,11 +37,11 @@ export abstract class AccountBase {
 
 export class DiscordAccountResponseDto extends AccountBase {
 
-    @IsMongoId()
+    @IsNumberString()
     @ApiProperty({
-        description: 'mongodb ethereum account id - (auto generated)',
-        required: false,
-        default: new ObjectId(),
+        description: 'Discord user Id',
+        required: true,
+        example: '123456789873827394',
     })
         _id: string;
 
@@ -60,13 +60,13 @@ export class DiscordAccountResponseDto extends AccountBase {
     })
         provider_id: string;
 
-    @IsNumberString()
-    @ApiProperty({
-        description: 'Discord user Id',
-        required: true,
-        example: '123456789873827394',
-    })
-        provider_account_id: string;
+    // @IsNumberString()
+    // @ApiProperty({
+    //     description: 'Discord user Id',
+    //     required: true,
+    //     example: '123456789873827394',
+    // })
+    //     provider_account_id: string;
 
     @ApiProperty({
         description: 'Discord username',
@@ -88,17 +88,17 @@ export class DiscordAccountResponseDto extends AccountBase {
         updatedAt: string;
 }
 
-export class DiscordAccountCreateDto extends OmitType(DiscordAccountResponseDto, ['_id', 'user_id', 'createdAt', 'updatedAt', 'provider_id'] as const) {}
+export class DiscordAccountCreateDto extends OmitType(DiscordAccountResponseDto, ['user_id', 'createdAt', 'updatedAt', 'provider_id'] as const) {}
 
-export class DiscordAccountUpdateDto extends OmitType(PartialType(DiscordAccountResponseDto), ['_id', 'createdAt', 'updatedAt', 'provider_id', 'provider_account_id'] as const) {}
+export class DiscordAccountUpdateDto extends OmitType(PartialType(DiscordAccountResponseDto), ['_id', 'createdAt', 'updatedAt', 'provider_id'] as const) {}
 
 export class EthereumAccountResponseDto extends AccountBase {
 
-    @IsMongoId()
+    @IsEthAddress()
     @ApiProperty({
-        description: 'mongodb ethereum account id - (auto generated)',
-        required: false,
-        default: new ObjectId(),
+        description: 'Ethereum address',
+        required: true,
+        example: '0x123..',
     })
         _id: string;
 
@@ -117,14 +117,14 @@ export class EthereumAccountResponseDto extends AccountBase {
     })
         provider_id: string;
 
-    @IsOptional()
-    @IsEthAddress()
-    @ApiProperty({
-        description: 'Ethereum account address',
-        required: false,
-        example: '0x123...',
-    })
-        provider_account_id: string;
+    // @IsOptional()
+    // @IsEthAddress()
+    // @ApiProperty({
+    //     description: 'Ethereum account address',
+    //     required: false,
+    //     example: '0x123...',
+    // })
+    //     provider_account_id: string;
 
     // @IsOptional()
     // @ApiProperty({
@@ -186,9 +186,9 @@ export class EthereumAccountResponseDto extends AccountBase {
 
 }
 
-export class EthereumAccountCreateDto extends OmitType(EthereumAccountResponseDto, ['_id', 'user_id', 'createdAt', 'updatedAt', 'provider_id', 'verification_message', 'verified', 'signed_message'] as const) {}
+export class EthereumAccountCreateDto extends OmitType(EthereumAccountResponseDto, ['user_id', 'createdAt', 'updatedAt', 'provider_id', 'verification_message', 'verified', 'signed_message'] as const) {}
 
-export class EthereumAccountUpdateDto extends OmitType(PartialType(EthereumAccountResponseDto), ['_id', 'createdAt', 'updatedAt', 'provider_id', 'provider_account_id'] as const) {}
+export class EthereumAccountUpdateDto extends OmitType(PartialType(EthereumAccountResponseDto), ['_id', 'createdAt', 'updatedAt', 'provider_id'] as const) {}
 
 // TODO remove
 // export abstract class AccountBase {

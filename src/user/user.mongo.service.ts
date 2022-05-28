@@ -1,7 +1,4 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { Model } from 'mongoose';
-import { InjectModel } from '@nestjs/mongoose';
-// import { User, UserDocument } from './user.schema';
 import { UserResponseDto } from './user.dtos';
 import {
     DiscordAccountResponseDto,
@@ -12,7 +9,6 @@ import { DiscordAccountMongoService } from '../account/discordAccount.mongo.serv
 import constants from '../common/constants';
 import { EthereumAccount } from '../account/ethereumAccount.schema';
 import { DiscordAccount } from '../account/discordAccount.schema';
-import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class UserMongoService {
@@ -89,7 +85,7 @@ export class UserMongoService {
     //     }
     // }
 
-    async fetchUserByProvider(providerId, providerAccountId): Promise<UserResponseDto> {
+    async fetchUserByProvider(providerId, accountId): Promise<UserResponseDto> {
 
         if (!Array.from(constants.PROVIDERS.keys()).includes(providerId)) throw new HttpException('Invalid provider Id', HttpStatus.NOT_FOUND);
 
@@ -97,10 +93,10 @@ export class UserMongoService {
 
         switch (providerId) {
         case 'ethereum':
-            account = await this.ethereumAccountMongoService.findOneAccount({ provider_id: providerId, provider_account_id: providerAccountId });
+            account = await this.ethereumAccountMongoService.findOneAccount({ _id: accountId });
             break;
         case 'discord':
-            account = await this.discordAccountMongoService.findOneAccount({ provider_id: providerId, provider_account_id: providerAccountId });
+            account = await this.discordAccountMongoService.findOneAccount({ _id: accountId });
             break;
         default:
             this.logger.error('providerId missmatch - this should not happen');

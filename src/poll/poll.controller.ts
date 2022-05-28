@@ -23,10 +23,10 @@ export class PollController {
         return await this.mongoService.fetchAllPolls();
     }
 
-    @Get('poll/:id')
+    @Get('poll/:poll_id')
     @ApiOperation({ description: 'Fetch poll by ID' })
-    @ApiParam({ name: 'id', description: 'Get poll by ID' })
-    async fetchPollById(@Param('id') id) {
+    @ApiParam({ name: 'poll_id', description: 'Get poll by ID' })
+    async fetchPollById(@Param('poll_id') id) {
         return await this.mongoService.fetchPollById(id);
     }
 
@@ -56,10 +56,10 @@ export class PollController {
         return poll;
     }
 
-    @Put('poll/update/:id')
-    @ApiParam({ name: 'id', description: 'ID of poll to be updated' })
+    @Put('poll/update/:poll_id')
+    @ApiParam({ name: 'poll_id', description: 'ID of poll to be updated' })
     @ApiCreatedResponse({ description: `Returns the updated poll object and emits ${constants.EVENT_POLL_UPDATE} event`, type: PollCreateDto })
-    async updatePoll(@Param('id') id, @Body() poll: PollUpdateDto): Promise<Poll> {
+    async updatePoll(@Param('poll_id') id, @Body() poll: PollUpdateDto): Promise<Poll> {
         const updatePoll = await this.mongoService.updatePoll(id, poll);
         await this.sseService.emit({
             data: updatePoll,
@@ -68,10 +68,10 @@ export class PollController {
         return updatePoll;
     }
 
-    @Delete('poll/delete/:id')
-    @ApiParam({ name: 'id', description: 'ID of poll to be deleted' })
+    @Delete('poll/delete/:poll_id')
+    @ApiParam({ name: 'poll_id', description: 'ID of poll to be deleted' })
     @ApiCreatedResponse({ description: `Returns the deleted poll object and emits ${constants.EVENT_POLL_DELETE} event`, type: PollCreateDto })
-    async deletePoll(@Param('id') id): Promise<Poll> {
+    async deletePoll(@Param('poll_id') id): Promise<Poll> {
         const deletePoll = await this.mongoService.deletePoll(id);
         await this.sseService.emit({
             data: deletePoll,

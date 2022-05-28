@@ -79,13 +79,13 @@ export class Web3Service {
     }
 
     async verifySignature(ethAddressVerificationDto: EthereumAccountVerifyDto) {
-        this.logger.log(`Verifying signature for address ${ethAddressVerificationDto.provider_account_id}`);
+        this.logger.log(`Verifying signature for address ${ethAddressVerificationDto._id}`);
 
-        const account = await this.ethereumAccountMongoService.findOneAccount({ provider_account_id: ethAddressVerificationDto.provider_account_id, provider_id: 'ethereum' });
+        const account = await this.ethereumAccountMongoService.findOneAccount({ _id: ethAddressVerificationDto._id, provider_id: 'ethereum' });
 
         if (!account) throw new HttpException('userId not found. Failed to fetch account from db', HttpStatus.BAD_REQUEST);
 
-        const verifiedAccount = await this.ethereumAccountMongoService.findOneAccount({ provider_id: 'ethereum', provider_account_id: ethAddressVerificationDto.provider_account_id, verified: true }).catch(() => null);
+        const verifiedAccount = await this.ethereumAccountMongoService.findOneAccount({ provider_id: 'ethereum', _id: ethAddressVerificationDto._id, verified: true }).catch(() => null);
 
         if (verifiedAccount) throw new HttpException('Account already verified', HttpStatus.BAD_REQUEST);
 
@@ -102,21 +102,21 @@ export class Web3Service {
             signerAddress = null;
         }
 
-        if (!(signerAddress === ethAddressVerificationDto.provider_account_id)) throw new HttpException('Address verification failed, signature did not match', HttpStatus.EXPECTATION_FAILED);
+        if (!(signerAddress === ethAddressVerificationDto._id)) throw new HttpException('Address verification failed, signature did not match', HttpStatus.EXPECTATION_FAILED);
 
         this.logger.log('Signature verification successful');
 
-        this.logger.debug(`${signerAddress} = ${ethAddressVerificationDto.provider_account_id}`);
+        this.logger.debug(`${signerAddress} = ${ethAddressVerificationDto._id}`);
 
         account.signed_message = ethAddressVerificationDto.signed_message;
 
         account.verified = true;
 
-        account.provider_account_id = signerAddress;
+        account._id = signerAddress;
 
         this.logger.log(`Ethereum user account updated for user ${ethAddressVerificationDto.user_id}`);
 
-        return await this.ethereumAccountMongoService.findOneAndUpdateAccount({ provider_account_id: signerAddress }, account).catch((e) => {
+        return await this.ethereumAccountMongoService.findOneAndUpdateAccount({ _id: signerAddress }, account).catch((e) => {
             this.logger.error('Failed to update account', e);
 
             throw new HttpException('Failed to update account', HttpStatus.BAD_REQUEST);

@@ -2,6 +2,7 @@ import { ApiOkResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@ne
 import { Controller, Get, Param } from '@nestjs/common';
 import { UserMongoService } from './user.mongo.service';
 import { UserResponseDto } from './user.dtos';
+import constants from "../common/constants";
 
 @ApiTags('User')
 @ApiSecurity('api_key')
@@ -18,21 +19,26 @@ export class UserController {
         return await this.mongoService.fetchAllUsers();
     }
 
-    @Get('user/:id')
+    @Get('user/:user_id')
     @ApiOperation({ description: 'Fetch user by ID' })
     @ApiOkResponse({ description: 'User object', type: UserResponseDto })
-    @ApiParam({ name: 'id', description: 'Get user by ID' })
-    async fetchUserById(@Param('id') id) {
-        return await this.mongoService.fetchUserById(id);
+    @ApiParam({ name: 'user_id', description: 'Get user by ID' })
+    async fetchUserById(@Param('user_id') userId) {
+        return await this.mongoService.fetchUserById(userId);
     }
 
-    @Get('user/:provider_id/:provider_account_id')
-    @ApiOperation({ description: 'Fetch user by provider' })
+    @Get('user/:provider_id/:account_id')
+    @ApiOperation({ description: 'Fetch user by account' })
     @ApiOkResponse({ description: 'User object', type: UserResponseDto })
-    @ApiParam({ name: 'provider_id', description: 'Provider ID, e.g. discord' })
-    @ApiParam({ name: 'provider_account_id', description: 'Provider account ID, e.g. discord user ID' })
-    async fetchUserByProvider(@Param('provider_id') provider_id, @Param('provider_account_id') provider_account_id) {
-        return await this.mongoService.fetchUserByProvider(provider_id, provider_account_id);
+    @ApiParam({
+        description: 'ID of account provider',
+        type: String,
+        name:'provider_id',
+        enum: Array.from(constants.PROVIDERS.keys()),
+    })
+    @ApiParam({ name: 'account_id', description: 'Account ID, e.g. discord user ID' })
+    async fetchUserByProvider(@Param('provider_id') providerId, @Param('account_id') accountId) {
+        return await this.mongoService.fetchUserByProvider(providerId, accountId);
     }
 
     // TODO remove

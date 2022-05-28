@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import {DiscordAccountCreateDto, DiscordAccountUpdateDto} from './account.dtos';
+import { DiscordAccountCreateDto, DiscordAccountUpdateDto } from './account.dtos';
 import { DiscordAccount, DiscordAccountDocument } from './discordAccount.schema';
 
 @Injectable()
@@ -13,10 +13,8 @@ export class DiscordAccountMongoService {
     }
 
     async findOneAccount(filter): Promise<DiscordAccount | null> {
-        let account: DiscordAccount | null;
-
         try {
-            account = await this.discordAccountModel.findOne(filter).exec().catch((e) => {
+            return await this.discordAccountModel.findOne(filter).exec().catch((e) => {
                 this.logger.error(e);
                 return null;
             });
@@ -25,8 +23,6 @@ export class DiscordAccountMongoService {
 
             throw new HttpException('Failed to fetch account from db', HttpStatus.BAD_REQUEST);
         }
-
-        return account;
     }
 
     async findManyAccount(filter): Promise<DiscordAccount[] | null> {
@@ -67,9 +63,9 @@ export class DiscordAccountMongoService {
         }
     }
 
-    async findByIdAndUpdateAccount(id, updateDoc) {
+    async findOneAndUpdateAccount(filter, updateDoc) {
         try {
-            return this.discordAccountModel.findByIdAndUpdate(id, updateDoc, { new: true }).exec();
+            return this.discordAccountModel.findOneAndUpdate(filter, updateDoc, { new: true }).exec();
         } catch (e) {
             this.logger.error('Failed to update account', e);
 
