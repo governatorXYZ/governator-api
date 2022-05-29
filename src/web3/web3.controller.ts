@@ -24,7 +24,7 @@ export class Web3Controller {
         return await this.web3Service.getTokenBalances(ethAddress, tokenList);
     }
 
-    @Post('web3/verify-signature')
+    @Post('web3/verify')
     @ApiOperation({ description: 'Verify signature' })
     @ApiCreatedResponse({ description: 'Returns the updated ethereum account', type: EthereumAccountResponseDto })
     async verifySignature(@Body() ethAddressVerificationDto: EthereumAccountVerifyDto): Promise<EthereumAccount> {

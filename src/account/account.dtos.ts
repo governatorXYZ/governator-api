@@ -1,4 +1,4 @@
-import { IsIn, IsMongoId, IsNumberString, IsOptional, IsString } from 'class-validator';
+import { IsIn, IsMongoId, IsNumberString, IsString } from 'class-validator';
 import { ApiProperty, OmitType, PartialType, PickType } from '@nestjs/swagger';
 import { ObjectId } from 'mongodb';
 import { IsEthAddress } from '../common/isEthAddress.decorator';
@@ -119,20 +119,25 @@ export class EthereumAccountResponseDto extends AccountBase {
         provider_id: string;
 
     @IsString()
-    @IsOptional()
+    @ApiProperty({
+        description: 'Verification message nonce',
+        required: true,
+    })
+        nonce: string;
+
+    @IsString()
     @ApiProperty({
         description: 'Message to be signed',
-        required: false,
+        required: true,
         default: '',
         example: 'verification message',
     })
         verification_message: string;
 
     @IsString()
-    @IsOptional()
     @ApiProperty({
         description: 'Signed message',
-        required: false,
+        required: true,
         default: '',
     })
         signed_message: string;
@@ -161,7 +166,7 @@ export class EthereumAccountResponseDto extends AccountBase {
 
 }
 
-export class EthereumAccountCreateDto extends OmitType(EthereumAccountResponseDto, ['user_id', 'createdAt', 'updatedAt', 'provider_id', 'verification_message', 'verified', 'signed_message'] as const) {}
+export class EthereumAccountCreateDto extends OmitType(EthereumAccountResponseDto, ['nonce', 'user_id', 'createdAt', 'updatedAt', 'provider_id', 'verification_message', 'verified', 'signed_message'] as const) {}
 
 export class EthereumAccountUpdateDto extends OmitType(PartialType(EthereumAccountResponseDto), ['_id', 'createdAt', 'updatedAt', 'provider_id'] as const) {}
 

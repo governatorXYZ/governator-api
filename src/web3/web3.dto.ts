@@ -1,15 +1,16 @@
 import { ApiProperty, PartialType, PickType } from '@nestjs/swagger';
-import { IsArray, IsNumber, IsString } from 'class-validator';
+import { IsArray, IsNumber, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { EthereumAccountResponseDto } from '../account/account.dtos';
-import {IsEthAddress} from "../common/isEthAddress.decorator";
+import { IsEthAddress } from '../common/isEthAddress.decorator';
 
-export class EthereumAccountVerifyDto extends PartialType(PickType(EthereumAccountResponseDto, ['_id', 'signed_message'] as const)) {}
+export class EthereumAccountVerifyDto extends PickType(EthereumAccountResponseDto, ['_id', 'signed_message', 'verification_message'] as const) {}
 
 export class TokenList {
 
     @IsArray()
-    @IsString({ each: true })
+    @IsEthAddress()
+    @ValidateNested({ each: true })
     @ApiProperty({
         description: 'Array of ERC20 token contract addresses to query for balance',
         required: true,

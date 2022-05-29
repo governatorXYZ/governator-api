@@ -13,5 +13,5 @@ export default Object.freeze({
     EVENT_REQUEST_CLIENT_DATA: 'REQUEST_CLIENT_DATA',
 
     // SIWE
-    SIWE_STATEMENT: 'By signing this message you accept to send me all your ETH',
+    SIWE_STATEMENT: 'By signing this message you approve to link your discord account accept our Terms of reference.',
 });

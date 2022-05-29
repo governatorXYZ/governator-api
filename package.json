@@ -39,6 +39,7 @@
     "eventsource": "^1.1.0",
     "helmet": "^5.0.2",
     "joi": "^17.6.0",
+    "keccak": "^3.0.2",
     "mongoose": "^6.2.4",
     "openapi-types": "^10.0.0",
     "passport": "^0.5.2",
@@ -46,7 +47,7 @@
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0",
-    "siwe": "^1.1.6",
+    "siwe": "^2.0.3",
     "swagger-ui-express": "^4.3.0",
     "uuid": "^8.3.2"
   },

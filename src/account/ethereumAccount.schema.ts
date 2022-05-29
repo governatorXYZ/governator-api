@@ -6,8 +6,6 @@ export type EthereumAccountDocument = EthereumAccount & Document;
 
 @Schema({ collection: 'ethereumAccount', toObject: { getters: true }, optimisticConcurrency: true, timestamps: true })
 export class EthereumAccount {
-    // @Prop({ required: true, auto: true, type: mongoose.Schema.Types.ObjectId })
-    //     _id: string;
 
     @Prop({ required: true, type: String })
         _id: string;
@@ -19,20 +17,8 @@ export class EthereumAccount {
     @Prop({ required: true, default: 'ethereum' })
         provider_id: string;
 
-    // TODO remove
-    // ethereum address
-    // @Prop({ required: false })
-    //     provider_account_id: string;
-
-    // @Prop({ required: false })
-    //     network_id: number;
-
-    // @Prop({ required: true })
-    //     chain_id: number;
-    //
-    // // Ethereum Mainnet
-    // @Prop({ required: true })
-    //     network_name: string;
+    @Prop({ required: true })
+        nonce: string;
 
     @Prop({ required: false })
         verification_message: string;
