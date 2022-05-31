@@ -1,9 +1,9 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import {Body, Controller, Get, Param, Post} from '@nestjs/common';
+import { ApiCreatedResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Web3Service } from './web3.service';
 import { ERC20TokenBalances, EthereumAccountVerifyDto, TokenList } from './web3.dto';
 import { EthereumAccount } from '../account/ethereumAccount.schema';
-import {EthereumAccountResponseDto} from "../account/account.dtos";
+import { EthereumAccountCreateDto, EthereumAccountResponseDto } from '../account/account.dtos';
 
 
 @ApiTags('Web 3')
@@ -20,8 +20,8 @@ export class Web3Controller {
     })
     @ApiParam({ name: 'eth_address', description: 'Eth address to find token balances of' })
     @ApiCreatedResponse({ description: 'Returns a list of token balances for address and token list provided', type: ERC20TokenBalances })
-    async getTokenBalances(@Param('eth_address') ethAddress, @Body() tokenList: TokenList): Promise<ERC20TokenBalances> {
-        return await this.web3Service.getTokenBalances(ethAddress, tokenList);
+    async getTokenBalances(@Param() params: EthereumAccountCreateDto, @Body() tokenList: TokenList): Promise<ERC20TokenBalances> {
+        return await this.web3Service.getERC20TokenBalances(params._id, tokenList);
     }
 
     @Post('web3/verify')
@@ -30,4 +30,12 @@ export class Web3Controller {
     async verifySignature(@Body() ethAddressVerificationDto: EthereumAccountVerifyDto): Promise<EthereumAccount> {
         return await this.web3Service.verifySignature(ethAddressVerificationDto);
     }
+
+    @Get('web3/snapshot-vote-power')
+    @ApiOperation({ description: 'Get snapshot vote power' })
+    @ApiCreatedResponse({ description: 'Returns the updated ethereum account', type: EthereumAccountResponseDto })
+    async getSnapshotVotingPower(): Promise<void> {
+        return await this.web3Service.getSnapshotVotingPower();
+    }
+
 }

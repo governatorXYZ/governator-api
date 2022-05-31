@@ -12,6 +12,7 @@
       "es2020",
       "dom"
     ],
+    "esModuleInterop": true,
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",

@@ -11,12 +11,34 @@ export class TokenList {
     @IsArray()
     @IsEthAddress()
     @ValidateNested({ each: true })
+    @Type(() => Token)
     @ApiProperty({
-        description: 'Array of ERC20 token contract addresses to query for balance',
+        description: 'Array of ERC20 tokens to query for balance',
         required: true,
-        example: ['0x123..', '0x234..'],
+        isArray: true,
+        example: [{ contractAddresses: '0x123..', chain_id: 1 }, { contractAddresses: '0x345..', chain_id: 134 }],
     })
-        contractAddresses: string[];
+        tokens: Token[];
+}
+
+export class Token {
+
+    @IsEthAddress()
+    @ValidateNested({ each: true })
+    @ApiProperty({
+        description: 'ERC20 token contract address',
+        required: true,
+        example: '0x123..',
+    })
+        contractAddresses: string;
+
+    @IsNumber()
+    @ApiProperty({
+        description: 'Chain Id',
+        required: true,
+        example: 1,
+    })
+        chain_id: number;
 }
 
 export class ERC20TokenBalanceDetail {
@@ -28,6 +50,14 @@ export class ERC20TokenBalanceDetail {
         example: '0x123..',
     })
         contractAddress: string;
+
+    @IsNumber()
+    @ApiProperty({
+        description: 'Chain Id',
+        required: true,
+        example: 1,
+    })
+        chain_id: number;
 
     @IsString()
     @ApiProperty({

@@ -5,12 +5,11 @@ import { ERC20 } from './ERC20';
 import {
     ERC20TokenBalanceDetail,
     ERC20TokenBalances,
-    EthereumAccountVerifyDto,
+    EthereumAccountVerifyDto, TokenList,
 } from './web3.dto';
 import { EthereumAccountMongoService } from '../account/ethereumAccount.mongo.service';
-import {SiweMessage, SiweResponse} from 'siwe';
-import constants from '../common/constants';
-import * as siwe from 'siwe';
+import { SiweMessage, SiweResponse } from 'siwe';
+import snapshot from '@snapshot-labs/snapshot.js';
 
 @Injectable()
 export class Web3Service {
@@ -22,32 +21,29 @@ export class Web3Service {
         // do nothing
     }
 
-    async getTokenBalances(ethAddress, tokenList): Promise<ERC20TokenBalances> {
+    // FIXME this function does not validate if the provided contract is indeed ERC20 token contract.
+    // https://ethereum.stackexchange.com/questions/113329/is-there-a-way-to-get-an-interface-id-of-a-solidity-interface-using-ethersjs
+    async getERC20TokenBalances(ethAddress: string, tokenList: TokenList): Promise<ERC20TokenBalances> {
         this.logger.log(`Fetching token balances for account: ${ethAddress}`);
 
-        if (tokenList.contractAddresses.length === 0) throw new HttpException('Failed to fetch token balances', HttpStatus.BAD_REQUEST);
-
-        try {
-            ethers.utils.getAddress(ethAddress);
-        } catch (e) {
-            this.logger.error('Invalid Ethereum address');
-            throw new HttpException(`Invalid Ethereum address ${e}`, HttpStatus.BAD_REQUEST);
-        }
-
-        const provider = ethers.providers.getDefaultProvider('mainnet');
-
-        this.logger.debug(`current block number is: ${ await provider.getBlockNumber() }`);
+        if (tokenList.tokens.length === 0) throw new HttpException('Failed to fetch token balances', HttpStatus.BAD_REQUEST);
 
         const tokenBalances = [];
 
-        for (const tokenAddress of tokenList.contractAddresses) {
+        for (const token of tokenList.tokens) {
 
             try {
 
+                // TODO test if this works
+                // validates contract address, but should be done by DTO already
                 // const x = ethers.utils.getAddress(tokenAddress);
 
+                const provider = ethers.providers.getDefaultProvider(token.chain_id);
+
+                this.logger.debug(`current block number is: ${ await provider.getBlockNumber() }`);
+
                 const tokenContract: ERC20 = new Contract(
-                    tokenAddress,
+                    token.contractAddresses,
                     erc20json.abi,
                 ) as ERC20;
 
@@ -66,16 +62,17 @@ export class Web3Service {
                 const balance = Number(ethers.utils.formatEther(balanceBN));
 
                 tokenBalances.push({
-                    contractAddress: tokenAddress,
+                    contractAddress: token.contractAddresses,
                     tokenName: tokenName,
                     tokenSymbol: tokenSymbol,
                     balance: balance,
+                    chain_id: token.chain_id,
                 } as ERC20TokenBalanceDetail);
 
                 this.logger.debug(`Balance of ${tokenName} (${tokenSymbol}): ${balance}`);
 
             } catch (e) {
-                this.logger.error(`failed to fetch token with address ${tokenAddress}`, e);
+                this.logger.error(`failed to fetch token with address ${token.contractAddresses}`, e);
             }
         }
 
@@ -130,6 +127,43 @@ export class Web3Service {
             this.logger.error('Failed to update account', e);
 
             throw new HttpException('Failed to update account', HttpStatus.BAD_REQUEST);
+        });
+    }
+
+    async getSnapshotVotingPower() {
+
+        const space = 'banklessvault.eth';
+        const strategies = [
+            {
+                name: 'erc20-balance-of',
+                params: {
+                    address: '0x2d94aa3e47d9d5024503ca8491fce9a2fb4da198',
+                    symbol: 'BANK',
+                    decimals: 18,
+                },
+            },
+        ];
+        const network = '1';
+        const voters = [
+            '0xf9cc756f3692685189930d9d698df401432Be2d6',
+        ];
+        const blockNumber = 14877360;
+
+        // const hub = 'https://testnet.snapshot.org'
+        // const client = new snapshot.Client712(hub);
+
+        // this.logger.log(client);
+
+        // snapshot.default.utils.getProvider('1');
+
+        const x = await snapshot.utils.getScores(
+            space,
+            strategies,
+            network,
+            voters,
+            blockNumber,
+        ).then(scores => {
+            this.logger.log('Scores', JSON.stringify(scores));
         });
     }
 

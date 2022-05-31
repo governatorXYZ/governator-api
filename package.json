@@ -30,6 +30,7 @@
     "@nestjs/platform-express": "^8.4.4",
     "@nestjs/swagger": "^5.2.1",
     "@nestjs/throttler": "^2.0.1",
+    "@snapshot-labs/snapshot.js": "^0.3.87",
     "@types/passport": "^1.0.7",
     "@types/passport-http": "^0.3.9",
     "class-transformer": "^0.5.1",
