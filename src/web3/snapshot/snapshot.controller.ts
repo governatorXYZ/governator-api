@@ -2,7 +2,7 @@ import { ApiOperation, ApiParam, ApiQuery, ApiSecurity, ApiTags } from '@nestjs/
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { SnapshotService } from './snapshot.service';
 
-@ApiTags('Snapshot')
+@ApiTags('w3 - Snapshot')
 @ApiSecurity('api_key')
 @Controller()
 export class SnapshotController {

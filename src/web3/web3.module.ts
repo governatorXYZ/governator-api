@@ -1,14 +1,9 @@
-import { forwardRef, Module } from '@nestjs/common';
-import { Web3Controller } from './web3.controller';
-import { Web3Service } from './web3.service';
-import { AccountModule } from '../account/account.module';
-import { SnapshotService } from './snapshot.service';
-import { SnapshotController } from './snapshot.controller';
+import { Module } from '@nestjs/common';
+import { SiweModule } from './siwe/siwe.module';
+import { SnapshotModule } from './snapshot/snapshot.module';
+import { TokenVoteModule } from './token-vote/token-vote.module';
 
 @Module({
-    imports: [forwardRef(() => AccountModule)],
-    controllers: [Web3Controller, SnapshotController],
-    providers: [Web3Service, SnapshotService],
-    exports: [Web3Service],
+    imports: [SiweModule, TokenVoteModule, SnapshotModule],
 })
 export class Web3Module {}

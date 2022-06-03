@@ -6,6 +6,27 @@ import { IsEthAddress } from '../common/isEthAddress.decorator';
 import { ethers } from 'ethers';
 import { HttpException, HttpStatus } from '@nestjs/common';
 
+export class EthAddress {
+
+    @IsEthAddress()
+    @Transform(({ value: value }) => {
+        try {
+            return ethers.utils.getAddress(value);
+
+        } catch (e) {
+            const error = e as Error;
+
+            throw new HttpException(error.message, HttpStatus.EXPECTATION_FAILED);
+        }
+    })
+    @ApiProperty({
+        description: 'Ethereum account address',
+        required: true,
+        example: '0x123..',
+    })
+        account: string;
+}
+
 export class EthereumAccountVerifyDto extends PickType(EthereumAccountResponseDto, ['_id', 'signed_message', 'verification_message'] as const) {}
 
 export class TokenList {

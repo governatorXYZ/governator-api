@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import snapshot from '@snapshot-labs/snapshot.js';
-import constants from '../common/constants';
+import constants from '../../common/constants';
 import snapshotStrategies from 'snapshot-strategies';
 
 

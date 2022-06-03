@@ -1,9 +1,8 @@
-import {forwardRef, HttpException, HttpStatus, Inject, Injectable, Logger} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Model, Aggregate } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { EthereumAccountCreateDto, EthereumAccountUpdateDto } from './account.dtos';
 import { EthereumAccount, EthereumAccountDocument } from './ethereumAccount.schema';
-import { Web3Service } from '../web3/web3.service';
 import * as siwe from 'siwe';
 
 @Injectable()
@@ -12,9 +11,6 @@ export class EthereumAccountMongoService {
 
     constructor(
         @InjectModel(EthereumAccount.name) private ethereumAccountModel: Model<EthereumAccountDocument>,
-        @Inject(forwardRef(() => Web3Service))
-        // TODO remove circular reference if not needed
-        private web3MongoService: Web3Service,
     ) {
         // do nothing
     }
@@ -106,15 +102,7 @@ export class EthereumAccountMongoService {
         updateAccount._id = accountId;
 
         try {
-            // (updateAccount as EthereumAccountUpdateDto).verification_message = this.web3MongoService.generateVerificationMessage(accountId);
-            (updateAccount as EthereumAccountUpdateDto).nonce = siwe.generateNonce();
-            // TODO remove
-            // this.logger.debug((updateAccount as EthereumAccountUpdateDto).nonce);
-            // // const siweMessage = new siweParser.ParsedMessage((updateAccount as EthereumAccountUpdateDto).verification_message);
-            // // const siweMessage = new siweParser.ParsedMessageRegExp("localhost wants you to sign in with your Ethereum account:\n0xb0754B937bD306fE72264274A61BC03F43FB685F\n\nBy signing this message you accept to send me all your ETH\n\nURI: http://localhost\nVersion: 1\nChain ID: 1\nNonce: AOjTt8afBGPlb6LoQ\nIssued At: 2022-05-29T04:48:53.273Z\nResources:\n- 124356678299");
-            // const siweMessage = new siwe.SiweMessage((updateAccount as EthereumAccountUpdateDto).verification_message);
-            // this.logger.debug(JSON.stringify(siweMessage));
-            // this.logger.debug(siweMessage.resources);
+
             return this.createAccount(updateAccount);
 
         } catch (e) {
