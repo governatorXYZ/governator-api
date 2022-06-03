@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import {
     DiscordAccountCreateDto,
@@ -58,7 +58,7 @@ export class AccountController {
         return await this.ethereumMongoService.checkAndCreateAccount(ethAccount._id);
     }
 
-    @Put('account/ethereum/update/:_id')
+    @Patch('account/ethereum/update/:_id')
     @ApiOperation({ description: 'Update an ethereum account' })
     @ApiCreatedResponse({ description: 'Returns the updated account object', type: EthereumAccountResponseDto })
     async findByIdAndUpdateEthereumAccount(@Param() params: EthereumAccountCreateDto, @Body() ethAccount: EthereumAccountUpdateUserDto): Promise<EthereumAccount> {
@@ -107,7 +107,7 @@ export class AccountController {
         return await this.discordMongoService.checkAndCreateAccount(account);
     }
 
-    @Put('account/discord/update/:_id')
+    @Patch('account/discord/update/:_id')
     @ApiOperation({ description: 'Update a discord account' })
     @ApiCreatedResponse({ description: 'Returns the updated account object', type: DiscordAccountResponseDto })
     @ApiParam({ name: '_id', description: 'Discord account ID' })

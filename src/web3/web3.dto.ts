@@ -1,8 +1,10 @@
-import { ApiProperty, PartialType, PickType } from '@nestjs/swagger';
+import { ApiProperty, PickType } from '@nestjs/swagger';
 import { IsArray, IsNumber, IsString, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { EthereumAccountResponseDto } from '../account/account.dtos';
 import { IsEthAddress } from '../common/isEthAddress.decorator';
+import { ethers } from 'ethers';
+import { HttpException, HttpStatus } from '@nestjs/common';
 
 export class EthereumAccountVerifyDto extends PickType(EthereumAccountResponseDto, ['_id', 'signed_message', 'verification_message'] as const) {}
 
@@ -10,6 +12,16 @@ export class TokenList {
 
     @IsArray()
     @IsEthAddress()
+    @Transform(({ value: value }) => {
+        try {
+            return ethers.utils.getAddress(value);
+
+        } catch (e) {
+            const error = e as Error;
+
+            throw new HttpException(error.message, HttpStatus.EXPECTATION_FAILED);
+        }
+    })
     @ValidateNested({ each: true })
     @Type(() => Token)
     @ApiProperty({
@@ -24,6 +36,16 @@ export class TokenList {
 export class Token {
 
     @IsEthAddress()
+    @Transform(({ value: value }) => {
+        try {
+            return ethers.utils.getAddress(value);
+
+        } catch (e) {
+            const error = e as Error;
+
+            throw new HttpException(error.message, HttpStatus.EXPECTATION_FAILED);
+        }
+    })
     @ValidateNested({ each: true })
     @ApiProperty({
         description: 'ERC20 token contract address',
@@ -44,6 +66,16 @@ export class Token {
 export class ERC20TokenBalanceDetail {
 
     @IsEthAddress()
+    @Transform(({ value: value }) => {
+        try {
+            return ethers.utils.getAddress(value);
+
+        } catch (e) {
+            const error = e as Error;
+
+            throw new HttpException(error.message, HttpStatus.EXPECTATION_FAILED);
+        }
+    })
     @ApiProperty({
         description: 'ERC20 token contract address',
         required: true,
@@ -87,6 +119,16 @@ export class ERC20TokenBalanceDetail {
 export class ERC20TokenBalances {
 
     @IsEthAddress()
+    @Transform(({ value: value }) => {
+        try {
+            return ethers.utils.getAddress(value);
+
+        } catch (e) {
+            const error = e as Error;
+
+            throw new HttpException(error.message, HttpStatus.EXPECTATION_FAILED);
+        }
+    })
     @ApiProperty({
         description: 'Ethereum account address',
         required: true,

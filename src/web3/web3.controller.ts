@@ -1,10 +1,9 @@
-import {Body, Controller, Get, Param, Post} from '@nestjs/common';
+import { Body, Controller, Param, Post } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Web3Service } from './web3.service';
 import { ERC20TokenBalances, EthereumAccountVerifyDto, TokenList } from './web3.dto';
 import { EthereumAccount } from '../account/ethereumAccount.schema';
 import { EthereumAccountCreateDto, EthereumAccountResponseDto } from '../account/account.dtos';
-
 
 @ApiTags('Web 3')
 @ApiSecurity('api_key')
@@ -30,12 +29,4 @@ export class Web3Controller {
     async verifySignature(@Body() ethAddressVerificationDto: EthereumAccountVerifyDto): Promise<EthereumAccount> {
         return await this.web3Service.verifySignature(ethAddressVerificationDto);
     }
-
-    @Get('web3/snapshot-vote-power')
-    @ApiOperation({ description: 'Get snapshot vote power' })
-    @ApiCreatedResponse({ description: 'Returns the updated ethereum account', type: EthereumAccountResponseDto })
-    async getSnapshotVotingPower(): Promise<void> {
-        return await this.web3Service.getSnapshotVotingPower();
-    }
-
 }

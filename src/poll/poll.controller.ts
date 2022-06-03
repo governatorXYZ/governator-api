@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, MessageEvent } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Patch, MessageEvent } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { PollCreateDto, PollUpdateDto } from './poll.dtos';
 import { PollMongoService } from './poll.mongo.service';
@@ -56,7 +56,7 @@ export class PollController {
         return poll;
     }
 
-    @Put('poll/update/:poll_id')
+    @Patch('poll/update/:poll_id')
     @ApiParam({ name: 'poll_id', description: 'ID of poll to be updated' })
     @ApiCreatedResponse({ description: `Returns the updated poll object and emits ${constants.EVENT_POLL_UPDATE} event`, type: PollCreateDto })
     async updatePoll(@Param('poll_id') id, @Body() poll: PollUpdateDto): Promise<Poll> {

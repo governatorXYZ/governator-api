@@ -49,6 +49,7 @@
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0",
     "siwe": "^2.0.3",
+    "snapshot-strategies": "file:../snapshot-strategies",
     "swagger-ui-express": "^4.3.0",
     "uuid": "^8.3.2"
   },

@@ -3,6 +3,9 @@ import { ApiProperty, OmitType, PartialType, PickType } from '@nestjs/swagger';
 import { ObjectId } from 'mongodb';
 import { IsEthAddress } from '../common/isEthAddress.decorator';
 import constants from '../common/constants';
+import { Transform } from 'class-transformer';
+import { ethers } from 'ethers';
+import { HttpException, HttpStatus } from '@nestjs/common';
 
 export abstract class AccountBase {
     @IsMongoId()
@@ -95,6 +98,16 @@ export class DiscordAccountValidateAccountIdDto extends PickType(DiscordAccountR
 export class EthereumAccountResponseDto extends AccountBase {
 
     @IsEthAddress()
+    @Transform(({ value: value }) => {
+        try {
+            return ethers.utils.getAddress(value);
+
+        } catch (e) {
+            const error = e as Error;
+
+            throw new HttpException(error.message, HttpStatus.EXPECTATION_FAILED);
+        }
+    })
     @ApiProperty({
         description: 'Ethereum address',
         required: true,

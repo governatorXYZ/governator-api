@@ -12,6 +12,7 @@ export default Object.freeze({
     // EVENT_POLL_COMPLETE: 'POLL_COMPLETE',
     EVENT_REQUEST_CLIENT_DATA: 'REQUEST_CLIENT_DATA',
 
-    // SIWE
-    SIWE_STATEMENT: 'By signing this message you approve to link your discord account accept our Terms of reference.',
+    // SNAPSHOT
+    SNAPSHOT_GRAPHQL_URL: 'https://hub.snapshot.org/graphql',
+
 });

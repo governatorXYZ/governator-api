@@ -9,7 +9,6 @@ import {
 } from './web3.dto';
 import { EthereumAccountMongoService } from '../account/ethereumAccount.mongo.service';
 import { SiweMessage, SiweResponse } from 'siwe';
-import snapshot from '@snapshot-labs/snapshot.js';
 
 @Injectable()
 export class Web3Service {
@@ -127,43 +126,6 @@ export class Web3Service {
             this.logger.error('Failed to update account', e);
 
             throw new HttpException('Failed to update account', HttpStatus.BAD_REQUEST);
-        });
-    }
-
-    async getSnapshotVotingPower() {
-
-        const space = 'banklessvault.eth';
-        const strategies = [
-            {
-                name: 'erc20-balance-of',
-                params: {
-                    address: '0x2d94aa3e47d9d5024503ca8491fce9a2fb4da198',
-                    symbol: 'BANK',
-                    decimals: 18,
-                },
-            },
-        ];
-        const network = '1';
-        const voters = [
-            '0xf9cc756f3692685189930d9d698df401432Be2d6',
-        ];
-        const blockNumber = 14877360;
-
-        // const hub = 'https://testnet.snapshot.org'
-        // const client = new snapshot.Client712(hub);
-
-        // this.logger.log(client);
-
-        // snapshot.default.utils.getProvider('1');
-
-        const x = await snapshot.utils.getScores(
-            space,
-            strategies,
-            network,
-            voters,
-            blockNumber,
-        ).then(scores => {
-            this.logger.log('Scores', JSON.stringify(scores));
         });
     }
 
