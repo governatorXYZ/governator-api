@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { DiscordAccountCreateDto, DiscordAccountUpdateDto } from './account.dtos';
+import { DiscordAccountCreateDto } from './account.dtos';
 import { DiscordAccount, DiscordAccountDocument } from './discordAccount.schema';
 
 @Injectable()

@@ -1,9 +1,8 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Model, Aggregate } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { EthereumAccountCreateDto, EthereumAccountUpdateDto } from './account.dtos';
+import { EthereumAccountCreateDto } from './account.dtos';
 import { EthereumAccount, EthereumAccountDocument } from './ethereumAccount.schema';
-import * as siwe from 'siwe';
 
 @Injectable()
 export class EthereumAccountMongoService {

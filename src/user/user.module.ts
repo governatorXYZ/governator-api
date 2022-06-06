@@ -7,5 +7,6 @@ import { UserController } from './user.controller';
     imports: [AccountModule],
     controllers: [UserController],
     providers: [UserMongoService],
+    exports: [UserMongoService],
 })
 export class UserModule {}

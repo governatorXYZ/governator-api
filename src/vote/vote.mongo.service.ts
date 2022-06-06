@@ -4,8 +4,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Vote, VoteDocument } from './vote.schema';
 import { VoteCreateDto, VoteRawResponseDto, VoteRequestDto, VoteResponseDto } from './vote.dto';
 import { Poll, PollDocument } from '../poll/poll.schema';
-// TODO remove
-// import { User, UserDocument } from '../user/user.schema';
 import { VoteRawResponseUpdate } from './types';
 
 @Injectable()

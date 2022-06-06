@@ -1,49 +1,14 @@
-import { ApiProperty, PickType } from '@nestjs/swagger';
-import { IsArray, IsNumber, IsString, ValidateNested } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsNumber, IsString } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
-import { EthereumAccountResponseDto } from '../account/account.dtos';
-import { IsEthAddress } from '../common/isEthAddress.decorator';
+import { ApiProperty, OmitType } from '@nestjs/swagger';
+import { IsEthAddress } from '../../common/isEthAddress.decorator';
 import { ethers } from 'ethers';
 import { HttpException, HttpStatus } from '@nestjs/common';
-
-export class EthAddress {
-
-    @IsEthAddress()
-    @Transform(({ value: value }) => {
-        try {
-            return ethers.utils.getAddress(value);
-
-        } catch (e) {
-            const error = e as Error;
-
-            throw new HttpException(error.message, HttpStatus.EXPECTATION_FAILED);
-        }
-    })
-    @ApiProperty({
-        description: 'Ethereum account address',
-        required: true,
-        example: '0x123..',
-    })
-        account: string;
-}
-
-export class EthereumAccountVerifyDto extends PickType(EthereumAccountResponseDto, ['_id', 'signed_message', 'verification_message'] as const) {}
+import { Token } from '../web3.dtos';
 
 export class TokenList {
 
     @IsArray()
-    @IsEthAddress()
-    @Transform(({ value: value }) => {
-        try {
-            return ethers.utils.getAddress(value);
-
-        } catch (e) {
-            const error = e as Error;
-
-            throw new HttpException(error.message, HttpStatus.EXPECTATION_FAILED);
-        }
-    })
-    @ValidateNested({ each: true })
     @Type(() => Token)
     @ApiProperty({
         description: 'Array of ERC20 tokens to query for balance',
@@ -54,7 +19,7 @@ export class TokenList {
         tokens: Token[];
 }
 
-export class Token {
+export class ERC721OwnerOfDto {
 
     @IsEthAddress()
     @Transform(({ value: value }) => {
@@ -67,13 +32,12 @@ export class Token {
             throw new HttpException(error.message, HttpStatus.EXPECTATION_FAILED);
         }
     })
-    @ValidateNested({ each: true })
     @ApiProperty({
-        description: 'ERC20 token contract address',
+        description: 'ERC721 token contract address',
         required: true,
         example: '0x123..',
     })
-        contractAddresses: string;
+        contractAddress: string;
 
     @IsNumber()
     @ApiProperty({
@@ -82,6 +46,29 @@ export class Token {
         example: 1,
     })
         chain_id: number;
+
+    @IsArray()
+    @ArrayMaxSize(100)
+    // FIXME
+    // @ValidateNested({ each: true })
+    @ApiProperty({
+        description: 'Array of ERC721 token IDs to query for ownership',
+        required: true,
+        isArray: true,
+        example: [983093284324, 983409384032],
+    })
+        tokens: Array<number>;
+}
+
+export class ERC1155BalanceOfDto extends OmitType(ERC721OwnerOfDto, ['tokens'] as const) {
+
+    @IsNumber()
+    @ApiProperty({
+        description: 'Array of ERC721 token IDs to query for ownership',
+        required: true,
+        example: 983093284324,
+    })
+        token_id: number;
 }
 
 export class ERC20TokenBalanceDetail {

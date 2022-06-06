@@ -38,7 +38,6 @@ export class AccountController {
     @Get('account/ethereum/get-by-user-id/:user_id')
     @ApiOperation({ description: 'Find Ethereum accounts' })
     @ApiCreatedResponse({ description: 'Returns an Ethereum account object array', type: EthereumAccountResponseDto, isArray: true })
-    @ApiParam({ name: 'user_id', description: 'Governator user ID' })
     async findOneEthereumAccountByUserId(@Param() params: EthereumAccountUpdateUserDto): Promise<EthereumAccount[]> {
         return await this.ethereumMongoService.findManyAccount({ user_id: params.user_id });
     }
@@ -46,7 +45,6 @@ export class AccountController {
     @Get('account/ethereum/get-by-account-id/:_id')
     @ApiOperation({ description: 'Find an ethereum account' })
     @ApiCreatedResponse({ description: 'Returns an Ethereum account object', type: EthereumAccountResponseDto })
-    @ApiParam({ name: '_id', description: 'Ethereum address' })
     async findOneEthereumAccountByProviderAccountId(@Param() params: EthereumAccountCreateDto): Promise<EthereumAccount> {
         return await this.ethereumMongoService.findOneAccount({ _id: params._id });
     }
@@ -68,7 +66,6 @@ export class AccountController {
     @Delete('account/ethereum/delete/:_id')
     @ApiOperation({ description: 'Delete an ethereum account' })
     @ApiCreatedResponse({ description: 'Returns the deleted account object', type: EthereumAccountResponseDto })
-    @ApiParam({ name: '_id', description: 'Ethereum address' })
     async findOneAndDeleteEthereumAccount(@Param() params: EthereumAccountCreateDto): Promise<EthereumAccount> {
         return await this.ethereumMongoService.findOneAndDeleteAccount({ _id: params._id });
     }
@@ -87,7 +84,6 @@ export class AccountController {
     @Get('account/discord/get-by-user-id/:user_id')
     @ApiOperation({ description: 'Find discord accounts by governator id' })
     @ApiCreatedResponse({ description: 'Returns a Discord account object', type: DiscordAccountResponseDto, isArray: true })
-    @ApiParam({ name: 'user_id', description: 'Governator ID' })
     async findOneDiscordAccountByUserId(@Param() params: DiscordAccountValidateUserIdDto): Promise<DiscordAccount[]> {
         return await this.discordMongoService.findManyAccount({ user_id: params.user_id });
     }
@@ -95,7 +91,6 @@ export class AccountController {
     @Get('account/discord/get-by-account-id/:_id')
     @ApiOperation({ description: 'Find a discord account' })
     @ApiCreatedResponse({ description: 'Returns a Discord account object', type: DiscordAccountResponseDto })
-    @ApiParam({ name: '_id', description: 'Discord user ID' })
     async findOneDiscordAccountByProviderAccountId(@Param() params: DiscordAccountValidateAccountIdDto): Promise<DiscordAccount> {
         return await this.discordMongoService.findOneAccount({ _id: params._id });
     }
@@ -110,7 +105,6 @@ export class AccountController {
     @Patch('account/discord/update/:_id')
     @ApiOperation({ description: 'Update a discord account' })
     @ApiCreatedResponse({ description: 'Returns the updated account object', type: DiscordAccountResponseDto })
-    @ApiParam({ name: '_id', description: 'Discord account ID' })
     async findByIdAndUpdateDiscordAccount(@Param() params: DiscordAccountValidateAccountIdDto, @Body() discordAccount: DiscordAccountUpdateDto): Promise<DiscordAccount> {
         return await this.discordMongoService.findOneAndUpdateAccount({ _id: params._id }, discordAccount);
     }
@@ -118,7 +112,6 @@ export class AccountController {
     @Delete('account/discord/delete/:_id')
     @ApiOperation({ description: 'Delete a discord account' })
     @ApiCreatedResponse({ description: 'Returns the deleted account object', type: DiscordAccountResponseDto })
-    @ApiParam({ name: '_id', description: 'Discord account ID' })
     async findOneAndDeleteDiscordAccount(@Param() params: DiscordAccountValidateAccountIdDto): Promise<DiscordAccount> {
         return await this.discordMongoService.findOneAndDeleteAccount({ _id: params._id });
     }
