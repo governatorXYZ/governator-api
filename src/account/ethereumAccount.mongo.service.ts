@@ -114,11 +114,9 @@ export class EthereumAccountMongoService {
 
     async aggregate(filter): Promise<Aggregate<any[]>> {
         try {
-
-            this.logger.debug(filter);
-
             return await this.ethereumAccountModel.aggregate(filter).exec().catch((e) => {
                 this.logger.error(e);
+
                 return null;
             });
         } catch (e) {

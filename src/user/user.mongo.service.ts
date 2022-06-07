@@ -9,6 +9,7 @@ import { DiscordAccountMongoService } from '../account/discordAccount.mongo.serv
 import constants from '../common/constants';
 import { EthereumAccount } from '../account/ethereumAccount.schema';
 import { DiscordAccount } from '../account/discordAccount.schema';
+import * as _ from 'lodash';
 
 @Injectable()
 export class UserMongoService {
@@ -24,13 +25,19 @@ export class UserMongoService {
     async fetchAllUsers(): Promise<UserResponseDto[]> {
         try {
 
-            const users = await this.ethereumAccountMongoService.aggregate([
+            const EthereumUsers = await this.ethereumAccountMongoService.aggregate([
                 { $group: { '_id': '$user_id' } },
             ]);
 
-            if (users.length === 0) return;
+            const DiscordUsers = await this.discordAccountMongoService.aggregate([
+                { $group: { '_id': '$user_id' } },
+            ]);
 
-            return await Promise.all(users.map(async (user) => {
+            const userSet = _.uniq(EthereumUsers, DiscordUsers);
+
+            this.logger.debug(JSON.stringify(userSet));
+
+            return await Promise.all(userSet.map(async (user) => {
                 return await this.castToUserObject(user._id);
             }));
 

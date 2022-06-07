@@ -2,7 +2,7 @@ import { ApiOkResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@ne
 import { Controller, Get, Param } from '@nestjs/common';
 import { UserMongoService } from './user.mongo.service';
 import { UserResponseDto } from './user.dtos';
-import constants from "../common/constants";
+import constants from '../common/constants';
 
 @ApiTags('User')
 @ApiSecurity('api_key')

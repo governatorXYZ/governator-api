@@ -17,9 +17,6 @@ export class EthereumAccount {
     @Prop({ required: true, default: 'ethereum' })
         provider_id: string;
 
-    @Prop({ required: true })
-        nonce: string;
-
     @Prop({ required: false })
         verification_message: string;
 

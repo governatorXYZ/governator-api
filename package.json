@@ -41,6 +41,7 @@
     "helmet": "^5.0.2",
     "joi": "^17.6.0",
     "keccak": "^3.0.2",
+    "lodash": "^4.17.21",
     "mongoose": "^6.2.4",
     "openapi-types": "^10.0.0",
     "passport": "^0.5.2",

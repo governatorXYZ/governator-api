@@ -133,13 +133,6 @@ export class EthereumAccountResponseDto extends AccountBase {
 
     @IsString()
     @ApiProperty({
-        description: 'Verification message nonce',
-        required: true,
-    })
-        nonce: string;
-
-    @IsString()
-    @ApiProperty({
         description: 'Message to be signed',
         required: true,
         default: '',
@@ -179,7 +172,7 @@ export class EthereumAccountResponseDto extends AccountBase {
 
 }
 
-export class EthereumAccountCreateDto extends OmitType(EthereumAccountResponseDto, ['nonce', 'user_id', 'createdAt', 'updatedAt', 'provider_id', 'verification_message', 'verified', 'signed_message'] as const) {}
+export class EthereumAccountCreateDto extends OmitType(EthereumAccountResponseDto, ['user_id', 'createdAt', 'updatedAt', 'provider_id', 'verification_message', 'verified', 'signed_message'] as const) {}
 
 export class EthereumAccountUpdateDto extends OmitType(PartialType(EthereumAccountResponseDto), ['_id', 'createdAt', 'updatedAt', 'provider_id'] as const) {}
 

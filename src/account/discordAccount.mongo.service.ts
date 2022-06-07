@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { Model } from 'mongoose';
+import {Aggregate, Model} from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { DiscordAccountCreateDto } from './account.dtos';
 import { DiscordAccount, DiscordAccountDocument } from './discordAccount.schema';
@@ -101,5 +101,19 @@ export class DiscordAccountMongoService {
             throw new HttpException('Failed to create account', HttpStatus.BAD_REQUEST);
         }
 
+    }
+
+    async aggregate(filter): Promise<Aggregate<any[]>> {
+        try {
+            return await this.discordAccountModel.aggregate(filter).exec().catch((e) => {
+                this.logger.error(e);
+
+                return null;
+            });
+        } catch (e) {
+            this.logger.error('Failed to fetch account from db', e);
+
+            throw new HttpException('Failed to fetch account from db', HttpStatus.BAD_REQUEST);
+        }
     }
 }
