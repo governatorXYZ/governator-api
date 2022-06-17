@@ -1,8 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import snapshot from '@snapshot-labs/snapshot.js';
-import constants from '../../common/constants';
+import constants from '../../../common/constants';
 import snapshotStrategies from 'snapshot-strategies';
-
 
 @Injectable()
 export class SnapshotService {
@@ -87,6 +86,7 @@ export class SnapshotService {
         ).catch((e) => this.logger.error(e));
     }
 
+    // TODO remove if not needed
     // async listSnapshotSpaces(skip = 0) {
     //
     //     const spaceList = [];

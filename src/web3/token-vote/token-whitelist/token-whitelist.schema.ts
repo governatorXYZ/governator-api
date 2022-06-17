@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { Token } from '../../web3.dtos';
+import { TokenMeta } from './token-whitelist-dtos';
 
 export type TokenWhitelistDocument = TokenWhitelist & Document;
 
@@ -12,6 +13,9 @@ export class TokenWhitelist {
 
     @Prop({ required: true })
         erc: number;
+
+    @Prop({ required: true, type: TokenMeta })
+        meta: TokenMeta;
 
     @Prop({ required: false })
         createdAt: string;

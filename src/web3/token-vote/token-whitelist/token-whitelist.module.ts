@@ -11,5 +11,6 @@ import { TokenWhitelistController } from './token.whitelist.controller';
     ],
     controllers: [TokenWhitelistController],
     providers: [TokenWhitelistMongoService],
+    exports: [TokenWhitelistMongoService],
 })
 export class TokenWhitelistModule {}

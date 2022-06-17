@@ -1,7 +1,28 @@
 import { Type } from 'class-transformer';
 import { ApiProperty, PickType } from '@nestjs/swagger';
-import { IsIn, IsNumber, IsObject, IsString } from 'class-validator';
+import { IsIn, IsNumber, IsObject, IsOptional, IsString } from 'class-validator';
 import { Token } from '../../web3.dtos';
+
+export class TokenMeta {
+
+    @IsString()
+    @IsOptional()
+    @ApiProperty({
+        description: 'Token Symbol',
+        required: false,
+        example: 'BANK',
+    })
+        symbol: string;
+
+    @IsString()
+    @IsOptional()
+    @ApiProperty({
+        description: 'Token Name',
+        required: false,
+        example: 'Bankless Token',
+    })
+        name: string;
+}
 
 export class TokenWhitelistResponseDto {
 
@@ -22,6 +43,15 @@ export class TokenWhitelistResponseDto {
         example: 20,
     })
         erc: number;
+
+    @IsObject()
+    @IsOptional()
+    @ApiProperty({
+        description: 'Token Metadata',
+        required: false,
+    })
+    @Type(() => TokenMeta)
+        meta: TokenMeta;
 
     @IsString()
     @ApiProperty({

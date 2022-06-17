@@ -3,7 +3,7 @@ import { EthereumAccountMongoService } from '../../account/ethereumAccount.mongo
 import { SiweMessage, SiweResponse, generateNonce } from 'siwe';
 import { SiweNonceMongoService } from './siweNonce.mongo.service';
 import { SiweVerifyDto } from './siwe.dtos';
-import { UserMongoService } from '../../user/user.mongo.service';
+import { UserService } from '../../user/user.service';
 
 @Injectable()
 export class SiweService {
@@ -11,7 +11,7 @@ export class SiweService {
     constructor(
         private ethereumAccountMongoService: EthereumAccountMongoService,
         private siweNonceMongoService: SiweNonceMongoService,
-        private userMongoService: UserMongoService,
+        private userMongoService: UserService,
     ) {
         // do nothing
     }

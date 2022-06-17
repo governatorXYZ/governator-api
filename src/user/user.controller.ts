@@ -1,6 +1,6 @@
 import { ApiOkResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Controller, Get, Param } from '@nestjs/common';
-import { UserMongoService } from './user.mongo.service';
+import { UserService } from './user.service';
 import { UserResponseDto } from './user.dtos';
 import constants from '../common/constants';
 
@@ -8,7 +8,7 @@ import constants from '../common/constants';
 @ApiSecurity('api_key')
 @Controller()
 export class UserController {
-    constructor(protected mongoService: UserMongoService) {
+    constructor(protected userService: UserService) {
         // do nothing
     }
 
@@ -16,7 +16,7 @@ export class UserController {
     @ApiOperation({ description: 'Fetch all users' })
     @ApiOkResponse({ description: 'List of User objects', type: UserResponseDto, isArray: true })
     async fetchAllUsers() {
-        return await this.mongoService.fetchAllUsers();
+        return await this.userService.fetchAllUsers();
     }
 
     @Get('user/:user_id')
@@ -24,7 +24,7 @@ export class UserController {
     @ApiOkResponse({ description: 'User object', type: UserResponseDto })
     @ApiParam({ name: 'user_id', description: 'Get user by ID' })
     async fetchUserById(@Param('user_id') userId) {
-        return await this.mongoService.fetchUserById(userId);
+        return await this.userService.fetchUserById(userId);
     }
 
     @Get('user/:provider_id/:account_id')
@@ -38,6 +38,6 @@ export class UserController {
     })
     @ApiParam({ name: 'account_id', description: 'Account ID, e.g. discord user ID' })
     async fetchUserByProvider(@Param('provider_id') providerId, @Param('account_id') accountId) {
-        return await this.mongoService.fetchUserByProvider(providerId, accountId);
+        return await this.userService.fetchUserByProvider(providerId, accountId);
     }
 }

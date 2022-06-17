@@ -12,8 +12,8 @@ import { DiscordAccount } from '../account/discordAccount.schema';
 import * as _ from 'lodash';
 
 @Injectable()
-export class UserMongoService {
-    private readonly logger = new Logger(UserMongoService.name);
+export class UserService {
+    private readonly logger = new Logger(UserService.name);
 
     constructor(
         protected ethereumAccountMongoService: EthereumAccountMongoService,

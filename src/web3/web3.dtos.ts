@@ -3,7 +3,7 @@ import { Transform } from 'class-transformer';
 import { IsEthAddress } from '../common/isEthAddress.decorator';
 import { ethers } from 'ethers';
 import { HttpException, HttpStatus } from '@nestjs/common';
-import {IsNumber, IsObject, IsString} from 'class-validator';
+import { IsNumber } from 'class-validator';
 
 export class EthAddress {
 

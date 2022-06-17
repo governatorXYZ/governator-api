@@ -1,22 +1,34 @@
-import { ArrayMaxSize, IsArray, IsNumber, IsString } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { ApiProperty, OmitType } from '@nestjs/swagger';
-import { IsEthAddress } from '../../common/isEthAddress.decorator';
+import { IsEthAddress } from '../../../common/isEthAddress.decorator';
 import { ethers } from 'ethers';
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { Token } from '../web3.dtos';
+import { Token } from '../../web3.dtos';
 
 export class TokenList {
 
     @IsArray()
-    @Type(() => Token)
+    @Type(() => ERC20BalanceOfDto)
     @ApiProperty({
         description: 'Array of ERC20 tokens to query for balance',
         required: true,
         isArray: true,
-        example: [{ contractAddresses: '0x123..', chain_id: 1 }, { contractAddresses: '0x345..', chain_id: 134 }],
+        example: [{ contractAddresses: '0x123..', chain_id: 1, block_height: -20 }],
     })
-        tokens: Token[];
+        tokens: ERC20BalanceOfDto[];
+}
+
+export class ERC20BalanceOfDto extends Token {
+
+    @IsNumber()
+    @IsOptional()
+    @ApiProperty({
+        description: 'Block number at which the token balance will be checked',
+        required: false,
+        example: 847359834,
+    })
+        block_height: number;
 }
 
 export class ERC721OwnerOfDto {
@@ -58,6 +70,58 @@ export class ERC721OwnerOfDto {
         example: [983093284324, 983409384032],
     })
         tokens: Array<number>;
+
+    @IsNumber()
+    @IsOptional()
+    @ApiProperty({
+        description: 'Block number at which the token balance will be checked',
+        required: false,
+        example: 847359834,
+    })
+        block_height: number;
+}
+
+export class ERC721Owner {
+
+    @IsEthAddress()
+    @Transform(({ value: value }) => {
+        try {
+            return ethers.utils.getAddress(value);
+
+        } catch (e) {
+            const error = e as Error;
+
+            throw new HttpException(error.message, HttpStatus.EXPECTATION_FAILED);
+        }
+    })
+    @ApiProperty({
+        description: 'Owner eth address',
+        required: true,
+        example: '0x123..',
+    })
+        owner: string;
+
+    @IsNumber()
+    @ApiProperty({
+        description: 'Token id',
+        required: true,
+        example: 17653,
+    })
+        _id: number;
+}
+
+export class ERC721OwnerOfResponseDto extends OmitType(ERC721OwnerOfDto, ['tokens'] as const) {
+
+    @IsArray()
+    @Type(() => ERC721Owner)
+    @ArrayMaxSize(100)
+    @ApiProperty({
+        description: 'Array of owners by tokenId',
+        required: true,
+        isArray: true,
+        example: [{ _id: 1234, owner: '0x123..' }, { _id: 8765, owner: '0x234..' }],
+    })
+        owners: ERC721Owner[];
 }
 
 export class ERC1155BalanceOfDto extends OmitType(ERC721OwnerOfDto, ['tokens'] as const) {
@@ -69,6 +133,15 @@ export class ERC1155BalanceOfDto extends OmitType(ERC721OwnerOfDto, ['tokens'] a
         example: 983093284324,
     })
         token_id: number;
+
+    @IsNumber()
+    @IsOptional()
+    @ApiProperty({
+        description: 'Block number at which the token balance will be checked',
+        required: false,
+        example: 847359834,
+    })
+        block_height: number;
 }
 
 export class ERC20TokenBalanceDetail {
@@ -119,9 +192,18 @@ export class ERC20TokenBalanceDetail {
     @ApiProperty({
         description: 'ERC20 token balance',
         required: true,
-        example: 20.3,
+        example: '20.3',
     })
-        balance: number;
+        balance: string;
+
+    @IsNumber()
+    @IsOptional()
+    @ApiProperty({
+        description: 'Block number at which the token balance will be checked',
+        required: false,
+        example: 847359834,
+    })
+        block_height: number;
 }
 
 export class ERC20TokenBalances {
@@ -151,7 +233,7 @@ export class ERC20TokenBalances {
         required: true,
         type: ERC20TokenBalanceDetail,
         isArray: true,
-        example: [{ contractAddress: '0x123..', tokenName: 'Governator Token', tokenSymbol: 'GOV', balance: 20.3 }],
+        example: [{ contractAddress: '0x123..', tokenName: 'Governator Token', tokenSymbol: 'GOV', balance: 20.3, block_height: 45678373 }],
     })
         tokenBalances: ERC20TokenBalanceDetail[];
 }

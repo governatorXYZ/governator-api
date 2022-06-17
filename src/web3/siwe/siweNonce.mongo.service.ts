@@ -16,6 +16,8 @@ export class SiweNonceMongoService {
     async createSiweNonce(address: string, nonce: string): Promise<SiweNonce> {
         this.logger.debug('Creating temporary nonce record');
 
+        await this.siweNonceModel.findByIdAndDelete(address).exec().catch();
+
         try {
             return await this.siweNonceModel.create({ _id: address, nonce: nonce });
 

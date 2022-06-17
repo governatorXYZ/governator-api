@@ -3,6 +3,7 @@ import { ethers } from 'ethers';
 
 @Injectable()
 export class parseEthAddressPipe implements PipeTransform {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     transform(value: any, metadata: ArgumentMetadata) {
         try {
             return ethers.utils.getAddress(value);

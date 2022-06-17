@@ -2,7 +2,10 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { TokenWhitelist, TokenWhitelistDocument } from './token-whitelist.schema';
-import { TokenWhitelistCreateDto } from './token-whitelist-dtos';
+import { TokenMeta, TokenWhitelistCreateDto, TokenWhitelistResponseDto } from './token-whitelist-dtos';
+import { Contract } from 'ethers';
+import { Token } from '../../web3.dtos';
+import web3Utils from '../../web3.util';
 
 @Injectable()
 export class TokenWhitelistMongoService {
@@ -44,6 +47,7 @@ export class TokenWhitelistMongoService {
         this.logger.debug('Adding token to whitelist');
 
         try {
+            (tokenWhitelistCreateDto as TokenWhitelistResponseDto).meta = await this.decorateToken(tokenWhitelistCreateDto._id);
             return await this.tokenWhitelistModel.create(tokenWhitelistCreateDto);
 
         } catch (e) {
@@ -65,13 +69,37 @@ export class TokenWhitelistMongoService {
         }
     }
 
-    async findOneAndUpdateTokenWhitelist(filter, updateDoc) {
-        try {
-            return this.tokenWhitelistModel.findOneAndUpdate(filter, updateDoc, { new: true, upsert: false }).exec();
-        } catch (e) {
-            this.logger.error('Failed to update token whitelist', e);
+    async decorateToken(token: Token): Promise<TokenMeta> {
+        this.logger.log('fetching token metadata');
 
-            throw new HttpException('Failed to update token whitelist', HttpStatus.BAD_REQUEST);
+        const tokenMeta = new TokenMeta();
+
+        const provider = web3Utils.getEthersProvider(token.chain_id);
+
+        const abi = [
+            'function name() external view returns (string)',
+            'function symbol() external view returns (string)',
+        ];
+
+        const tokenContract = new Contract(
+            token.contractAddress,
+            abi,
+        );
+
+        const connectedToken = tokenContract.connect(provider);
+
+        try {
+            tokenMeta.name = await connectedToken.name();
+        } catch (e) {
+            this.logger.error(`failed to fetch token name for token address ${token.contractAddress}`, e);
         }
+
+        try {
+            tokenMeta.symbol = await connectedToken.symbol();
+        } catch (e) {
+            this.logger.error(`failed to fetch token symbol for token address ${token.contractAddress}`, e);
+        }
+
+        return tokenMeta;
     }
 }
