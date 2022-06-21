@@ -10,19 +10,21 @@ import {
     IsNumberString,
     IsMongoId,
     IsNotEmpty,
-    ValidateNested, ArrayMaxSize,
+    ValidateNested, ArrayMaxSize, IsIn, IsUUID,
 } from 'class-validator';
 import { ApiProperty, OmitType, PartialType } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import { ObjectId } from 'mongodb';
+import constants from '../common/constants';
 
 export class PollOptionDto {
     @IsNotEmpty()
+    @IsUUID()
     @ApiProperty({
-        description: 'Poll option id',
+        description: 'Poll option unique id',
         required: true,
     })
-        _id: string;
+        uuid: string;
 
     @IsNotEmpty()
     @ApiProperty({
@@ -37,6 +39,37 @@ export class PollOptionDto {
         required: true,
     })
         poll_option_emoji: string;
+}
+
+export abstract class ClientConfigBase {
+    @IsNotEmpty()
+    @IsIn(Array.from(constants.PROVIDERS.keys()))
+    @ApiProperty({
+        description: 'Provider id',
+        required: true,
+    })
+        provider_id: string;
+}
+
+export class ClientConfigDiscordDto extends ClientConfigBase {
+
+    @IsNotEmpty()
+    @IsNumberString()
+    @ApiProperty({
+        description: 'Channel to post in',
+        required: true,
+    })
+        channel_id: string;
+
+    @IsOptional()
+    @IsNumberString({}, { each: true })
+    @IsArray()
+    @ApiProperty({
+        description: 'Whitelist of role Ids',
+        required: false,
+        isArray: true,
+    })
+        role_restrictions: string[];
 }
 
 export class PollResponseDto {
@@ -57,14 +90,37 @@ export class PollResponseDto {
     })
         title: string;
 
-    @IsNumberString()
-    @ApiProperty({
-        description: 'Discord channel to post this poll',
-        required: true,
+    @ValidateNested({ each: true })
+    @Type(() => ClientConfigBase, {
+        keepDiscriminatorProperty: true,
+        discriminator: {
+            property: 'provider_id',
+            subTypes: [
+                { value: ClientConfigDiscordDto, name: 'discord' },
+            ],
+        },
     })
-        channel_id: string;
+    @ApiProperty({
+        description: 'Client config for this poll',
+        required: true,
+        type: ClientConfigBase,
+        example: [{ provider_id: 'discord', channel_id: '12345', role_restrictions: ['123', '234'] }],
+        isArray: true,
+    })
+        client_config: ClientConfigDiscordDto[];
 
-    // @IsOptional()
+    @IsNotEmpty()
+    @IsArray()
+    @IsOptional()
+    @IsString({ each: true })
+    @ApiProperty({
+        description: 'Array of strategy IDs',
+        required: false,
+        type: String,
+        isArray: true,
+    })
+        token_vote_strategy_ids: string[];
+
     @ArrayMaxSize(8)
     @ValidateNested({ each: true })
     @Type(() => PollOptionDto)
@@ -108,17 +164,6 @@ export class PollResponseDto {
         required: true,
     })
         description: string;
-
-    @IsOptional()
-    @IsArray()
-    @IsString({
-        each: true,
-    })
-    @ApiProperty({
-        description: 'Whether voting is restricted to holders of certain discord roles',
-        required: false,
-    })
-        role_restrictions: Array<string>;
 
     @IsMongoId()
     @ApiProperty({
