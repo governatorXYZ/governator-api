@@ -5,6 +5,7 @@ import { PollMongoService } from './poll.mongo.service';
 import { Poll } from './poll.schema';
 import { SseService } from '../sse/sse.service';
 import constants from '../common/constants';
+import web3Utils from "../web3/web3.util";
 
 @ApiTags('Poll')
 @ApiSecurity('api_key')
@@ -48,6 +49,14 @@ export class PollController {
     @ApiOperation({ description: 'Create a new poll' })
     @ApiCreatedResponse({ description: `Returns the created poll object and emits ${constants.EVENT_POLL_CREATE} event`, type: PollCreateDto })
     async createPoll(@Body() params: PollCreateDto): Promise<Poll> {
+        // sanitizing block heights
+        let block = null;
+        for await (const strategy of params.token_strategies) {
+            if (strategy.block_height <= 0) {
+                if (!block) block = await web3Utils.getEthersProvider(1).getBlockNumber();
+                strategy.block_height = block - strategy.block_height;
+            }
+        }
         const poll = await this.mongoService.createPoll(params);
         await this.sseService.emit({
             data: poll,

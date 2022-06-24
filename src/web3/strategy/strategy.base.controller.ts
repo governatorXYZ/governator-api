@@ -1,13 +1,13 @@
-import { Controller, Logger } from '@nestjs/common';
+import { Controller, Get, Logger, Param } from '@nestjs/common';
 import { StrategyBaseService } from './strategy.base.service';
 import crypto from 'crypto';
 import { StrategyMongoService } from './strategy.mongo.service';
-import { ApiSecurity } from '@nestjs/swagger';
+import { ApiParam, ApiSecurity } from '@nestjs/swagger';
 import { StrategyRequestDto } from './strategy.dtos';
-import { UserResponseDto } from '../../user/user.dtos';
 import { EvmService } from '../token-vote/evm/evm.service';
 import { SnapshotService } from '../token-vote/snapshot/snapshot.service';
 import { GraphqlService } from '../token-vote/graphql/graphql.service';
+import { formatKebab } from './strategy.utils';
 
 @ApiSecurity('api_key')
 @Controller()
@@ -42,7 +42,7 @@ export class StrategyBaseController {
 
         const filter = {
             name: this._getConf().name,
-            endpoint: this._getConf().api_url_base + '/' + this._getConf().endpoint,
+            endpoint: this._getConf().api_url_base + '/' + formatKebab(this._getConf().name),
         };
 
         await this.strategyMongoService.updateOneByIdStrategy(hash, filter);
@@ -61,7 +61,7 @@ export class StrategyBaseController {
 
     runStrategy(
         params: StrategyRequestDto,
-        strategy: (user: UserResponseDto,
+        strategy: (accountId: string,
                    blockHeight: number | null,
                    evmService: EvmService,
                    snapshotService: SnapshotService,
@@ -72,7 +72,6 @@ export class StrategyBaseController {
         resultTransformer: (preloads: any[],
                             strategyResult: any,
                             logger: Logger,
-                            // ethersLib: any,
                             ) => string,
     ) {
         this.logger.debug(`Running strategy ${strategy.name}`);
@@ -81,5 +80,18 @@ export class StrategyBaseController {
             strategy,
             resultTransformer,
         );
+    }
+
+    // do not modify
+    @Get('find/one/:_id')
+    @ApiParam({ name: '_id', description: 'Strategy ID' })
+    async get(@Param('_id') id): Promise<any> {
+        return ((await this.strategyMongoService.findManyStrategy({ _id: id }))[0]);
+    }
+
+    // do not modify
+    @Get('find/all')
+    async getAll(): Promise<any> {
+        return await this.strategyMongoService.findManyStrategy({});
     }
 }

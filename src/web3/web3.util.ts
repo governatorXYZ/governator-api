@@ -2,7 +2,7 @@ import { ethers } from 'ethers';
 // import snapshot from '@snapshot-labs/snapshot.js';
 
 const web3Utils = {
-    getEthersProvider(chainId) {
+    getEthersProvider(chainId: number) {
         switch (chainId) {
         case 1:
             return new ethers.providers.InfuraProvider(chainId, {

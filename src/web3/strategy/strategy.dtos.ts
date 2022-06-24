@@ -1,14 +1,14 @@
-import { IsMongoId, IsNumber, IsOptional, IsString, IsUrl, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl, MaxLength } from 'class-validator';
 import { ApiProperty, OmitType } from '@nestjs/swagger';
 
 export class StrategyRequestDto {
 
-    @IsMongoId()
+    @IsNotEmpty()
     @ApiProperty({
-        description: 'user to get voting power of',
+        description: 'address to get voting power of',
         required: false,
     })
-        user_id: string;
+        account_id: string;
 
     @IsOptional()
     @IsNumber()

@@ -10,7 +10,7 @@ import {
     IsNumberString,
     IsMongoId,
     IsNotEmpty,
-    ValidateNested, ArrayMaxSize, IsIn, IsUUID,
+    ValidateNested, ArrayMaxSize, IsIn, IsUUID, IsNumber,
 } from 'class-validator';
 import { ApiProperty, OmitType, PartialType } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
@@ -24,7 +24,7 @@ export class PollOptionDto {
         description: 'Poll option unique id',
         required: true,
     })
-        uuid: string;
+        poll_option_id: string;
 
     @IsNotEmpty()
     @ApiProperty({
@@ -72,6 +72,22 @@ export class ClientConfigDiscordDto extends ClientConfigBase {
         role_restrictions: string[];
 }
 
+export class TokenStrategyConfig {
+    @IsNotEmpty()
+    @ApiProperty({
+        description: 'Strategy id',
+        required: true,
+    })
+        strategy_id: string;
+
+    @IsNumber()
+    @ApiProperty({
+        description: 'Block height (block number or offset)',
+        required: true,
+    })
+        block_height: number;
+}
+
 export class PollResponseDto {
 
     @IsMongoId()
@@ -112,14 +128,15 @@ export class PollResponseDto {
     @IsNotEmpty()
     @IsArray()
     @IsOptional()
-    @IsString({ each: true })
+    @ValidateNested({ each: true })
+    @Type(() => TokenStrategyConfig)
     @ApiProperty({
-        description: 'Array of strategy IDs',
+        description: 'Array of strategy configs',
         required: false,
-        type: String,
+        type: TokenStrategyConfig,
         isArray: true,
     })
-        token_vote_strategy_ids: string[];
+        token_strategies: TokenStrategyConfig[];
 
     @ArrayMaxSize(8)
     @ValidateNested({ each: true })

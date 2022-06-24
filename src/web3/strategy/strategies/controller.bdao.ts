@@ -11,7 +11,6 @@ import { ERC20BalanceOfDto, ERC20TokenBalances, TokenList } from '../../token-vo
 import { SnapshotService } from '../../token-vote/snapshot/snapshot.service';
 import { EvmService } from '../../token-vote/evm/evm.service';
 import { GraphqlService } from '../../token-vote/graphql/graphql.service';
-import { UserResponseDto } from '../../../user/user.dtos';
 import { ethers } from 'ethers';
 
 const conf = {
@@ -19,8 +18,6 @@ const conf = {
     api_url_base: apiConfig.API_TAG.toLowerCase(),
     // modify to match your startegy setting in CONFIG.ts
     name: apiConfig.STRATEGY_BANKLESS_DAO,
-    // modify to match your startegy setting in CONFIG.ts
-    endpoint: formatKebab(apiConfig.STRATEGY_BANKLESS_DAO),
 };
 
 @ApiSecurity('api_key')
@@ -36,7 +33,7 @@ export class BanklessDaoStrategy extends StrategyBaseController implements OnApp
 
     // modify: implement strategy here
     async strategy(
-        user: UserResponseDto,
+        ethAddress: string,
         blockHeight: number | null,
         evmService: EvmService,
         snapshotService: SnapshotService,
@@ -94,29 +91,19 @@ export class BanklessDaoStrategy extends StrategyBaseController implements OnApp
             block_height: equivalentBlock,
         };
 
-        const result = [];
+        let tokens: TokenList;
 
-        for (const account of user.provider_accounts) {
-            if (account.provider_id === 'ethereum') {
-                let tokens: TokenList;
+        if (banklessTokenPolygon.block_height) {
+            tokens = { tokens: [banklessTokenMain, banklessTokenPolygon] };
 
-                if (banklessTokenPolygon.block_height) {
-                    tokens = { tokens: [banklessTokenMain, banklessTokenPolygon] };
+        } else {
+            tokens = { tokens: [banklessTokenMain] };
 
-                } else {
-                    tokens = { tokens: [banklessTokenMain] };
-
-                }
-
-                logger.debug(`getting balances for token list: ${JSON.stringify(tokens)}`);
-
-                const balances = await evmService.getErc20TokenBalances(account._id, tokens);
-
-                result.push(balances);
-            }
         }
 
-        return result;
+        logger.debug(`getting balances for token list: ${JSON.stringify(tokens)}`);
+
+        return await evmService.getErc20TokenBalances(ethAddress, tokens);
     }
 
     // transform strategy result, or use to chain strategies
@@ -126,20 +113,20 @@ export class BanklessDaoStrategy extends StrategyBaseController implements OnApp
     ) {
         let votingPower = ethers.BigNumber.from('0');
 
-        for (const account of strategyResult as ERC20TokenBalances[]) {
-            for (const token of account.tokenBalances) {
-                const bigNumber = ethers.utils.parseUnits(token.balance);
 
-                logger.debug(`balance ${token.balance}`);
-                logger.debug(`balanceBigN ${token.balance}`);
+        for (const token of (strategyResult as ERC20TokenBalances).tokenBalances) {
+            const bigNumber = ethers.utils.parseUnits(token.balance);
 
-                votingPower = votingPower.add(bigNumber);
-            }
+            logger.debug(`balance ${token.balance}`);
+            logger.debug(`balanceBigN ${token.balance}`);
+
+            votingPower = votingPower.add(bigNumber);
         }
+
 
         logger.debug(`Total voting power: ${votingPower.toString()}`);
 
-        return ethers.utils.formatEther(votingPower);
+        return ethers.utils.formatEther(votingPower).toString();
     }
 
     // do not modify
@@ -153,7 +140,7 @@ export class BanklessDaoStrategy extends StrategyBaseController implements OnApp
     }
 
     // do not modify
-    @Post(conf.endpoint)
+    @Post(formatKebab(conf.name))
     @ApiBody({ type: StrategyRequestDto })
     @ApiOperation({ description: conf.name })
     @ApiOkResponse({ description: 'Returns a users voting power under this strategy', type: Number, isArray: false })

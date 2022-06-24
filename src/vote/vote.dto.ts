@@ -1,7 +1,8 @@
 import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { ObjectId } from 'mongodb';
 import { VoteRawResponseUpdate } from './types';
-import { IsMongoId, IsOptional, IsString } from 'class-validator';
+import { IsIn, IsMongoId, IsOptional, IsString } from 'class-validator';
+import constants from '../common/constants';
 
 export class VoteRawResponseDto {
 
@@ -29,12 +30,27 @@ export class VoteRawResponseDto {
     })
         poll_option_id: string;
 
-    @IsMongoId()
+    @IsString()
     @ApiProperty({
-        description: 'Governator user ID',
+        description: 'account ID',
         required: true,
     })
-        user_id: string;
+        account_id: string;
+
+    @IsString()
+    @IsIn(Array.from(constants.PROVIDERS.keys()))
+    @ApiProperty({
+        description: 'provider ID e.g. "ethereum" ',
+        required: true,
+    })
+        provider_id: string;
+
+    @IsString()
+    @ApiProperty({
+        description: 'Vote power - saved as string to allow for big numbers',
+        required: true,
+    })
+        vote_power: string;
 
     @IsString()
     @ApiProperty({
