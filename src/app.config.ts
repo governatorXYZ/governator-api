@@ -24,7 +24,11 @@ export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
 
     // Enable validation pipeline globally
     // set { transform: true } to enable default values in dtos
-    app.useGlobalPipes(new ValidationPipe());
+    app.useGlobalPipes(new ValidationPipe({
+        transform: true,
+        whitelist: true,
+        forbidNonWhitelisted: true,
+    }));
 
     // set cors origin policy from .env
     if (configService.get('NODE_ENV') === 'development') {

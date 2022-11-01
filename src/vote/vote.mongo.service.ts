@@ -4,8 +4,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Vote, VoteDocument } from './vote.schema';
 import { VoteCreateDto, VoteRawResponseDto, VoteRequestDto, VoteResponseDto } from './vote.dto';
 import { Poll, PollDocument } from '../poll/poll.schema';
-import { User, UserDocument } from '../user/user.schema';
 import { VoteRawResponseUpdate } from './types';
+import { UserService } from '../user/user.service';
+import { UserResponseDto } from '../user/user.dtos';
+import { ethers } from 'ethers';
+import constants from "../common/constants";
 
 @Injectable()
 export class VoteMongoService {
@@ -14,14 +17,14 @@ export class VoteMongoService {
     constructor(
         @InjectModel(Vote.name) private voteModel: Model<VoteDocument>,
         @InjectModel(Poll.name) private pollModel: Model<PollDocument>,
-        @InjectModel(User.name) private userModel: Model<UserDocument>,
+        protected userService: UserService,
     ) {
         // do nothing
     }
 
     async fetchVoteByPoll(pollId) {
         try {
-            return await this.voteModel.find({ poll_id: pollId }, '-user_id -__v').exec();
+            return await this.voteModel.find({ poll_id: pollId }, '-account_id -__v').exec();
 
         } catch (e) {
             this.logger.error('Failed to fetch votes from db', e);
@@ -30,7 +33,7 @@ export class VoteMongoService {
         }
     }
 
-    async fetchVoteByPollAggregate(pollId) {
+    async fetchVoteByPollCountAggregate(pollId) {
         try {
             return await this.voteModel.aggregate([
                 { '$match': { 'poll_id': pollId } },
@@ -44,11 +47,19 @@ export class VoteMongoService {
         }
     }
 
-    async fetchVoteByPollAndUserAggregate(pollId, userId) {
+    async fetchVoteByPollAndUserVotePowerAggregate(pollId, userId) {
+        const user = await this.userService.fetchUserById(userId);
+
+        const accountIds = [];
+        for (const account of user.provider_accounts) {
+            accountIds.push(account._id);
+        }
+
         try {
             return await this.voteModel.aggregate([
-                { '$match': { 'poll_id': pollId, 'user_id': userId } },
-                { '$group': { '_id': '$poll_option_id', count:{ $sum:1 } } },
+                { '$match': { 'poll_id': pollId, 'provider_id': { $in: Array.from(constants.PROVIDERS.keys()) }, 'account_id': { $in: accountIds } } },
+                { '$group': { '_id': '$poll_option_id', vote_power: { $push: '$vote_power' } } },
+                // { '$group': { '_id': '$poll_option_id', count:{ $sum:1 } } },
             ]).exec();
 
         }catch (e) {
@@ -58,42 +69,93 @@ export class VoteMongoService {
         }
     }
 
+    async fetchVoteByPollSumAggregate(pollId) {
+
+        const votePowers = await this.voteModel.aggregate([
+            { '$match': { 'poll_id': pollId } },
+            { '$group': { '_id': '$poll_option_id', vote_power: { $push: '$vote_power' } } },
+        ]).exec();
+
+        const sumVotePowers = votePowers.map((poll_option) => {
+            let sum = ethers.BigNumber.from('0');
+            for (const value of poll_option.vote_power) {
+                sum = sum.add(ethers.BigNumber.from(value));
+            }
+            return { _id: poll_option._id, vote_power: sum.toString() };
+        });
+
+        let totalVotePower = ethers.BigNumber.from('0');
+        for (const poll_option of sumVotePowers) {
+            totalVotePower = totalVotePower.add(ethers.BigNumber.from(poll_option.vote_power));
+        }
+
+        const sumVotePowersWithPercentages = sumVotePowers.map((poll_option) => {
+
+            const percent = Math.round(100.0 / parseFloat(ethers.utils.formatEther(totalVotePower)) * parseFloat(ethers.utils.formatEther(ethers.BigNumber.from(poll_option.vote_power))));
+            poll_option['percent'] = percent.toString();
+            return poll_option;
+        });
+
+        return sumVotePowersWithPercentages;
+
+        // sum = ethers.BigNumber.from('0');
+        // votes.forEach((vote) => {
+        //     vote.
+        // })
+    }
+
+    // async fetchVoteByPollAndUserSumAggregate(pollId, userId) {
+    //     try {
+    //         return await this.voteModel.aggregate([
+    //             { '$match': { 'poll_id': pollId, 'user_id': userId } },
+    //             { '$group': { '_id': '$poll_option_id', count:{ $sum: { $toLong: '$vote_power' } } } },
+    //         ]).exec();
+    //
+    //     }catch (e) {
+    //         this.logger.error('Failed to fetch votes from db', e);
+    //
+    //         throw new HttpException('Failed to fetch votes from db', HttpStatus.BAD_REQUEST);
+    //     }
+    // }
+
     // TODO: maybe place this part in separate file / service
+    // FIXME: BE should handle strategy queries to avoid vote power manipulation by client (or at least validate it) => vote request controller refactor
     // below methods are handling vote logic and should not be accessed by other public endpoints
 
     async validateVoteRequest(pollId: string, voteRequestDto: VoteRequestDto) {
 
         if (process.env.NODE_ENV === 'development') this.logger.log(`Attempting to validate vote request for pollID: ${pollId}, with request body: ${JSON.stringify(voteRequestDto)}`);
 
-        // this.logger.debug('Attempting to retrieve provider_id of vote request provider');
-        // const providerId = this.getProviderId();
-
         this.logger.debug('Validating Poll ID');
         const poll = await this.getPoll(pollId);
         if (!poll) throw new HttpException('Poll not found', HttpStatus.CONFLICT);
         this.logger.debug('Poll ID is valid');
 
-        this.logger.debug('Validating User ID');
-        if (!await this.getUser(voteRequestDto.user_id)) throw new HttpException('User not found', HttpStatus.CONFLICT);
+        this.logger.debug('Validating User account');
+        const user = await this.getUser(voteRequestDto);
+        if (!user) throw new HttpException('User not found', HttpStatus.CONFLICT);
         this.logger.debug('User ID is valid');
 
-        this.logger.debug('Checking if user has already voted on this poll with this provider_account');
-        const userVotes = await this.getVotes(pollId, voteRequestDto.user_id);
-        if (process.env.NODE_ENV === 'development') this.logger.debug(`userVotes: Vote[] length: ${Object.keys(userVotes).length}`);
-        if (process.env.NODE_ENV === 'development') this.logger.debug(`userVotes: Vote[] ${JSON.stringify(userVotes)}`);
+        this.logger.debug('Checking if account has already voted on this poll');
+        const accountVotes = await this.getAccountVotes(pollId, voteRequestDto.account_id);
+        if (process.env.NODE_ENV === 'development') this.logger.debug(`accountVotes: Vote[] length: ${Object.keys(accountVotes).length}`);
+        if (process.env.NODE_ENV === 'development') this.logger.debug(`accountVotes: Vote[] ${JSON.stringify(accountVotes)}`);
 
-        this.logger.debug('Preparing createVoteDto');
+        this.logger.debug('Checking if vote power is bigger than 0');
+        if (Number(voteRequestDto.vote_power) <= 0) throw new HttpException('Vote power has to be bigger than 0', HttpStatus.CONFLICT);
+
+        this.logger.debug('Preparing voteCreateDto');
         const voteCreateDto: VoteCreateDto = { ...voteRequestDto, poll_id: pollId };
         if (process.env.NODE_ENV === 'development') this.logger.debug(`voteCreateDto: VoteCreateDto: ${JSON.stringify(voteCreateDto)}`);
 
-        if(Object.keys(userVotes).length === 0) {
+        if(accountVotes.length === 0) {
             this.logger.debug('first time vote of user/platform on this poll');
             return await this.createVote(voteCreateDto);
         }
 
-        const isDuplicate = this.isDuplicateVote(userVotes, voteCreateDto);
+        const isDuplicate = this.isDuplicateVote(accountVotes, voteCreateDto);
 
-        if(Object.keys(userVotes).length > 0) {
+        if(accountVotes.length > 0) {
             this.logger.debug('not a first-time vote, user/platform has voted on this poll before');
 
             if (isDuplicate) return this.deleteVote(voteCreateDto);
@@ -103,17 +165,28 @@ export class VoteMongoService {
                 if (poll.single_vote) return this.updateVote(voteCreateDto);
 
                 // poll is multi vote type --> create vote
-                if (!poll.single_vote) return await this.createVote(voteCreateDto);
+                if (!poll.single_vote) {
+                    // TODO: implement multiple options voting for token voting
+                    if (poll.token_strategies && poll.token_strategies.length > 0) {
+                        this.logger.debug('multiple vote options not yet supported on token voting');
+
+                        if (poll.single_vote) return this.updateVote(voteCreateDto);
+
+                    } else {
+                        return await this.createVote(voteCreateDto);
+
+                    }
+                }
             }
         }
     }
 
-    isDuplicateVote(userVotes, createVoteDto): boolean {
-        const voteOptions: number[] = [];
-        userVotes.map((value) => voteOptions.push(value.poll_option_id));
+    isDuplicateVote(accountVotes: VoteRawResponseDto[], voteCreateDto: VoteCreateDto): boolean {
+        const voteOptions: string[] = [];
+        accountVotes.map((vote) => voteOptions.push(vote.poll_option_id));
         this.logger.debug('checking if vote is a duplicate');
-        if (process.env.NODE_ENV === 'development') this.logger.debug(`IsDuplicateVote ${voteOptions} ; ${createVoteDto.poll_option_id} --> ${voteOptions.includes(createVoteDto.poll_option_id)}`);
-        return voteOptions.includes(createVoteDto.poll_option_id);
+        if (process.env.NODE_ENV === 'development') this.logger.debug(`IsDuplicateVote ${voteOptions} ; ${voteCreateDto.poll_option_id} --> ${voteOptions.includes(voteCreateDto.poll_option_id)}`);
+        return voteOptions.includes(voteCreateDto.poll_option_id);
     }
 
     transformResult(method: string, data: VoteRawResponseDto | VoteRawResponseUpdate): VoteResponseDto {
@@ -133,9 +206,9 @@ export class VoteMongoService {
         }
     }
 
-    async getUser(userId): Promise<User> {
+    async getUser(voteRequestDto: VoteRequestDto): Promise<UserResponseDto> {
         try {
-            const user = await this.userModel.findById(userId).exec();
+            const user = await this.userService.fetchUserByProvider(voteRequestDto.provider_id, voteRequestDto.account_id);
             this.logger.debug('USER found ', user);
             return user;
 
@@ -146,16 +219,37 @@ export class VoteMongoService {
         }
     }
 
-    async getVotes(pollId, userId): Promise<Record<string, any>> {
+    async getAccountVotes(pollId, accountId): Promise<Array<VoteRawResponseDto>> {
+
         try {
-            return await this.voteModel.find({ poll_id: pollId, user_id: userId }).exec();
+            return await this.voteModel.find({ poll_id: pollId, account_id: accountId }).lean().exec();
 
         } catch (e) {
-            this.logger.error('Failed to fetch votes from db', e);
-
-            throw new HttpException('Failed to fetch votes from db', HttpStatus.BAD_REQUEST);
+            this.logger.error('Failed to fetch vote from db', e);
         }
     }
+
+    // async getUserVotes(pollId, user: UserResponseDto): Promise<Array<VoteRawResponseDto>> {
+    //     const accountIds = user.provider_accounts.map((account) => account._id);
+    //
+    //     this.logger.debug(accountIds);
+    //
+    //     const votes: Vote[] = [];
+    //
+    //     for (const accountId of accountIds) {
+    //         try {
+    //             const vote = await this.voteModel.find({ poll_id: pollId, account_id: accountId }).lean().exec();
+    //
+    //             if (vote.length > 0) votes.push(...vote);
+    //
+    //         } catch (e) {
+    //             this.logger.error('Failed to fetch vote from db', e);
+    //         }
+    //     }
+    //
+    //     return votes;
+    //
+    // }
 
     async createVote(voteCreateDto: VoteCreateDto): Promise<VoteResponseDto> {
         this.logger.debug('Creating vote in db');
@@ -179,12 +273,12 @@ export class VoteMongoService {
             const oldVote = await this.voteModel.findOne(
                 {
                     poll_id: voteCreateDto.poll_id,
-                    user_id: voteCreateDto.user_id,
+                    account_id: voteCreateDto.account_id,
                 }).exec();
             const updated: VoteRawResponseDto = await this.voteModel.findOneAndUpdate(
                 {
                     poll_id: voteCreateDto.poll_id,
-                    user_id: voteCreateDto.user_id,
+                    account_id_id: voteCreateDto.account_id,
                 },
                 voteCreateDto,
                 { new: true }).exec();

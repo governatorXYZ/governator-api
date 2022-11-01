@@ -7,10 +7,12 @@
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "target": "es6",
+    "resolveJsonModule": true,
     "lib": [
       "es2020",
       "dom"
     ],
+    "esModuleInterop": true,
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",

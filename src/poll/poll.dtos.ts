@@ -10,19 +10,21 @@ import {
     IsNumberString,
     IsMongoId,
     IsNotEmpty,
-    ValidateNested, ArrayMaxSize,
+    ValidateNested, ArrayMaxSize, IsIn, IsUUID, IsNumber,
 } from 'class-validator';
 import { ApiProperty, OmitType, PartialType } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import { ObjectId } from 'mongodb';
+import constants from '../common/constants';
 
 export class PollOptionDto {
     @IsNotEmpty()
+    @IsUUID()
     @ApiProperty({
-        description: 'Poll option id',
+        description: 'Poll option unique id',
         required: true,
     })
-        _id: string;
+        poll_option_id: string;
 
     @IsNotEmpty()
     @ApiProperty({
@@ -37,6 +39,53 @@ export class PollOptionDto {
         required: true,
     })
         poll_option_emoji: string;
+}
+
+export abstract class ClientConfigBase {
+    @IsNotEmpty()
+    @IsIn(Array.from(constants.PROVIDERS.keys()))
+    @ApiProperty({
+        description: 'Provider id',
+        required: true,
+    })
+        provider_id: string;
+}
+
+export class ClientConfigDiscordDto extends ClientConfigBase {
+
+    @IsNotEmpty()
+    @IsNumberString()
+    @ApiProperty({
+        description: 'Channel to post in',
+        required: true,
+    })
+        channel_id: string;
+
+    @IsOptional()
+    @IsNumberString({}, { each: true })
+    @IsArray()
+    @ApiProperty({
+        description: 'Whitelist of role Ids',
+        required: false,
+        isArray: true,
+    })
+        role_restrictions: string[];
+}
+
+export class TokenStrategyConfig {
+    @IsNotEmpty()
+    @ApiProperty({
+        description: 'Strategy id',
+        required: true,
+    })
+        strategy_id: string;
+
+    @IsNumber()
+    @ApiProperty({
+        description: 'Block height (block number or offset)',
+        required: true,
+    })
+        block_height: number;
 }
 
 export class PollResponseDto {
@@ -57,14 +106,38 @@ export class PollResponseDto {
     })
         title: string;
 
-    @IsNumberString()
-    @ApiProperty({
-        description: 'Discord channel to post this poll',
-        required: true,
+    @ValidateNested({ each: true })
+    @Type(() => ClientConfigBase, {
+        keepDiscriminatorProperty: true,
+        discriminator: {
+            property: 'provider_id',
+            subTypes: [
+                { value: ClientConfigDiscordDto, name: 'discord' },
+            ],
+        },
     })
-        channel_id: string;
+    @ApiProperty({
+        description: 'Client config for this poll',
+        required: true,
+        type: ClientConfigBase,
+        example: [{ provider_id: 'discord', channel_id: '12345', role_restrictions: ['123', '234'] }],
+        isArray: true,
+    })
+        client_config: ClientConfigDiscordDto[];
 
-    // @IsOptional()
+    @IsNotEmpty()
+    @IsArray()
+    @IsOptional()
+    @ValidateNested({ each: true })
+    @Type(() => TokenStrategyConfig)
+    @ApiProperty({
+        description: 'Array of strategy configs',
+        required: false,
+        type: TokenStrategyConfig,
+        isArray: true,
+    })
+        token_strategies: TokenStrategyConfig[];
+
     @ArrayMaxSize(8)
     @ValidateNested({ each: true })
     @Type(() => PollOptionDto)
@@ -109,17 +182,6 @@ export class PollResponseDto {
     })
         description: string;
 
-    @IsOptional()
-    @IsArray()
-    @IsString({
-        each: true,
-    })
-    @ApiProperty({
-        description: 'Whether voting is restricted to holders of certain discord roles',
-        required: false,
-    })
-        role_restrictions: Array<string>;
-
     @IsMongoId()
     @ApiProperty({
         description: 'Governator user ID of poll author',
@@ -128,12 +190,14 @@ export class PollResponseDto {
     })
         author_user_id: string;
 
+    @IsString()
     @ApiProperty({
         description: 'Datetime when record was created',
         required: false,
     })
         createdAt: string;
 
+    @IsString()
     @ApiProperty({
         description: 'Datetime when record was last updated',
         required: false,
