@@ -1,21 +1,37 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger, MessageEvent } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Poll, PollDocument } from './poll.schema';
 import { PollCreateDto } from './poll.dtos';
+import { SchedulerRegistry } from '@nestjs/schedule';
+import { CronJob } from 'cron';
+import constants from '../common/constants';
+import { SseService } from '../sse/sse.service';
 
 @Injectable()
 export class PollMongoService {
     private readonly logger = new Logger(PollMongoService.name);
 
-    constructor(@InjectModel(Poll.name) private pollModel: Model<PollDocument>) {
+    constructor(
+        @InjectModel(Poll.name) private pollModel: Model<PollDocument>,
+        private schedulerRegistry: SchedulerRegistry,
+        protected sseService: SseService,
+    ) {
         // do nothing
     }
     async createPoll(pollCreateDto: PollCreateDto): Promise<Poll> {
         this.logger.debug('Creating new poll in db');
 
         try {
-            return await this.pollModel.create(pollCreateDto);
+            const newPoll = await this.pollModel.create(pollCreateDto);
+            const job = new CronJob(new Date(newPoll.end_time), () => {
+                this.logger.warn(`cron job running for ${newPoll.id}`);
+                this.endPoll(newPoll.id);
+            });
+            this.schedulerRegistry.addCronJob(newPoll.id, job);
+            job.start();
+            this.logger.warn(`Cron job created for Poll ID ${newPoll.id} running on ${this.schedulerRegistry.getCronJob(newPoll.id).nextDate()}`);
+            return newPoll;
 
         } catch (e) {
 
@@ -23,6 +39,15 @@ export class PollMongoService {
 
             throw new HttpException('Failed to create poll in db', HttpStatus.BAD_REQUEST);
         }
+    }
+
+    async endPoll(pollId) {
+        this.logger.warn(`poll end has been called on Poll ${pollId}. Emitting POLL_COMPLETE event`);
+
+        await this.sseService.emit({
+            data: pollId,
+            type: constants.EVENT_POLL_COMPLETE,
+        } as MessageEvent);
     }
 
     async fetchAllPolls(): Promise<Poll[]> {
