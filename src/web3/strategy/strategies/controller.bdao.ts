@@ -1,5 +1,5 @@
 import { Body, Controller, HttpCode, HttpStatus, Logger, OnApplicationBootstrap, Post } from '@nestjs/common';
-import { ApiBody, ApiOkResponse, ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { StrategyBaseController } from '../strategy.base.controller';
 import { StrategyBaseService } from '../strategy.base.service';
 import { StrategyMongoService } from '../strategy.mongo.service';
@@ -8,7 +8,6 @@ import { StrategyRequestDto } from '../strategy.dtos';
 import { formatKebab } from '../strategy.utils';
 import apiConfig from './CONFIG';
 import { ERC20BalanceOfDto, ERC20TokenBalances, TokenList } from '../../token-vote/evm/evm.dtos';
-import { SnapshotService } from '../../token-vote/snapshot/snapshot.service';
 import { EvmService } from '../../token-vote/evm/evm.service';
 import { GraphqlService } from '../../token-vote/graphql/graphql.service';
 import { ethers } from 'ethers';
@@ -35,7 +34,6 @@ export class BanklessDaoStrategy extends StrategyBaseController implements OnApp
         ethAddress: string,
         blockHeight: number | null,
         evmService: EvmService,
-        snapshotService: SnapshotService,
         graphqlService: GraphqlService,
         logger: Logger,
         // tokenWhitelistService: TokenWhitelistMongoService,
