@@ -1,4 +1,4 @@
-import { ArrayMaxSize, IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
+import {ArrayMaxSize, IsArray, IsNotEmpty, IsNumber, IsOptional, IsString} from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { IsEthAddress } from '../../../common/isEthAddress.decorator';
@@ -6,18 +6,6 @@ import { ethers } from 'ethers';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { Token } from '../../web3.dtos';
 
-export class TokenList {
-
-    @IsArray()
-    @Type(() => ERC20BalanceOfDto)
-    @ApiProperty({
-        description: 'Array of ERC20 tokens to query for balance',
-        required: true,
-        isArray: true,
-        example: [{ contractAddresses: '0x123..', chain_id: 1, block_height: -20 }],
-    })
-        tokens: ERC20BalanceOfDto[];
-}
 
 export class ERC20BalanceOfDto extends Token {
 
@@ -29,6 +17,28 @@ export class ERC20BalanceOfDto extends Token {
         example: 847359834,
     })
         block_height: number;
+}
+
+export class TokenList {
+
+    @IsArray()
+    @Type(() => ERC20BalanceOfDto)
+    @ApiProperty({
+        description: 'Array of ERC20 tokens to query for balance',
+        required: true,
+        isArray: true,
+        example: [{ contractAddresses: '0x123..', chain_id: 1, block_height: -20 }],
+        type: ERC20BalanceOfDto,
+    })
+        tokens: ERC20BalanceOfDto[];
+}
+
+class TokenIdsDto {
+    @IsNumber()
+    @ApiProperty({
+        description: 'ERC721 token id',
+    })
+        token_id: number;
 }
 
 export class ERC721OwnerOfDto {
@@ -59,17 +69,18 @@ export class ERC721OwnerOfDto {
     })
         chain_id: number;
 
+    @IsNumber({}, { each: true })
     @IsArray()
     @ArrayMaxSize(100)
-    // FIXME
-    // @ValidateNested({ each: true })
+    @Type(() => TokenIdsDto)
     @ApiProperty({
         description: 'Array of ERC721 token IDs to query for ownership',
         required: true,
         isArray: true,
-        example: [983093284324, 983409384032],
+        example: [{ token_id: 983093284324 }, { token_id: 983409384032 }],
+        type: TokenIdsDto,
     })
-        tokens: Array<number>;
+        token_ids: TokenIdsDto[];
 
     @IsNumber()
     @IsOptional()
@@ -110,7 +121,7 @@ export class ERC721Owner {
         _id: number;
 }
 
-export class ERC721OwnerOfResponseDto extends OmitType(ERC721OwnerOfDto, ['tokens'] as const) {
+export class ERC721OwnerOfResponseDto extends OmitType(ERC721OwnerOfDto, ['token_ids'] as const) {
 
     @IsArray()
     @Type(() => ERC721Owner)
@@ -124,7 +135,7 @@ export class ERC721OwnerOfResponseDto extends OmitType(ERC721OwnerOfDto, ['token
         owners: ERC721Owner[];
 }
 
-export class ERC1155BalanceOfDto extends OmitType(ERC721OwnerOfDto, ['tokens'] as const) {
+export class ERC1155BalanceOfDto extends OmitType(ERC721OwnerOfDto, ['token_ids'] as const) {
 
     @IsNumber()
     @ApiProperty({

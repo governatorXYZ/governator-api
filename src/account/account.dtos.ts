@@ -48,12 +48,12 @@ export class DiscordAccountResponseDto extends AccountBase {
     })
         _id: string;
 
-    @IsMongoId()
-    @ApiProperty({
-        description: 'Governator user ID',
-        required: true,
-    })
-        user_id: string;
+    // @IsMongoId()
+    // @ApiProperty({
+    //     description: 'Governator user ID',
+    //     required: true,
+    // })
+    //     user_id: string;
 
     @IsIn(Array.from(constants.PROVIDERS.keys()))
     @ApiProperty({
@@ -115,12 +115,12 @@ export class EthereumAccountResponseDto extends AccountBase {
     })
         _id: string;
 
-    @IsMongoId()
-    @ApiProperty({
-        description: 'Governator user ID',
-        required: true,
-    })
-        user_id: string;
+    // @IsMongoId()
+    // @ApiProperty({
+    //     description: 'Governator user ID',
+    //     required: true,
+    // })
+    //     user_id: string;
 
     @IsIn(Array.from(constants.PROVIDERS.keys()))
     @ApiProperty({
@@ -176,5 +176,5 @@ export class EthereumAccountCreateDto extends OmitType(EthereumAccountResponseDt
 
 export class EthereumAccountUpdateDto extends OmitType(PartialType(EthereumAccountResponseDto), ['_id', 'createdAt', 'updatedAt', 'provider_id'] as const) {}
 
-export class EthereumAccountUpdateUserDto extends PickType(EthereumAccountUpdateDto, ['user_id'] as const) {}
+export class EthereumAccountUpdateUserDto extends PickType(EthereumAccountResponseDto, ['user_id'] as const) {}
 

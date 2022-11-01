@@ -44,7 +44,6 @@ export class ClientRequestController {
         enum: constants.PROVIDERS.get('discord').methods,
     })
     @ApiParam({
-        required: false,
         description: 'discord user id requesting the data',
         type: String,
         name:'discord_user_id',

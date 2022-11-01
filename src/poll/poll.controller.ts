@@ -5,7 +5,7 @@ import { PollMongoService } from './poll.mongo.service';
 import { Poll } from './poll.schema';
 import { SseService } from '../sse/sse.service';
 import constants from '../common/constants';
-import web3Utils from "../web3/web3.util";
+import web3Utils from '../web3/web3.util';
 
 @ApiTags('Poll')
 @ApiSecurity('api_key')
@@ -39,7 +39,7 @@ export class PollController {
     }
 
     @Get('poll/user/:author_user_id/active')
-    @ApiOperation({ description: 'Fetch acive polls by author' })
+    @ApiOperation({ description: 'Fetch active polls by author' })
     @ApiParam({ name: 'author_user_id', description: 'Governator user ID' })
     async fetchPollByUserOngoing(@Param('author_user_id') author_user_id) {
         return await this.mongoService.fetchPollByUserOngoing(author_user_id);
@@ -49,12 +49,14 @@ export class PollController {
     @ApiOperation({ description: 'Create a new poll' })
     @ApiCreatedResponse({ description: `Returns the created poll object and emits ${constants.EVENT_POLL_CREATE} event`, type: PollCreateDto })
     async createPoll(@Body() params: PollCreateDto): Promise<Poll> {
-        // sanitizing block heights
-        let block = null;
-        for await (const strategy of params.token_strategies) {
-            if (strategy.block_height <= 0) {
-                if (!block) block = await web3Utils.getEthersProvider(1).getBlockNumber();
-                strategy.block_height = block - strategy.block_height;
+        if (params.token_strategies) {
+            // sanitizing block heights
+            let block = null;
+            for await (const strategy of params.token_strategies) {
+                if (strategy.block_height <= 0) {
+                    if (!block) block = await web3Utils.getEthersProvider(1).getBlockNumber();
+                    strategy.block_height = block - strategy.block_height;
+                }
             }
         }
         const poll = await this.mongoService.createPoll(params);

@@ -92,7 +92,7 @@ export class EvmService {
     async getErc721OwnerOf(ownerOfDto: ERC721OwnerOfDto): Promise<ERC721OwnerOfResponseDto> {
         this.logger.log(`Fetching ERC721 token owners for contract ${ownerOfDto.contractAddress}`);
 
-        if (ownerOfDto.tokens.length === 0) throw new HttpException('Failed to fetch token balances', HttpStatus.BAD_REQUEST);
+        if (ownerOfDto.token_ids.length === 0) throw new HttpException('Failed to fetch token balances', HttpStatus.BAD_REQUEST);
 
         const connectedToken = await this.connectContract(ownerOfDto.contractAddress, erc721json.abi, ownerOfDto.chain_id) as ERC721;
 
@@ -100,11 +100,11 @@ export class EvmService {
 
         const tokenOwners = [];
 
-        for (const tokenId of ownerOfDto.tokens) {
+        for (const tokenId of ownerOfDto.token_ids) {
             let owner = null;
 
             try {
-                owner = await connectedToken.ownerOf(tokenId, { blockTag: blockNumber ? blockNumber : 'latest' });
+                owner = await connectedToken.ownerOf(tokenId.token_id, { blockTag: blockNumber ? blockNumber : 'latest' });
 
             } catch (e) {
                 this.logger.error(`failed to fetch owner for token ID ${tokenId}`, e);

@@ -20,7 +20,6 @@ const conf = {
     name: apiConfig.STRATEGY_BANKLESS_DAO,
 };
 
-@ApiSecurity('api_key')
 @ApiTags(conf.api_tag)
 @Controller(conf.api_url_base)
 export class BanklessDaoStrategy extends StrategyBaseController implements OnApplicationBootstrap {
@@ -110,7 +109,7 @@ export class BanklessDaoStrategy extends StrategyBaseController implements OnApp
     responseTransformer(
         strategyResult: any,
         logger: Logger,
-    ) {
+    ): string {
         let votingPower = ethers.BigNumber.from('0');
 
 
@@ -126,7 +125,9 @@ export class BanklessDaoStrategy extends StrategyBaseController implements OnApp
 
         logger.debug(`Total voting power: ${votingPower.toString()}`);
 
-        return ethers.utils.formatEther(votingPower).toString();
+        // return ethers.utils.formatEther(votingPower).toString();
+        return votingPower.toString();
+
     }
 
     // do not modify
@@ -143,10 +144,10 @@ export class BanklessDaoStrategy extends StrategyBaseController implements OnApp
     @Post(formatKebab(conf.name))
     @ApiBody({ type: StrategyRequestDto })
     @ApiOperation({ description: conf.name })
-    @ApiOkResponse({ description: 'Returns a users voting power under this strategy', type: Number, isArray: false })
+    @ApiOkResponse({ description: 'Returns a users voting power under this strategy', type: String, isArray: false })
     @HttpCode(HttpStatus.OK)
     async post(
-        @Body() params: StrategyRequestDto): Promise<any> {
+        @Body() params: StrategyRequestDto): Promise<string> {
         return (await super.runStrategy(
             params,
             this.strategy,

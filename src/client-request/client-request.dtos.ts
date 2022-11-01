@@ -1,6 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {IsArray, IsIn, IsNumberString, IsOptional, IsUUID} from 'class-validator';
+import {IsArray, IsIn, IsNotEmpty, IsNumber, IsNumberString, IsOptional, IsUUID} from 'class-validator';
 import constants from '../common/constants';
+import {Type} from "class-transformer";
+import {ClientConfigBase} from "../poll/poll.dtos";
 
 export const getDataProviderMethods = () => {
     const methods = [];
@@ -48,6 +50,14 @@ export class DiscordRequestDto {
         userId: string;
 }
 
+class ClientResponseDataDto {
+    @IsNotEmpty()
+    @ApiProperty({
+        description: 'name of channel or role indexed by ID (snowflake)',
+    })
+        snowflake: string;
+}
+
 export class DiscordResponsetDto {
     @IsUUID()
     @ApiProperty({
@@ -78,11 +88,13 @@ export class DiscordResponsetDto {
         guildId: string;
 
     @IsArray()
+    @Type(() => ClientResponseDataDto)
     @ApiProperty({
         description: 'Requested data',
         required: true,
         isArray: true,
+        type: ClientResponseDataDto,
     })
-        data: string[];
+        data: ClientResponseDataDto[];
 }
 

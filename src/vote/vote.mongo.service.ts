@@ -7,6 +7,8 @@ import { Poll, PollDocument } from '../poll/poll.schema';
 import { VoteRawResponseUpdate } from './types';
 import { UserService } from '../user/user.service';
 import { UserResponseDto } from '../user/user.dtos';
+import { ethers } from 'ethers';
+import constants from "../common/constants";
 
 @Injectable()
 export class VoteMongoService {
@@ -22,7 +24,7 @@ export class VoteMongoService {
 
     async fetchVoteByPoll(pollId) {
         try {
-            return await this.voteModel.find({ poll_id: pollId }, '-user_id -__v').exec();
+            return await this.voteModel.find({ poll_id: pollId }, '-account_id -__v').exec();
 
         } catch (e) {
             this.logger.error('Failed to fetch votes from db', e);
@@ -31,7 +33,7 @@ export class VoteMongoService {
         }
     }
 
-    async fetchVoteByPollAggregate(pollId) {
+    async fetchVoteByPollCountAggregate(pollId) {
         try {
             return await this.voteModel.aggregate([
                 { '$match': { 'poll_id': pollId } },
@@ -45,11 +47,19 @@ export class VoteMongoService {
         }
     }
 
-    async fetchVoteByPollAndUserAggregate(pollId, userId) {
+    async fetchVoteByPollAndUserVotePowerAggregate(pollId, userId) {
+        const user = await this.userService.fetchUserById(userId);
+
+        const accountIds = [];
+        for (const account of user.provider_accounts) {
+            accountIds.push(account._id);
+        }
+
         try {
             return await this.voteModel.aggregate([
-                { '$match': { 'poll_id': pollId, 'user_id': userId } },
-                { '$group': { '_id': '$poll_option_id', count:{ $sum:1 } } },
+                { '$match': { 'poll_id': pollId, 'provider_id': { $in: Array.from(constants.PROVIDERS.keys()) }, 'account_id': { $in: accountIds } } },
+                { '$group': { '_id': '$poll_option_id', vote_power: { $push: '$vote_power' } } },
+                // { '$group': { '_id': '$poll_option_id', count:{ $sum:1 } } },
             ]).exec();
 
         }catch (e) {
@@ -59,7 +69,57 @@ export class VoteMongoService {
         }
     }
 
+    async fetchVoteByPollSumAggregate(pollId) {
+
+        const votePowers = await this.voteModel.aggregate([
+            { '$match': { 'poll_id': pollId } },
+            { '$group': { '_id': '$poll_option_id', vote_power: { $push: '$vote_power' } } },
+        ]).exec();
+
+        const sumVotePowers = votePowers.map((poll_option) => {
+            let sum = ethers.BigNumber.from('0');
+            for (const value of poll_option.vote_power) {
+                sum = sum.add(ethers.BigNumber.from(value));
+            }
+            return { _id: poll_option._id, vote_power: sum.toString() };
+        });
+
+        let totalVotePower = ethers.BigNumber.from('0');
+        for (const poll_option of sumVotePowers) {
+            totalVotePower = totalVotePower.add(ethers.BigNumber.from(poll_option.vote_power));
+        }
+
+        const sumVotePowersWithPercentages = sumVotePowers.map((poll_option) => {
+
+            const percent = Math.round(100.0 / parseFloat(ethers.utils.formatEther(totalVotePower)) * parseFloat(ethers.utils.formatEther(ethers.BigNumber.from(poll_option.vote_power))));
+            poll_option['percent'] = percent.toString();
+            return poll_option;
+        });
+
+        return sumVotePowersWithPercentages;
+
+        // sum = ethers.BigNumber.from('0');
+        // votes.forEach((vote) => {
+        //     vote.
+        // })
+    }
+
+    // async fetchVoteByPollAndUserSumAggregate(pollId, userId) {
+    //     try {
+    //         return await this.voteModel.aggregate([
+    //             { '$match': { 'poll_id': pollId, 'user_id': userId } },
+    //             { '$group': { '_id': '$poll_option_id', count:{ $sum: { $toLong: '$vote_power' } } } },
+    //         ]).exec();
+    //
+    //     }catch (e) {
+    //         this.logger.error('Failed to fetch votes from db', e);
+    //
+    //         throw new HttpException('Failed to fetch votes from db', HttpStatus.BAD_REQUEST);
+    //     }
+    // }
+
     // TODO: maybe place this part in separate file / service
+    // FIXME: BE should handle strategy queries to avoid vote power manipulation by client (or at least validate it) => vote request controller refactor
     // below methods are handling vote logic and should not be accessed by other public endpoints
 
     async validateVoteRequest(pollId: string, voteRequestDto: VoteRequestDto) {
@@ -80,6 +140,9 @@ export class VoteMongoService {
         const accountVotes = await this.getAccountVotes(pollId, voteRequestDto.account_id);
         if (process.env.NODE_ENV === 'development') this.logger.debug(`accountVotes: Vote[] length: ${Object.keys(accountVotes).length}`);
         if (process.env.NODE_ENV === 'development') this.logger.debug(`accountVotes: Vote[] ${JSON.stringify(accountVotes)}`);
+
+        this.logger.debug('Checking if vote power is bigger than 0');
+        if (Number(voteRequestDto.vote_power) <= 0) throw new HttpException('Vote power has to be bigger than 0', HttpStatus.CONFLICT);
 
         this.logger.debug('Preparing voteCreateDto');
         const voteCreateDto: VoteCreateDto = { ...voteRequestDto, poll_id: pollId };

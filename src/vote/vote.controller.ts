@@ -11,26 +11,47 @@ export class VoteController {
         // do nothing
     }
 
-    @Get('vote/results/:poll_id')
+    @Get('vote/results/count/:poll_id')
     @ApiOperation({ description: 'Fetch votes by poll' })
     @ApiParam({ name: 'poll_id', description: 'Poll ID' })
-    async fetchVoteByPollAggregate(@Param('poll_id') poll_id) {
+    async fetchVoteByPollCountAggregate(@Param('poll_id') poll_id) {
         return {
-            aggregate: await this.mongoService.fetchVoteByPollAggregate(poll_id),
+            aggregate: await this.mongoService.fetchVoteByPollCountAggregate(poll_id),
             votes: await this.mongoService.fetchVoteByPoll(poll_id),
         };
     }
 
-    @Get('vote/results/:poll_id/:user_id')
+    @Get('vote/results/count/:poll_id/:user_id')
     @ApiOperation({ description: 'Fetch votes by poll and user' })
     @ApiParam({ name: 'poll_id', description: 'Poll ID' })
     @ApiParam({ name: 'user_id', description: 'Governator user ID' })
-    async fetchVoteByPollAndUserAggregate(
+    async fetchVoteByPollAndUserCountAggregate(
         @Param('poll_id') poll_id,
         @Param('user_id') user_id,
     ) {
-        return await this.mongoService.fetchVoteByPollAndUserAggregate(poll_id, user_id);
+        return await this.mongoService.fetchVoteByPollAndUserVotePowerAggregate(poll_id, user_id);
     }
+
+    @Get('vote/results/sum/:poll_id')
+    @ApiOperation({ description: 'Fetch votes by poll' })
+    @ApiParam({ name: 'poll_id', description: 'Poll ID' })
+    async fetchVoteByPollSumAggregate(@Param('poll_id') poll_id) {
+        return {
+            aggregate: await this.mongoService.fetchVoteByPollSumAggregate(poll_id),
+            votes: await this.mongoService.fetchVoteByPoll(poll_id),
+        };
+    }
+
+    // @Get('vote/results/sum/:poll_id/:user_id')
+    // @ApiOperation({ description: 'Fetch votes by poll and user' })
+    // @ApiParam({ name: 'poll_id', description: 'Poll ID' })
+    // @ApiParam({ name: 'user_id', description: 'Governator user ID' })
+    // async fetchVoteByPollAndUserSumAggregate(
+    //     @Param('poll_id') poll_id,
+    //     @Param('user_id') user_id,
+    // ) {
+    //     return await this.mongoService.fetchVoteByPollAndUserSumAggregate(poll_id, user_id);
+    // }
 
     @Post('vote/:poll_id')
     @ApiParam({ name: 'poll_id', description: 'ID of poll to vote on' })
