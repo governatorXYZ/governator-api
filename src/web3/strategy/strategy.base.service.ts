@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { EvmService } from '../token-vote/evm/evm.service';
-import { SnapshotService } from '../token-vote/snapshot/snapshot.service';
 import { TokenWhitelistMongoService } from '../token-vote/token-whitelist/token-whitelist.mongo.service';
 import { GraphqlService } from '../token-vote/graphql/graphql.service';
 import { StrategyRequestDto } from './strategy.dtos';
@@ -11,7 +10,6 @@ export class StrategyBaseService {
     readonly logger = new Logger(StrategyBaseService.name);
     constructor(
         protected tokenVoteService: EvmService,
-        protected snapshotService: SnapshotService,
         protected tokenWhitelistService: TokenWhitelistMongoService,
         protected graphqlService: GraphqlService,
     ) {
@@ -27,7 +25,6 @@ export class StrategyBaseService {
             params.account_id,
             params.block_height ?? null,
             this.tokenVoteService,
-            this.snapshotService,
             this.graphqlService,
             this.logger,
             this.tokenWhitelistService,

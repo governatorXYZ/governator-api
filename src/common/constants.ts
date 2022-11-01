@@ -3,7 +3,7 @@ export default Object.freeze({
     // supported providers
     PROVIDERS: new Map([
         ['discord', { methods: ['channels', 'roles'] }],
-        ['ethereum', { methods: ['mainnnet', 'ropsten'] }],
+        ['ethereum', { methods: ['mainnnet', 'goerli'] }],
     ]),
     // SSE events
     EVENT_POLL_CREATE: 'POLL_CREATE',

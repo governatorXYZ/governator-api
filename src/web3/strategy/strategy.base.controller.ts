@@ -5,7 +5,6 @@ import { StrategyMongoService } from './strategy.mongo.service';
 import { ApiParam, ApiSecurity } from '@nestjs/swagger';
 import { StrategyRequestDto } from './strategy.dtos';
 import { EvmService } from '../token-vote/evm/evm.service';
-import { SnapshotService } from '../token-vote/snapshot/snapshot.service';
 import { GraphqlService } from '../token-vote/graphql/graphql.service';
 import { formatKebab } from './strategy.utils';
 
@@ -64,7 +63,6 @@ export class StrategyBaseController {
         strategy: (accountId: string,
                    blockHeight: number | null,
                    evmService: EvmService,
-                   snapshotService: SnapshotService,
                    graphqlService: GraphqlService,
                    logger: Logger,
                    // tokenWhitelistService: TokenWhitelistMongoService,
