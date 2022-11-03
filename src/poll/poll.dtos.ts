@@ -61,6 +61,15 @@ export class ClientConfigDiscordDto extends ClientConfigBase {
     })
         channel_id: string;
 
+    @IsNumberString()
+    @IsOptional()
+    @ApiProperty({
+        description: 'Message ID of poll once posted',
+        required: false,
+        default: '0',
+    })
+        message_id: string;
+
     @IsOptional()
     @IsNumberString({}, { each: true })
     @IsArray()
@@ -120,7 +129,7 @@ export class PollResponseDto {
         description: 'Client config for this poll',
         required: true,
         type: ClientConfigBase,
-        example: [{ provider_id: 'discord', channel_id: '12345', role_restrictions: ['123', '234'] }],
+        example: [{ provider_id: 'discord', channel_id: '12345', message_id: '12345', role_restrictions: ['123', '234'] }],
         isArray: true,
     })
         client_config: ClientConfigDiscordDto[];
