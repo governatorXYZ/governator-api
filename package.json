@@ -39,7 +39,7 @@
     "joi": "^17.6.0",
     "mongoose": "^6.4.6",
     "openapi-types": "^10.0.0",
-    "passport": "^0.5.2",
+    "passport": "^0.6.0",
     "passport-headerapikey": "^1.2.2",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
