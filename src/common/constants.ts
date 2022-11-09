@@ -11,6 +11,7 @@ export default Object.freeze({
     EVENT_POLL_DELETE: 'POLL_DELETE',
     EVENT_POLL_COMPLETE: 'POLL_COMPLETE',
     EVENT_REQUEST_CLIENT_DATA: 'REQUEST_CLIENT_DATA',
+    EVENT_HEARTBEAT: 'HEARTBEAT',
 
     // SNAPSHOT
     SNAPSHOT_GRAPHQL_URL: 'https://hub.snapshot.org/graphql',
