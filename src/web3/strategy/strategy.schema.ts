@@ -3,7 +3,7 @@ import { Document } from 'mongoose';
 
 export type StrategyDocument = Strategy & Document;
 
-@Schema({ collection: 'tokenStrategy', toObject: { getters: true }, optimisticConcurrency: true, timestamps: true })
+@Schema({ collection: 'strategies', toObject: { getters: true }, optimisticConcurrency: true, timestamps: true })
 export class Strategy {
 
     @Prop({ required: true })
