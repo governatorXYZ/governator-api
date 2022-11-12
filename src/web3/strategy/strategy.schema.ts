@@ -13,6 +13,9 @@ export class Strategy {
         name: string;
 
     @Prop({ required: true })
+        strategy_type: string;
+
+    @Prop({ required: true })
         endpoint: string;
 
     @Prop({ required: false })

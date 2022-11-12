@@ -12,7 +12,7 @@ import {
     IsNotEmpty,
     ValidateNested, ArrayMaxSize, IsIn, IsUUID, IsNumber,
 } from 'class-validator';
-import { ApiProperty, OmitType, PartialType } from '@nestjs/swagger';
+import {ApiProperty, OmitType, PartialType, PickType} from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import { ObjectId } from 'mongodb';
 import constants from '../common/constants';
@@ -81,7 +81,15 @@ export class ClientConfigDiscordDto extends ClientConfigBase {
         role_restrictions: string[];
 }
 
-export class TokenStrategyConfig {
+export class StrategyConfig {
+    @IsNotEmpty()
+    @IsIn(constants.STRATEGY_TYPES)
+    @ApiProperty({
+        description: 'Strategy type',
+        required: true,
+    })
+        strategy_type: string;
+
     @IsNotEmpty()
     @ApiProperty({
         description: 'Strategy id',
@@ -96,6 +104,18 @@ export class TokenStrategyConfig {
     })
         block_height: number;
 }
+
+export class StrategyConfigCreate extends PickType(StrategyConfig, ['strategy_id', 'block_height'] as const) {
+    @IsOptional()
+    @IsIn(constants.STRATEGY_TYPES)
+    @ApiProperty({
+        description: 'Strategy type',
+        required: false,
+    })
+        strategy_type: string;
+
+}
+
 
 export class PollResponseDto {
 
@@ -138,14 +158,14 @@ export class PollResponseDto {
     @IsArray()
     @IsOptional()
     @ValidateNested({ each: true })
-    @Type(() => TokenStrategyConfig)
+    @Type(() => StrategyConfig)
     @ApiProperty({
         description: 'Array of strategy configs',
         required: false,
-        type: TokenStrategyConfig,
+        type: StrategyConfig,
         isArray: true,
     })
-        token_strategies: TokenStrategyConfig[];
+        strategy_config: StrategyConfig[];
 
     @ArrayMaxSize(8)
     @ValidateNested({ each: true })
@@ -214,6 +234,19 @@ export class PollResponseDto {
         updatedAt: string;
 }
 
-export class PollCreateDto extends OmitType(PollResponseDto, ['_id', 'createdAt', 'updatedAt'] as const) {}
+export class PollCreateDto extends OmitType(PollResponseDto, ['_id', 'createdAt', 'updatedAt'] as const) {
+    @IsNotEmpty()
+    @IsArray()
+    @IsOptional()
+    @ValidateNested({ each: true })
+    @Type(() => StrategyConfigCreate)
+    @ApiProperty({
+        description: 'Array of strategy configs',
+        required: false,
+        type: StrategyConfigCreate,
+        isArray: true,
+    })
+        strategy_config: StrategyConfigCreate[];
+}
 
 export class PollUpdateDto extends PartialType(PollCreateDto) {}

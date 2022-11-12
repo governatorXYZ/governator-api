@@ -8,7 +8,8 @@ import { VoteRawResponseUpdate } from './types';
 import { UserService } from '../user/user.service';
 import { UserResponseDto } from '../user/user.dtos';
 import { ethers } from 'ethers';
-import constants from "../common/constants";
+import constants, { strategyTypes } from '../common/constants';
+
 
 @Injectable()
 export class VoteMongoService {
@@ -167,10 +168,8 @@ export class VoteMongoService {
                 // poll is multi vote type --> create vote
                 if (!poll.single_vote) {
                     // TODO: implement multiple options voting for token voting
-                    if (poll.token_strategies && poll.token_strategies.length > 0) {
-                        this.logger.debug('multiple vote options not yet supported on token voting');
-
-                        if (poll.single_vote) return this.updateVote(voteCreateDto);
+                    if (poll.strategy_config.some(strategyConf => strategyConf.strategy_type === strategyTypes.STRATEGY_TYPE_TOKEN_WEIGHTED)) {
+                        this.logger.debug('multiple vote options not yet supported on token weighted strategies');
 
                     } else {
                         return await this.createVote(voteCreateDto);

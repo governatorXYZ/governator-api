@@ -11,17 +11,19 @@ import { ERC20BalanceOfDto, ERC20TokenBalances, TokenList } from '../../token-vo
 import { EvmService } from '../../token-vote/evm/evm.service';
 import { GraphqlService } from '../../token-vote/graphql/graphql.service';
 import { ethers } from 'ethers';
+import { strategyTypes } from '../../../common/constants';
 
 const conf = {
     api_tag: apiConfig.API_TAG,
     api_url_base: apiConfig.API_TAG.toLowerCase(),
     // modify to match your startegy setting in CONFIG.ts
     name: apiConfig.STRATEGY_BANKLESS_DAO,
+    strategy_type: strategyTypes.STRATEGY_TYPE_TOKEN_WEIGHTED,
 };
 
 @ApiTags(conf.api_tag)
 @Controller(conf.api_url_base)
-export class BanklessDaoStrategy extends StrategyBaseController implements OnApplicationBootstrap {
+export class BankTokenWeightedStrategy extends StrategyBaseController implements OnApplicationBootstrap {
     constructor(
         protected strategyService: StrategyBaseService,
         protected strategyMongoService: StrategyMongoService,

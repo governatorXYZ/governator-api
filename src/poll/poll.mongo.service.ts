@@ -2,11 +2,12 @@ import { HttpException, HttpStatus, Injectable, Logger, MessageEvent } from '@ne
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Poll, PollDocument } from './poll.schema';
-import { PollCreateDto } from './poll.dtos';
+import {PollCreateDto, StrategyConfig} from './poll.dtos';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { CronJob } from 'cron';
 import constants from '../common/constants';
 import { SseService } from '../sse/sse.service';
+import { StrategyMongoService } from '../web3/strategy/strategy.mongo.service';
 
 @Injectable()
 export class PollMongoService {
@@ -16,13 +17,21 @@ export class PollMongoService {
         @InjectModel(Poll.name) private pollModel: Model<PollDocument>,
         private schedulerRegistry: SchedulerRegistry,
         protected sseService: SseService,
+        protected strategyService: StrategyMongoService,
     ) {
         // do nothing
     }
     async createPoll(pollCreateDto: PollCreateDto): Promise<Poll> {
-        this.logger.debug('Creating new poll in db');
+        this.logger.log('Creating new poll in db');
 
         try {
+            // add strategy_type to strategy_config
+            const updatedStratConf: StrategyConfig[] = [];
+            for (const strategy of pollCreateDto.strategy_config.values()) {
+                strategy.strategy_type = (await this.strategyService.findOneStrategy({ _id: strategy.strategy_id })).strategy_type;
+                updatedStratConf.push(strategy);
+            }
+            pollCreateDto.strategy_config = updatedStratConf;
             const newPoll = await this.pollModel.create(pollCreateDto);
             const job = new CronJob(new Date(newPoll.end_time), () => {
                 this.logger.warn(`cron job running for ${newPoll.id}`);
@@ -31,6 +40,9 @@ export class PollMongoService {
             this.schedulerRegistry.addCronJob(newPoll.id, job);
             job.start();
             this.logger.warn(`Cron job created for Poll ID ${newPoll.id} running on ${this.schedulerRegistry.getCronJob(newPoll.id).nextDate()}`);
+
+            this.logger.debug(JSON.stringify(newPoll));
+
             return newPoll;
 
         } catch (e) {

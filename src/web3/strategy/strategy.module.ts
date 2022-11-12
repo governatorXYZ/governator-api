@@ -13,5 +13,6 @@ import { TokenVoteModule } from '../token-vote/token-vote.module';
     ],
     controllers: StrategyControllers,
     providers: [StrategyBaseService, StrategyMongoService],
+    exports: [StrategyMongoService],
 })
 export class StrategyModule {}
