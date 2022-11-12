@@ -12,7 +12,7 @@ import {
     IsNotEmpty,
     ValidateNested, ArrayMaxSize, IsIn, IsUUID, IsNumber,
 } from 'class-validator';
-import {ApiProperty, OmitType, PartialType, PickType} from '@nestjs/swagger';
+import { ApiProperty, OmitType, PartialType, PickType } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import { ObjectId } from 'mongodb';
 import constants from '../common/constants';
