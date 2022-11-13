@@ -1,4 +1,4 @@
-import {ArrayMaxSize, IsArray, IsNotEmpty, IsNumber, IsOptional, IsString} from 'class-validator';
+import { ArrayMaxSize, IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { IsEthAddress } from '../../../common/isEthAddress.decorator';

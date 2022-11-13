@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable, Logger, MessageEvent } from '@ne
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Poll, PollDocument } from './poll.schema';
-import {PollCreateDto, StrategyConfig} from './poll.dtos';
+import { PollCreateDto, StrategyConfig } from './poll.dtos';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { CronJob } from 'cron';
 import constants from '../common/constants';
@@ -25,6 +25,7 @@ export class PollMongoService {
         this.logger.log('Creating new poll in db');
 
         try {
+
             // add strategy_type to strategy_config
             const updatedStratConf: StrategyConfig[] = [];
             for (const strategy of pollCreateDto.strategy_config.values()) {
@@ -32,7 +33,9 @@ export class PollMongoService {
                 updatedStratConf.push(strategy);
             }
             pollCreateDto.strategy_config = updatedStratConf;
+
             const newPoll = await this.pollModel.create(pollCreateDto);
+
             const job = new CronJob(new Date(newPoll.end_time), () => {
                 this.logger.warn(`cron job running for ${newPoll.id}`);
                 this.endPoll(newPoll.id);
@@ -42,7 +45,6 @@ export class PollMongoService {
             this.logger.warn(`Cron job created for Poll ID ${newPoll.id} running on ${this.schedulerRegistry.getCronJob(newPoll.id).nextDate()}`);
 
             this.logger.debug(JSON.stringify(newPoll));
-
             return newPoll;
 
         } catch (e) {

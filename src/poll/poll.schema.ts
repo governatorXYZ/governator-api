@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document } from 'mongoose';
-import {StrategyConfig} from "./poll.dtos";
+import { StrategyConfig } from './poll.dtos';
 
 export type PollDocument = Poll & Document;
 

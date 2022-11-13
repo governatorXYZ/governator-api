@@ -1,7 +1,8 @@
 import { ethers } from 'ethers';
-import snapshot from '@snapshot-labs/snapshot.js';
 // import snapshot from '@snapshot-labs/snapshot.js';
 
+
+// FIXME: make robust for multi chain
 const web3Utils = {
     getEthersProvider(chainId: number) {
         switch (chainId) {

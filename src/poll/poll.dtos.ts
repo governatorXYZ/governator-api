@@ -116,7 +116,6 @@ export class StrategyConfigCreate extends PickType(StrategyConfig, ['strategy_id
 
 }
 
-
 export class PollResponseDto {
 
     @IsMongoId()
