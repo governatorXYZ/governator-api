@@ -46,6 +46,15 @@ export class VoteController {
         };
     }
 
+    @Get('vote/results/votes-per-user/count/:poll_id')
+    @ApiOperation({ description: 'Fetch votes per user' })
+    @ApiParam({ name: 'poll_id', description: 'Poll ID' })
+    async fetchVoteUserCount(@Param('poll_id') poll_id) {
+        return await this.mongoService.fetchVoteUserCount(poll_id);
+    }
+
+    // fetchVoteByPollCountByUserAggregate
+
     // @Get('vote/results/sum/:poll_id/:user_id')
     // @ApiOperation({ description: 'Fetch votes by poll and user' })
     // @ApiParam({ name: 'poll_id', description: 'Poll ID' })
@@ -61,7 +70,7 @@ export class VoteController {
     @ApiParam({ name: 'poll_id', description: 'ID of poll to vote on' })
     @ApiOperation({ description: 'Submit a vote' })
     @ApiCreatedResponse({ description: 'Returns vote object and method used (create/update/delete)', type: VoteResponseDto })
-    async createVote(@Param('poll_id') poll_id, @Body() voteRequest: VoteRequestDto): Promise<VoteResponseDto> {
+    async createVote(@Param('poll_id') poll_id, @Body() voteRequest: VoteRequestDto): Promise<VoteResponseDto[]> {
         return await this.voteRequestHandlerService.validateVoteRequest(poll_id, voteRequest);
     }
 

@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { VoteCreateDto, VoteRawResponseDto, VoteRequestDto } from './vote.dto';
+import {VoteCreateDto, VoteRawResponseDto, VoteRequestDto, VoteResponseDto} from './vote.dto';
 import { Poll } from '../poll/poll.schema';
 import { UserService } from '../user/user.service';
 import { UserResponseDto } from '../user/user.dtos';
@@ -8,8 +8,8 @@ import { VoteMongoService } from './vote.mongo.service';
 import { PollMongoService } from '../poll/poll.mongo.service';
 import { StrategyMongoService } from '../web3/strategy/strategy.mongo.service';
 import { StrategyRequestDto } from '../web3/strategy/strategy.dtos';
-import { BigNumber, ethers } from 'ethers';
 import axios, { AxiosResponse } from 'axios';
+import {DiscordAccountResponseDto, EthereumAccountResponseDto} from "../account/account.dtos";
 
 @Injectable()
 export class VoteRequestHandlerService {
@@ -39,80 +39,62 @@ export class VoteRequestHandlerService {
         if (!user) throw new HttpException('User not found', HttpStatus.CONFLICT);
         this.logger.debug('User ID is valid');
 
-        this.logger.debug('Checking if account has already voted on this poll');
-        const accountVotes = await this.voteMongoService.fetchVoteByAccount(pollId, voteRequestDto.account_id);
-        if (process.env.NODE_ENV === 'development') this.logger.debug(`accountVotes: Vote[] length: ${Object.keys(accountVotes).length}`);
-        if (process.env.NODE_ENV === 'development') this.logger.debug(`accountVotes: Vote[] ${JSON.stringify(accountVotes)}`);
-
         this.logger.debug('Calculating vote powers');
-        const multiStrategyVotePower = await this.calculateVotePower(voteRequestDto, poll);
+        const voteCreateDtos: VoteCreateDto[] = await this.calculateVotePowers(voteRequestDto, poll, user.provider_accounts);
+        if (process.env.NODE_ENV === 'development') this.logger.debug(`Following votes will be recorded (voteCreateDtos): \n${JSON.stringify(voteCreateDtos)}`);
+        if (voteCreateDtos.length === 0) return [];
 
-        if (process.env.NODE_ENV === 'development') this.logger.debug(`multiStrategyVotePower (summed up vote power per strategy) ${JSON.stringify(multiStrategyVotePower)}`);
+        return await this.createBatchVotes(voteCreateDtos, poll);
+    }
 
-        this.logger.debug('Preparing voteCreateDto');
+    async createBatchVotes(voteCreateDtos: VoteCreateDto[], poll: Poll) {
+        const voteResponseDtos: VoteResponseDto[] = [];
 
-        /* ---------------------------------------------------------------------------------------------------------- */
-        /* TODO MVP implementation of multi strategy logic: If there is a ONE_EQUALS_ONE strategy defined in the polls
-        *   strategy_config array, it supersedes all other strategies. If there is none, the first TOKEN_WEIGHTED
-        *   strategy is used. This will be updated along with strategy template engine implementation */
-        let voteCreateDto: VoteCreateDto;
-        const simpleStrat = poll.strategy_config.find((stratConf) => stratConf.strategy_type === strategyTypes.STRATEGY_TYPE_ONE_EQUALS_ONE);
-        const firstTokenStrat = poll.strategy_config.find((stratConf) => stratConf.strategy_type === strategyTypes.STRATEGY_TYPE_TOKEN_WEIGHTED);
-        if (simpleStrat) {
-            voteCreateDto = { ...voteRequestDto, poll_id: pollId, vote_power: multiStrategyVotePower[simpleStrat.strategy_id] };
-        } else if (firstTokenStrat) {
-            if (multiStrategyVotePower[firstTokenStrat.strategy_id] === '0') throw new HttpException('Vote power has to be bigger than 0', HttpStatus.CONFLICT);
-            voteCreateDto = { ...voteRequestDto, poll_id: pollId, vote_power: multiStrategyVotePower[firstTokenStrat.strategy_id] };
-        }
-        /* ---------------------------------------------------------------------------------------------------------- */
+        // we have one voteCreateDto per account
+        for (const voteCreateDto of voteCreateDtos) {
 
-        if (process.env.NODE_ENV === 'development') this.logger.debug(`voteCreateDto: VoteCreateDto: ${JSON.stringify(voteCreateDto)}`);
+            this.logger.debug('Checking if account has already voted on this poll');
+            const accountVotes = await this.voteMongoService.fetchVoteByAccount(voteCreateDto.poll_id, voteCreateDto.account_id);
+            if (process.env.NODE_ENV === 'development') this.logger.debug(`accountVotes: Vote[] length: ${Object.keys(accountVotes).length}`);
+            if (process.env.NODE_ENV === 'development') this.logger.debug(`accountVotes: Vote[] ${JSON.stringify(accountVotes)}`);
 
-        if(accountVotes.length === 0) {
-            this.logger.debug('first time vote of user/platform on this poll');
-            return await this.voteMongoService.createVote(voteCreateDto);
-        }
+            if(accountVotes.length === 0) {
+                this.logger.debug('first time vote of account on this poll');
 
-        const isDuplicate = this.isDuplicateVote(accountVotes, voteCreateDto);
+                voteResponseDtos.push(await this.voteMongoService.createVote(voteCreateDto));
 
-        if(accountVotes.length > 0) {
-            this.logger.debug('not a first-time vote, user/platform has voted on this poll before');
+            } else if(accountVotes.length > 0) {
+                const isDuplicate = this.isDuplicateVote(accountVotes, voteCreateDto);
 
-            if (isDuplicate) return this.voteMongoService.deleteVote(voteCreateDto);
+                this.logger.debug('not a first-time vote, account has voted on this poll before');
 
-            if (!isDuplicate) {
-                // poll is single vote type --> update vote
-                if (poll.single_vote) return this.voteMongoService.updateVote(voteCreateDto);
+                if (isDuplicate) voteResponseDtos.push(await this.voteMongoService.deleteVote(voteCreateDto));
 
-                // poll is multi vote type --> create vote
-                if (!poll.single_vote) {
-                    // TODO: implement multiple options voting for token voting
-                    if (poll.strategy_config.some(strategyConf => strategyConf.strategy_type === strategyTypes.STRATEGY_TYPE_TOKEN_WEIGHTED)) {
-                        this.logger.debug('multiple vote options not yet supported on token weighted strategies');
-                        return;
+                if (!isDuplicate) {
+                    // poll is single vote type --> update vote
+                    if (poll.single_vote) voteResponseDtos.push(await this.voteMongoService.updateVote(voteCreateDto));
 
-                    } else {
-                        return await this.voteMongoService.createVote(voteCreateDto);
-
+                    // poll is multi vote type --> create vote
+                    if (!poll.single_vote) {
+                        voteResponseDtos.push(await this.voteMongoService.createVote(voteCreateDto));
                     }
                 }
             }
         }
+        return voteResponseDtos;
     }
 
     /* TODO: MVP implementation for running token weighted strategies. Due to the way the strategy templates are
     *   implemented, this method makes a http call to our own endpoint. This will change with future implementation
     *   of strategy templates. */
-    async calculateVotePower(voteRequestDto: VoteRequestDto, poll: Poll) {
-        const userAccounts = (await this.getUser(voteRequestDto)).provider_accounts;
-        const votePowerPerStrategy = {};
-        let existingPower: BigNumber;
+    async calculateVotePowers(voteRequestDto: VoteRequestDto, poll: Poll, userAccounts: (EthereumAccountResponseDto | DiscordAccountResponseDto)[]): Promise<VoteCreateDto[]> {
+        const voteCreateDtos: VoteCreateDto[] = [];
 
         for (const strategyConf of poll.strategy_config) {
 
             for (const account of userAccounts) {
 
-                if (process.env.NODE_ENV === 'development') this.logger.log(`processing account ${JSON.stringify(account)}`);
+                if (process.env.NODE_ENV === 'development') this.logger.debug(`processing account ${JSON.stringify(account)}`);
                 let strategyEndpoint: string;
                 let strategyRequestDto: StrategyRequestDto;
                 let votePowerOfAccount: void | AxiosResponse;
@@ -121,19 +103,13 @@ export class VoteRequestHandlerService {
 
                 case strategyTypes.STRATEGY_TYPE_ONE_EQUALS_ONE:
                     if (!(account.provider_id === 'discord')) break;
-                    votePowerPerStrategy[strategyConf.strategy_id] = '1';
+                    voteCreateDtos.push({ ...voteRequestDto, vote_power: '1', poll_id: poll._id, provider_id: account.provider_id, account_id: account._id });
                     break;
 
                 case strategyTypes.STRATEGY_TYPE_TOKEN_WEIGHTED:
                     if (!(account.provider_id === 'ethereum')) break;
                     strategyEndpoint = (await this.strategyMongoService.findManyStrategy({ _id: strategyConf.strategy_id }))[0].endpoint;
                     strategyRequestDto = { account_id: account._id, block_height: strategyConf.block_height };
-
-                    if (votePowerPerStrategy[strategyConf.strategy_id]) {
-                        existingPower = ethers.BigNumber.from(votePowerPerStrategy[strategyConf.strategy_id]);
-                    } else {
-                        existingPower = ethers.BigNumber.from('0');
-                    }
 
                     votePowerOfAccount = await axios.post(
                         `http://localhost:${process.env.PORT}/${process.env.API_GLOBAL_PREFIX}/${strategyEndpoint}`,
@@ -150,18 +126,15 @@ export class VoteRequestHandlerService {
 
                     if (process.env.NODE_ENV === 'development') this.logger.log((votePowerOfAccount as AxiosResponse).data);
 
-                    votePowerPerStrategy[strategyConf.strategy_id] = existingPower.add(ethers.BigNumber.from(votePowerOfAccount.data));
+                    voteCreateDtos.push({ ...voteRequestDto, vote_power: (votePowerOfAccount as AxiosResponse).data, poll_id: poll._id, provider_id: account.provider_id, account_id: account._id });
                     break;
                 }
             }
         }
 
-        // transform BigNumber values back to string
-        Object.keys(votePowerPerStrategy).map((key) => {
-            const value = votePowerPerStrategy[key];
-            votePowerPerStrategy[key] = value.toString();
-        });
-        return votePowerPerStrategy;
+        this.logger.log('votes calculated successfully');
+
+        return voteCreateDtos;
     }
 
     isDuplicateVote(accountVotes: VoteRawResponseDto[], voteCreateDto: VoteCreateDto): boolean {

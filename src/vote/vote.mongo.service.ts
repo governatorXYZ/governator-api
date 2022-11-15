@@ -47,7 +47,7 @@ export class VoteMongoService {
             const updated: VoteRawResponseDto = await this.voteModel.findOneAndUpdate(
                 {
                     poll_id: voteCreateDto.poll_id,
-                    account_id_id: voteCreateDto.account_id,
+                    account_id: voteCreateDto.account_id,
                 },
                 voteCreateDto,
                 { new: true }).exec();
@@ -116,6 +116,30 @@ export class VoteMongoService {
         }
     }
 
+    async fetchVoteUserCount(pollId) {
+        this.logger.log('counting votes per user');
+
+        const voteUsers = [];
+        try{
+            const allVotes = await this.voteModel.find({ poll_id: pollId }).exec();
+
+            for (const vote of allVotes) {
+
+                const user = await this.userService.fetchUserByProvider(vote.provider_id, vote.account_id);
+
+                if(!(voteUsers.includes(JSON.stringify({ [user._id]: vote.poll_option_id })))) voteUsers.push(JSON.stringify({ [user._id]: vote.poll_option_id }));
+            }
+
+        } catch (e) {
+            this.logger.error('Failed to fetch vote user count from db', e);
+
+            throw new HttpException('Failed to fetch vote user count from db', HttpStatus.BAD_REQUEST);
+        }
+
+        this.logger.debug(voteUsers);
+        return voteUsers.length;
+    }
+
     async fetchVoteByPollAndUserVotePowerAggregate(pollId, userId) {
         const user = await this.userService.fetchUserById(userId);
 
@@ -145,6 +169,8 @@ export class VoteMongoService {
             { '$group': { '_id': '$poll_option_id', vote_power: { $push: '$vote_power' } } },
         ]).exec();
 
+        if (process.env.NODE_ENV === 'development') this.logger.debug(`votePowers aggregate: \n${JSON.stringify(votePowers)}`);
+
         const sumVotePowers = votePowers.map((poll_option) => {
             let sum = ethers.BigNumber.from('0');
             for (const value of poll_option.vote_power) {
@@ -152,6 +178,8 @@ export class VoteMongoService {
             }
             return { _id: poll_option._id, vote_power: sum.toString() };
         });
+
+        if (process.env.NODE_ENV === 'development') this.logger.debug(`sumVotePowers: \n${JSON.stringify(sumVotePowers)}`);
 
         let totalVotePower = ethers.BigNumber.from('0');
         for (const poll_option of sumVotePowers) {
