@@ -27,9 +27,6 @@ export class PollMongoService {
 
         const now = new Date(Date.now());
 
-        this.logger.debug(now.toString());
-        this.logger.debug(now.toISOString());
-
         try {
             const polls = await this.pollModel.find({ end_time : {
                 $gte: now.toISOString(),
