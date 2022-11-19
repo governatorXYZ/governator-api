@@ -87,4 +87,4 @@ export class VoteResponseDto {
 
 export class VoteCreateDto extends OmitType(VoteRawResponseDto, ['_id', 'createdAt', 'updatedAt'] as const) {}
 
-export class VoteRequestDto extends OmitType(VoteCreateDto, ['poll_id'] as const) {}
+export class VoteRequestDto extends OmitType(VoteCreateDto, ['poll_id', 'vote_power'] as const) {}

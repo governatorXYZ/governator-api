@@ -1,15 +1,18 @@
 import { ethers } from 'ethers';
-import snapshot from '@snapshot-labs/snapshot.js';
 // import snapshot from '@snapshot-labs/snapshot.js';
 
+
+// FIXME: make robust for multi chain
 const web3Utils = {
     getEthersProvider(chainId: number) {
         switch (chainId) {
         case 1:
-            return new ethers.providers.InfuraProvider(chainId, {
-                project_id: process.env.INFURA_ETHEREUM_MAIN_ID,
-                project_secret: process.env.INFURA_ETHEREUM_MAIN_SECRET,
-            });
+            return new ethers.providers.AlchemyProvider(chainId, process.env.ALCHEMY_API_KEY_ETHEREUM_MAIN);
+
+            // return new ethers.providers.InfuraProvider(chainId, {
+            //     project_id: process.env.INFURA_ETHEREUM_MAIN_ID,
+            //     project_secret: process.env.INFURA_ETHEREUM_MAIN_SECRET,
+            // });
         case 137:
             // TODO try some different providers here and only return if it is working.
 

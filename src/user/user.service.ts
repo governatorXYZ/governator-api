@@ -35,7 +35,7 @@ export class UserService {
 
             const userSet = _.uniq(EthereumUsers, DiscordUsers);
 
-            this.logger.debug(JSON.stringify(userSet));
+            if (process.env.NODE_ENV === 'development') this.logger.debug(JSON.stringify(userSet));
 
             return await Promise.all(userSet.map(async (user) => {
                 return await this.castToUserObject(user._id);
