@@ -21,6 +21,26 @@ export class PollMongoService {
     ) {
         // do nothing
     }
+
+    async onApplicationBootstrap(): Promise<void> {
+        this.logger.debug('Creating CRON jobs for all active Polls');
+
+        const now = new Date(Date.now());
+
+        try {
+            const polls = await this.pollModel.find({ end_time : {
+                $gte: now.toISOString(),
+            } }).exec();
+
+            polls.forEach(poll => this.createPollEndScheduler(poll));
+
+        } catch (e) {
+            this.logger.error('Failed to fetch polls from db', e);
+
+            throw new HttpException('Failed to fetch polls from db', HttpStatus.BAD_REQUEST);
+        }
+    }
+
     async createPoll(pollCreateDto: PollCreateDto): Promise<Poll> {
         this.logger.log('Creating new poll in db');
 
@@ -36,13 +56,7 @@ export class PollMongoService {
 
             const newPoll = await this.pollModel.create(pollCreateDto);
 
-            const job = new CronJob(new Date(newPoll.end_time), () => {
-                this.logger.warn(`cron job running for ${newPoll.id}`);
-                this.endPoll(newPoll.id);
-            });
-            this.schedulerRegistry.addCronJob(newPoll.id, job);
-            job.start();
-            this.logger.warn(`Cron job created for Poll ID ${newPoll.id} running on ${this.schedulerRegistry.getCronJob(newPoll.id).nextDate()}`);
+            await this.createPollEndScheduler(newPoll);
 
             this.logger.debug(JSON.stringify(newPoll));
             return newPoll;
@@ -55,11 +69,25 @@ export class PollMongoService {
         }
     }
 
+    async createPollEndScheduler(poll: Poll) {
+        const job = new CronJob(new Date(poll.end_time), () => {
+            this.logger.warn(`cron job running for ${poll._id}`);
+
+            this.endPoll(poll._id);
+        });
+
+        this.schedulerRegistry.addCronJob(poll._id, job);
+
+        job.start();
+
+        this.logger.warn(`Cron job created for Poll ID ${poll._id} running on ${this.schedulerRegistry.getCronJob(poll._id).nextDate()}`);
+    }
+
     async endPoll(pollId) {
         this.logger.warn(`poll end has been called on Poll ${pollId}. Emitting POLL_COMPLETE event`);
 
         await this.sseService.emit({
-            data: pollId,
+            data: { poll_id: pollId },
             type: constants.EVENT_POLL_COMPLETE,
         } as MessageEvent);
     }

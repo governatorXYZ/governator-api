@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import {VoteCreateDto, VoteRawResponseDto, VoteRequestDto, VoteResponseDto} from './vote.dto';
+import { VoteCreateDto, VoteRawResponseDto, VoteRequestDto, VoteResponseDto } from './vote.dto';
 import { Poll } from '../poll/poll.schema';
 import { UserService } from '../user/user.service';
 import { UserResponseDto } from '../user/user.dtos';
@@ -9,7 +9,7 @@ import { PollMongoService } from '../poll/poll.mongo.service';
 import { StrategyMongoService } from '../web3/strategy/strategy.mongo.service';
 import { StrategyRequestDto } from '../web3/strategy/strategy.dtos';
 import axios, { AxiosResponse } from 'axios';
-import {DiscordAccountResponseDto, EthereumAccountResponseDto} from "../account/account.dtos";
+import { DiscordAccountResponseDto, EthereumAccountResponseDto } from '../account/account.dtos';
 
 @Injectable()
 export class VoteRequestHandlerService {
