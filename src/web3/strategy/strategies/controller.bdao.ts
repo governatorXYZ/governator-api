@@ -11,17 +11,19 @@ import { ERC20BalanceOfDto, ERC20TokenBalances, TokenList } from '../../token-vo
 import { EvmService } from '../../token-vote/evm/evm.service';
 import { GraphqlService } from '../../token-vote/graphql/graphql.service';
 import { ethers } from 'ethers';
+import { strategyTypes } from '../../../common/constants';
 
 const conf = {
     api_tag: apiConfig.API_TAG,
     api_url_base: apiConfig.API_TAG.toLowerCase(),
     // modify to match your startegy setting in CONFIG.ts
     name: apiConfig.STRATEGY_BANKLESS_DAO,
+    strategy_type: strategyTypes.STRATEGY_TYPE_TOKEN_WEIGHTED,
 };
 
 @ApiTags(conf.api_tag)
 @Controller(conf.api_url_base)
-export class BanklessDaoStrategy extends StrategyBaseController implements OnApplicationBootstrap {
+export class BankTokenWeightedStrategy extends StrategyBaseController implements OnApplicationBootstrap {
     constructor(
         protected strategyService: StrategyBaseService,
         protected strategyMongoService: StrategyMongoService,
@@ -52,9 +54,9 @@ export class BanklessDaoStrategy extends StrategyBaseController implements OnApp
         } else {
             const mainnetProvider = await evmService.getEthersProvider(1);
 
-            logger.debug(`timestamp ${(await mainnetProvider.getBlock(blockHeight)).timestamp}`);
+            // logger.debug(`timestamp ${(await mainnetProvider.getBlock(blockHeight)).timestamp}`);
 
-            // TODO: make own graph because sometimes down (rate limit?)
+            // TODO: make own graph because sometimes down (rate limit?) - also implement retry here to avoid rate limit
             // might utilize TheGraph's indexer. You can create a very simple subgraph that just stores a Block that contains a block number and timestamp. Once indexer is done indexing, you can query the data using GraphQL and write to your DB.
             const gqlResult = await graphqlService.query(
                 'https://blockfinder.snapshot.org/',

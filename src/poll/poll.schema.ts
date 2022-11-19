@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document } from 'mongoose';
+import { StrategyConfig } from './poll.dtos';
 
 export type PollDocument = Poll & Document;
 
@@ -17,8 +18,8 @@ export class Poll {
     @Prop({ required: false, type: Object })
         poll_options: Record<string, any>;
 
-    @Prop({ required: false, type: Object })
-        token_strategies: Record<string, any>;
+    @Prop({ required: false, type: Array })
+        strategy_config: StrategyConfig[];
 
     @Prop({ required: false, default: false })
         allow_options_for_anyone: boolean;

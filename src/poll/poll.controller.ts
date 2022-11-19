@@ -49,10 +49,10 @@ export class PollController {
     @ApiOperation({ description: 'Create a new poll' })
     @ApiCreatedResponse({ description: `Returns the created poll object and emits ${constants.EVENT_POLL_CREATE} event`, type: PollCreateDto })
     async createPoll(@Body() params: PollCreateDto): Promise<Poll> {
-        if (params.token_strategies) {
+        if (params.strategy_config) {
             // sanitizing block heights
             let block = null;
-            for await (const strategy of params.token_strategies) {
+            for await (const strategy of params.strategy_config) {
                 if (strategy.block_height <= 0) {
                     if (!block) block = await web3Utils.getEthersProvider(1).getBlockNumber();
                     strategy.block_height = block - strategy.block_height;

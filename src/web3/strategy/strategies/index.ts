@@ -1,6 +1,8 @@
-import { BanklessDaoStrategy } from './controller.bdao';
+import { BankTokenWeightedStrategy } from './controller.bdao';
+import { NoneStrategy } from './controller.noneStrategy';
 
 export default [
-    BanklessDaoStrategy,
+    BankTokenWeightedStrategy,
+    NoneStrategy,
     // add strategy here
 ];

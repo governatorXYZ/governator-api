@@ -50,6 +50,19 @@ export class StrategyMongoService {
 
     }
 
+    async findOneStrategy(filter): Promise<Strategy | null> {
+        try {
+            return await this.strategyModel.findOne(filter).exec().catch((e) => {
+                this.logger.error(e);
+                return null;
+            });
+        } catch (e) {
+            this.logger.error('Failed to find strategy', e);
+
+            throw new HttpException('Failed to find strategy', HttpStatus.BAD_REQUEST);
+        }
+    }
+
     // TODO remove if not needed
     // async createStrategy(strategy: StrategyCreateDto): Promise<Strategy> {
     //     this.logger.debug('Adding strategy to db');
@@ -65,17 +78,4 @@ export class StrategyMongoService {
     //     }
     // }
 
-    // TODO remove if not needed
-    // async findOneStrategy(filter): Promise<Strategy | null> {
-    //     try {
-    //         return await this.strategyModel.findOne(filter).exec().catch((e) => {
-    //             this.logger.error(e);
-    //             return null;
-    //         });
-    //     } catch (e) {
-    //         this.logger.error('Failed to find strategy', e);
-    //
-    //         throw new HttpException('Failed to find strategy', HttpStatus.BAD_REQUEST);
-    //     }
-    // }
 }
