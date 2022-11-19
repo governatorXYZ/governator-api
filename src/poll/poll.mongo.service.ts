@@ -87,7 +87,7 @@ export class PollMongoService {
         this.logger.warn(`poll end has been called on Poll ${pollId}. Emitting POLL_COMPLETE event`);
 
         await this.sseService.emit({
-            data: pollId,
+            data: { poll_id: pollId },
             type: constants.EVENT_POLL_COMPLETE,
         } as MessageEvent);
     }
