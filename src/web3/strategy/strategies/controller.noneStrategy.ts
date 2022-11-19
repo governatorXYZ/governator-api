@@ -7,12 +7,14 @@ import * as path from 'path';
 import { StrategyRequestDto } from '../strategy.dtos';
 import { formatKebab } from '../strategy.utils';
 import apiConfig from './CONFIG';
+import { strategyTypes } from '../../../common/constants';
 
 const conf = {
     api_tag: apiConfig.API_TAG,
     api_url_base: apiConfig.API_TAG.toLowerCase(),
     // modify to match your startegy setting in CONFIG.ts
     name: apiConfig.STRATEGY_NONE,
+    strategy_type: strategyTypes.STRATEGY_TYPE_ONE_EQUALS_ONE,
 };
 
 @ApiTags(conf.api_tag)

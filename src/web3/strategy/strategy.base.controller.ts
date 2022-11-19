@@ -42,6 +42,7 @@ export class StrategyBaseController {
         const filter = {
             name: this._getConf().name,
             endpoint: this._getConf().api_url_base + '/' + formatKebab(this._getConf().name),
+            strategy_type: this._getConf().strategy_type,
         };
 
         await this.strategyMongoService.updateOneByIdStrategy(hash, filter);

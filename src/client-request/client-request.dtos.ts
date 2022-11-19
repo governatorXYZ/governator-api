@@ -1,8 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {IsArray, IsIn, IsNotEmpty, IsNumber, IsNumberString, IsOptional, IsUUID} from 'class-validator';
+import { IsArray, IsIn, IsNotEmpty, IsNumberString, IsOptional, IsUUID } from 'class-validator';
 import constants from '../common/constants';
-import {Type} from "class-transformer";
-import {ClientConfigBase} from "../poll/poll.dtos";
+import { Type } from 'class-transformer';
 
 export const getDataProviderMethods = () => {
     const methods = [];

@@ -16,6 +16,7 @@ import { DiscordRequestDto, DiscordResponsetDto } from './client-request.dtos';
 import { v4 as uuidv4 } from 'uuid';
 import { ClientRequestService } from './client-request.service';
 import { firstValueFrom, throwError, timeout } from 'rxjs';
+import { Throttle } from '@nestjs/throttler';
 
 @ApiTags('Request data from client')
 @ApiSecurity('api_key')
@@ -29,6 +30,7 @@ export class ClientRequestController {
         // do nothing
     }
 
+    @Throttle(60, 60)
     @Get('client/discord/:guild_id/:datasource/:discord_user_id')
     @ApiOperation({ description: 'Request data from client' })
     @ApiCreatedResponse({ description: `Emits the ${constants.EVENT_REQUEST_CLIENT_DATA} event with specified payload`, type: DiscordRequestDto })

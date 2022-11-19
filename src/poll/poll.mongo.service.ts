@@ -2,11 +2,12 @@ import { HttpException, HttpStatus, Injectable, Logger, MessageEvent } from '@ne
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Poll, PollDocument } from './poll.schema';
-import { PollCreateDto } from './poll.dtos';
+import { PollCreateDto, StrategyConfig } from './poll.dtos';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { CronJob } from 'cron';
 import constants from '../common/constants';
 import { SseService } from '../sse/sse.service';
+import { StrategyMongoService } from '../web3/strategy/strategy.mongo.service';
 
 @Injectable()
 export class PollMongoService {
@@ -16,21 +17,48 @@ export class PollMongoService {
         @InjectModel(Poll.name) private pollModel: Model<PollDocument>,
         private schedulerRegistry: SchedulerRegistry,
         protected sseService: SseService,
+        protected strategyService: StrategyMongoService,
     ) {
         // do nothing
     }
-    async createPoll(pollCreateDto: PollCreateDto): Promise<Poll> {
-        this.logger.debug('Creating new poll in db');
+
+    async onApplicationBootstrap(): Promise<void> {
+        this.logger.debug('Creating CRON jobs for all active Polls');
+
+        const now = new Date(Date.now());
 
         try {
+            const polls = await this.pollModel.find({ end_time : {
+                $gte: now.toISOString(),
+            } }).exec();
+
+            polls.forEach(poll => this.createPollEndScheduler(poll));
+
+        } catch (e) {
+            this.logger.error('Failed to fetch polls from db', e);
+
+            throw new HttpException('Failed to fetch polls from db', HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    async createPoll(pollCreateDto: PollCreateDto): Promise<Poll> {
+        this.logger.log('Creating new poll in db');
+
+        try {
+
+            // add strategy_type to strategy_config
+            const updatedStratConf: StrategyConfig[] = [];
+            for (const strategy of pollCreateDto.strategy_config.values()) {
+                strategy.strategy_type = (await this.strategyService.findOneStrategy({ _id: strategy.strategy_id })).strategy_type;
+                updatedStratConf.push(strategy);
+            }
+            pollCreateDto.strategy_config = updatedStratConf;
+
             const newPoll = await this.pollModel.create(pollCreateDto);
-            const job = new CronJob(new Date(newPoll.end_time), () => {
-                this.logger.warn(`cron job running for ${newPoll.id}`);
-                this.endPoll(newPoll.id);
-            });
-            this.schedulerRegistry.addCronJob(newPoll.id, job);
-            job.start();
-            this.logger.warn(`Cron job created for Poll ID ${newPoll.id} running on ${this.schedulerRegistry.getCronJob(newPoll.id).nextDate()}`);
+
+            await this.createPollEndScheduler(newPoll);
+
+            this.logger.debug(JSON.stringify(newPoll));
             return newPoll;
 
         } catch (e) {
@@ -41,11 +69,25 @@ export class PollMongoService {
         }
     }
 
+    async createPollEndScheduler(poll: Poll) {
+        const job = new CronJob(new Date(poll.end_time), () => {
+            this.logger.warn(`cron job running for ${poll._id}`);
+
+            this.endPoll(poll._id);
+        });
+
+        this.schedulerRegistry.addCronJob(poll._id, job);
+
+        job.start();
+
+        this.logger.warn(`Cron job created for Poll ID ${poll._id} running on ${this.schedulerRegistry.getCronJob(poll._id).nextDate()}`);
+    }
+
     async endPoll(pollId) {
         this.logger.warn(`poll end has been called on Poll ${pollId}. Emitting POLL_COMPLETE event`);
 
         await this.sseService.emit({
-            data: pollId,
+            data: { poll_id: pollId },
             type: constants.EVENT_POLL_COMPLETE,
         } as MessageEvent);
     }
