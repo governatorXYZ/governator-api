@@ -1,8 +1,10 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { VoteMongoService } from './vote.mongo.service';
 import { VoteRequestDto, VoteResponseDto } from './vote.dto';
 import { VoteRequestHandlerService } from './vote.request-handler.service';
+import { VoteResultInterceptor } from './vote.result.interceptor';
+import { VoteRequestGuard } from './vote.request.guard';
 
 @ApiTags('Vote')
 @ApiSecurity('api_key')
@@ -15,6 +17,7 @@ export class VoteController {
         // do nothing
     }
 
+    @UseInterceptors(VoteResultInterceptor)
     @Get('vote/results/count/:poll_id')
     @ApiOperation({ description: 'Fetch votes by poll' })
     @ApiParam({ name: 'poll_id', description: 'Poll ID' })
@@ -36,6 +39,7 @@ export class VoteController {
         return await this.mongoService.fetchVoteByPollAndUserVotePowerAggregate(poll_id, user_id);
     }
 
+    @UseInterceptors(VoteResultInterceptor)
     @Get('vote/results/sum/:poll_id')
     @ApiOperation({ description: 'Fetch votes by poll' })
     @ApiParam({ name: 'poll_id', description: 'Poll ID' })
@@ -66,6 +70,7 @@ export class VoteController {
     //     return await this.mongoService.fetchVoteByPollAndUserSumAggregate(poll_id, user_id);
     // }
 
+    @UseGuards(VoteRequestGuard)
     @Post('vote/:poll_id')
     @ApiParam({ name: 'poll_id', description: 'ID of poll to vote on' })
     @ApiOperation({ description: 'Submit a vote' })
