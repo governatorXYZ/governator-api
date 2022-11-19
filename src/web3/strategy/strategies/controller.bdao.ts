@@ -54,9 +54,9 @@ export class BankTokenWeightedStrategy extends StrategyBaseController implements
         } else {
             const mainnetProvider = await evmService.getEthersProvider(1);
 
-            logger.debug(`timestamp ${(await mainnetProvider.getBlock(blockHeight)).timestamp}`);
+            // logger.debug(`timestamp ${(await mainnetProvider.getBlock(blockHeight)).timestamp}`);
 
-            // TODO: make own graph because sometimes down (rate limit?)
+            // TODO: make own graph because sometimes down (rate limit?) - also implement retry here to avoid rate limit
             // might utilize TheGraph's indexer. You can create a very simple subgraph that just stores a Block that contains a block number and timestamp. Once indexer is done indexing, you can query the data using GraphQL and write to your DB.
             const gqlResult = await graphqlService.query(
                 'https://blockfinder.snapshot.org/',

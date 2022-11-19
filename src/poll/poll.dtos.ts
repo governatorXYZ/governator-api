@@ -116,7 +116,6 @@ export class StrategyConfigCreate extends PickType(StrategyConfig, ['strategy_id
 
 }
 
-
 export class PollResponseDto {
 
     @IsMongoId()
@@ -195,7 +194,7 @@ export class PollResponseDto {
         single_vote: boolean;
 
     @IsDate()
-    @MinDate(new Date(Date.now() + 1000 * 60 * 60))
+    @MinDate(new Date(Date.now()))
     @MaxDate(new Date(Date.now() + 1000 * 60 * 60 * 24 * 30))
     @Transform(({ value }) => new Date(value), { toClassOnly: true })
     @ApiProperty({

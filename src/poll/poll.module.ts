@@ -14,6 +14,6 @@ import { StrategyModule } from '../web3/strategy/strategy.module';
     ],
     controllers: [PollController],
     providers: [PollMongoService],
-    exports: [MongooseModule.forFeature([{ name: Poll.name, schema: PollSchema }])],
+    exports: [PollMongoService],
 })
 export class PollModule {}
