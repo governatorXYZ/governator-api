@@ -1,33 +1,35 @@
-## Installation
+### Set up environment
+
+rename `.env.template` to `.env.development` and fill in the missing variables. For production environement 
+create a file named `.env.production`.
+
+
+### Running the app
 
 ```bash
-$ yarn install
+# install
+$ yarn
 ```
 
-## Running the app
-
 ```bash
-# development
-$ yarn start
-
 # watch mode
 $ yarn start:dev
 ```
+or
 
-## Examples
+```bash
+# production
+$ yarn start:prod
+```
 
-The `docs/examples` folder contains examples how to subscribe to 
-server-side-events via browser (`front-end-example.html`) and via nodejs 
-(`node-example.ts`). To make it work locally you have to set `API_CORS_ORIGIN=true`
-in `.env` file (see .env.template). Run `yarn start` and
-open `docs/examples/front-end-example.html` in your browser. In another 
-tab navigate to `localhost:3000/governator`. Use the swagger GUI to send 
-a post request. `front-end-example.html` should update with the payload you've sent.
+if you used the default values from `.env.template` the app will run on `localhost:3000/api`.
+
 
 ## Stay in touch
 
 - Website - [https://governator.xyz](https://governator.xyz/)
 
+
 ## License
 
-Nest is [AGPLv3](LICENSE).
+Governator is [AGPLv3](LICENSE).
