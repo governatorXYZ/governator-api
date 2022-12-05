@@ -5,7 +5,6 @@ import {
     IsString,
     MaxLength,
     IsBoolean,
-    MinDate,
     MaxDate,
     IsNumberString,
     IsMongoId,
@@ -16,6 +15,7 @@ import { ApiProperty, OmitType, PartialType, PickType } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import { ObjectId } from 'mongodb';
 import constants from '../common/constants';
+import { IsAfterNow } from '../common/isAfterNowConstraint'
 
 export class PollOptionDto {
     @IsNotEmpty()
@@ -185,7 +185,7 @@ export class PollResponseDto {
     })
         allow_options_for_anyone: boolean;
 
-    @IsOptional()
+    @IsNotEmpty()
     @IsBoolean()
     @ApiProperty({
         description: 'Whether a person can vote multiple times',
@@ -194,7 +194,7 @@ export class PollResponseDto {
         single_vote: boolean;
 
     @IsDate()
-    @MinDate(new Date(Date.now()))
+    @IsAfterNow()
     @MaxDate(new Date(Date.now() + 1000 * 60 * 60 * 24 * 30))
     @Transform(({ value }) => new Date(value), { toClassOnly: true })
     @ApiProperty({
