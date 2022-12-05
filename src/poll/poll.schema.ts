@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document } from 'mongoose';
+import { StrategyConfig } from './poll.dtos';
 
 export type PollDocument = Poll & Document;
 
@@ -11,11 +12,14 @@ export class Poll {
     @Prop({ required: true })
         title: string;
 
-    @Prop({ required: true })
-        channel_id: string;
+    @Prop({ required: false, type: Object })
+        client_config: Record<string, any>;
 
     @Prop({ required: false, type: Object })
         poll_options: Record<string, any>;
+
+    @Prop({ required: false, type: Array })
+        strategy_config: StrategyConfig[];
 
     @Prop({ required: false, default: false })
         allow_options_for_anyone: boolean;
@@ -28,9 +32,6 @@ export class Poll {
 
     @Prop({ required: true })
         description: string;
-
-    @Prop({ required: false, type: [String] })
-        role_restrictions: Array<string>;
 
     @Prop({ required: true })
         author_user_id: string;

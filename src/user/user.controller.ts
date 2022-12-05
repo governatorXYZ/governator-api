@@ -1,74 +1,43 @@
-import { ApiCreatedResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
-import { UserCreateDto, UserUpdateDto } from './user.dtos';
-import { User } from './user.schema';
-import { UserMongoService } from './user.mongo.service';
-import { AccountCreateDto } from '../account/account.dtos';
-import { Account } from '../account/account.schema';
+import { ApiOkResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { Controller, Get, Param } from '@nestjs/common';
+import { UserService } from './user.service';
+import { UserResponseDto } from './user.dtos';
+import constants from '../common/constants';
 
 @ApiTags('User')
 @ApiSecurity('api_key')
 @Controller()
 export class UserController {
-    constructor(protected mongoService: UserMongoService) {
+    constructor(protected userService: UserService) {
         // do nothing
     }
 
     @Get('user/list')
     @ApiOperation({ description: 'Fetch all users' })
+    @ApiOkResponse({ description: 'List of User objects', type: UserResponseDto, isArray: true })
     async fetchAllUsers() {
-        return await this.mongoService.fetchAllUsers();
+        return await this.userService.fetchAllUsers();
     }
 
-    @Get('user/:id')
+    @Get('user/:user_id')
     @ApiOperation({ description: 'Fetch user by ID' })
-    @ApiParam({ name: 'id', description: 'Get user by ID' })
-    async fetchUserById(@Param('id') id) {
-        return await this.mongoService.fetchUserById(id);
+    @ApiOkResponse({ description: 'User object', type: UserResponseDto })
+    @ApiParam({ name: 'user_id', description: 'Get user by ID' })
+    async fetchUserById(@Param('user_id') userId) {
+        return await this.userService.fetchUserById(userId);
     }
 
-    @Post('user/create')
-    @ApiOperation({ description: 'Create a new user' })
-    @ApiCreatedResponse({ description: 'Returns the created user object', type: User })
-    async createUser(@Body() user: UserCreateDto): Promise<User> {
-        return await this.mongoService.createUser(user);
+    @Get('user/:provider_id/:account_id')
+    @ApiOperation({ description: 'Fetch user by account' })
+    @ApiOkResponse({ description: 'User object', type: UserResponseDto })
+    @ApiParam({
+        description: 'ID of account provider',
+        type: String,
+        name:'provider_id',
+        enum: Array.from(constants.PROVIDERS.keys()),
+    })
+    @ApiParam({ name: 'account_id', description: 'Account ID, e.g. discord user ID' })
+    async fetchUserByProvider(@Param('provider_id') providerId, @Param('account_id') accountId) {
+        return await this.userService.fetchUserByProvider(providerId, accountId);
     }
-
-    @Put('user/:id/update')
-    @ApiParam({ name: 'id', description: 'Governator user ID of user to be updated' })
-    @ApiCreatedResponse({ description: 'Returns the updated user object', type: User })
-    async updateUser(@Param('id') id, @Body() user: UserUpdateDto): Promise<User> {
-        return await this.mongoService.updateUser(id, user);
-    }
-
-    @Delete('user/:id/delete')
-    @ApiParam({ name: 'id', description: 'Governator user ID of user to be deleted' })
-    @ApiCreatedResponse({ description: 'Returns the deleted user object', type: User })
-    async deleteUser(@Param('id') id): Promise<User> {
-        return await this.mongoService.deleteUser(id);
-    }
-
-    @Get('user/:provider_id/:provider_account_id')
-    @ApiOperation({ description: 'Fetch user by provider' })
-    @ApiParam({ name: 'provider_id', description: 'Provider ID, e.g. discord' })
-    @ApiParam({ name: 'provider_account_id', description: 'Provider account ID, e.g. discord user ID' })
-    async fetchUserByProvider(@Param('provider_id') provider_id, @Param('provider_account_id') provider_account_id) {
-        return await this.mongoService.fetchUserByProvider(provider_id, provider_account_id);
-    }
-
-    @Post('user/add_provider_account')
-    @ApiOperation({ description: 'Add a provider account to  a user' })
-    @ApiCreatedResponse({ description: 'Returns the new account object', type: Account })
-    async addProviderAccount(@Body() account: AccountCreateDto): Promise<Account> {
-        return await this.mongoService.addProviderAccount(account);
-    }
-
-    @Delete('user/:id/remove_provider_account')
-    @ApiOperation({ description: 'Remove a provider account from  a user' })
-    @ApiParam({ name: 'id', description: 'Governator user ID' })
-    @ApiCreatedResponse({ description: 'Returns the deleted account object', type: Account })
-    async removeProviderAccount(@Param('id') id, @Body() account: AccountCreateDto): Promise<Account> {
-        return await this.mongoService.removeProviderAccount(id, account);
-    }
-
 }

@@ -16,6 +16,7 @@ import { DiscordRequestDto, DiscordResponsetDto } from './client-request.dtos';
 import { v4 as uuidv4 } from 'uuid';
 import { ClientRequestService } from './client-request.service';
 import { firstValueFrom, throwError, timeout } from 'rxjs';
+import { Throttle } from '@nestjs/throttler';
 
 @ApiTags('Request data from client')
 @ApiSecurity('api_key')
@@ -29,7 +30,8 @@ export class ClientRequestController {
         // do nothing
     }
 
-    @Get('client/discord/:guild_id/:datasource')
+    @Throttle(60, 60)
+    @Get('client/discord/:guild_id/:datasource/:discord_user_id')
     @ApiOperation({ description: 'Request data from client' })
     @ApiCreatedResponse({ description: `Emits the ${constants.EVENT_REQUEST_CLIENT_DATA} event with specified payload`, type: DiscordRequestDto })
     @ApiParam({
@@ -43,10 +45,21 @@ export class ClientRequestController {
         name:'datasource',
         enum: constants.PROVIDERS.get('discord').methods,
     })
-    async sendRequest(@Param('guild_id') guild_id, @Param('datasource') datasource): Promise<MessageEvent> {
+    @ApiParam({
+        description: 'discord user id requesting the data',
+        type: String,
+        name:'discord_user_id',
+    })
+    async sendRequest(@Param('guild_id') guild_id, @Param('datasource') datasource, @Param('discord_user_id') discordUserId): Promise<MessageEvent> {
 
         if (!constants.PROVIDERS.get('discord').methods.includes(datasource)) {
             throw new HttpException(`Invalid datasource, should be one of ${constants.PROVIDERS.get('discord').methods}`, HttpStatus.BAD_REQUEST);
+        }
+
+        if (datasource === 'channels') {
+            if (!discordUserId || discordUserId === '') {
+                throw new HttpException('discord_user_id parameter is required', HttpStatus.BAD_REQUEST);
+            }
         }
 
         const data = new DiscordRequestDto;
@@ -54,6 +67,7 @@ export class ClientRequestController {
         data.method = datasource;
         data.uuid = uuidv4();
         data.guildId = guild_id;
+        data.userId = discordUserId;
 
         const event = {
             data: data,

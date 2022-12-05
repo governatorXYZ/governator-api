@@ -9,6 +9,10 @@ import { UserModule } from './user/user.module';
 import { VoteModule } from './vote/vote.module';
 import { ClientRequestModule } from './client-request/client-request.module';
 import { AuthModule } from './auth/auth.modute';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
+import { Web3Module } from './web3/web3.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 const ENV = process.env.NODE_ENV;
 
@@ -27,18 +31,34 @@ const ENV = process.env.NODE_ENV;
         }),
         MongooseModule.forRootAsync({
             imports: [ConfigModule],
-            useFactory: async (configService: ConfigService) => ({
-                uri: `${configService.get('MONGODB_PREFIX')}://${configService.get('MONGODB_USERNAME')}:${configService.get('MONGODB_PASS')}@${configService.get('MONGODB_CLUSTER')}/${configService.get('MONGODB_DATABASE')}`,
-            }),
+            useFactory: async (configService: ConfigService) => (
+                configService.get('MONGO_LOCAL') === '' ?
+                    {
+                        uri: `${configService.get('MONGODB_PREFIX')}://${configService.get('MONGODB_USERNAME')}:${configService.get('MONGODB_PASS')}@${configService.get('MONGODB_CLUSTER')}/${configService.get('MONGODB_DATABASE')}`,
+                    } :
+                    { uri: configService.get('MONGO_LOCAL') }
+            ),
             inject: [ConfigService],
         }),
-        AccountModule,
+        ThrottlerModule.forRoot({
+            ttl: 50,
+            limit: 50 * 50,
+        }),
+        ScheduleModule.forRoot(),
         PollModule,
-        SseModule,
         UserModule,
+        AccountModule,
+        Web3Module,
         VoteModule,
         ClientRequestModule,
+        SseModule,
         AuthModule,
+    ],
+    providers: [
+        {
+            provide: APP_GUARD,
+            useClass: ThrottlerGuard,
+        },
     ],
 })
 export class AppModule {}

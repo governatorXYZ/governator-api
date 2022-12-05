@@ -1,10 +1,11 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, MessageEvent } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Patch, MessageEvent } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { PollCreateDto, PollUpdateDto } from './poll.dtos';
 import { PollMongoService } from './poll.mongo.service';
 import { Poll } from './poll.schema';
 import { SseService } from '../sse/sse.service';
 import constants from '../common/constants';
+import web3Utils from '../web3/web3.util';
 
 @ApiTags('Poll')
 @ApiSecurity('api_key')
@@ -23,10 +24,10 @@ export class PollController {
         return await this.mongoService.fetchAllPolls();
     }
 
-    @Get('poll/:id')
+    @Get('poll/:poll_id')
     @ApiOperation({ description: 'Fetch poll by ID' })
-    @ApiParam({ name: 'id', description: 'Get poll by ID' })
-    async fetchPollById(@Param('id') id) {
+    @ApiParam({ name: 'poll_id', description: 'Get poll by ID' })
+    async fetchPollById(@Param('poll_id') id) {
         return await this.mongoService.fetchPollById(id);
     }
 
@@ -38,7 +39,7 @@ export class PollController {
     }
 
     @Get('poll/user/:author_user_id/active')
-    @ApiOperation({ description: 'Fetch acive polls by author' })
+    @ApiOperation({ description: 'Fetch active polls by author' })
     @ApiParam({ name: 'author_user_id', description: 'Governator user ID' })
     async fetchPollByUserOngoing(@Param('author_user_id') author_user_id) {
         return await this.mongoService.fetchPollByUserOngoing(author_user_id);
@@ -48,6 +49,16 @@ export class PollController {
     @ApiOperation({ description: 'Create a new poll' })
     @ApiCreatedResponse({ description: `Returns the created poll object and emits ${constants.EVENT_POLL_CREATE} event`, type: PollCreateDto })
     async createPoll(@Body() params: PollCreateDto): Promise<Poll> {
+        if (params.strategy_config) {
+            // sanitizing block heights
+            let block = null;
+            for await (const strategy of params.strategy_config) {
+                if (strategy.block_height <= 0) {
+                    if (!block) block = await web3Utils.getEthersProvider(1).getBlockNumber();
+                    strategy.block_height = block - strategy.block_height;
+                }
+            }
+        }
         const poll = await this.mongoService.createPoll(params);
         await this.sseService.emit({
             data: poll,
@@ -56,10 +67,10 @@ export class PollController {
         return poll;
     }
 
-    @Put('poll/update/:id')
-    @ApiParam({ name: 'id', description: 'ID of poll to be updated' })
+    @Patch('poll/update/:poll_id')
+    @ApiParam({ name: 'poll_id', description: 'ID of poll to be updated' })
     @ApiCreatedResponse({ description: `Returns the updated poll object and emits ${constants.EVENT_POLL_UPDATE} event`, type: PollCreateDto })
-    async updatePoll(@Param('id') id, @Body() poll: PollUpdateDto): Promise<Poll> {
+    async updatePoll(@Param('poll_id') id, @Body() poll: PollUpdateDto): Promise<Poll> {
         const updatePoll = await this.mongoService.updatePoll(id, poll);
         await this.sseService.emit({
             data: updatePoll,
@@ -68,10 +79,10 @@ export class PollController {
         return updatePoll;
     }
 
-    @Delete('poll/delete/:id')
-    @ApiParam({ name: 'id', description: 'ID of poll to be deleted' })
+    @Delete('poll/delete/:poll_id')
+    @ApiParam({ name: 'poll_id', description: 'ID of poll to be deleted' })
     @ApiCreatedResponse({ description: `Returns the deleted poll object and emits ${constants.EVENT_POLL_DELETE} event`, type: PollCreateDto })
-    async deletePoll(@Param('id') id): Promise<Poll> {
+    async deletePoll(@Param('poll_id') id): Promise<Poll> {
         const deletePoll = await this.mongoService.deletePoll(id);
         await this.sseService.emit({
             data: deletePoll,

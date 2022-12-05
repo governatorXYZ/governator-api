@@ -1,6 +1,8 @@
-import { IsBoolean, IsEmail, IsMongoId, IsOptional } from 'class-validator';
+import { IsArray, IsMongoId, IsString } from 'class-validator';
 import { ApiProperty, OmitType, PartialType } from '@nestjs/swagger';
 import { ObjectId } from 'mongodb';
+import { AccountBase, DiscordAccountResponseDto, EthereumAccountResponseDto } from '../account/account.dtos';
+import { Type } from 'class-transformer';
 
 export class UserResponseDto {
 
@@ -12,41 +14,32 @@ export class UserResponseDto {
     })
         _id: string;
 
-    @ApiProperty({
-        description: 'Governator username',
-        required: true,
+    @IsArray()
+    @Type(() => AccountBase, {
+        discriminator: {
+            property: 'provider_accounts',
+            subTypes: [
+                { value: EthereumAccountResponseDto, name: 'EthereumAccountResponseDto' },
+                { value: DiscordAccountResponseDto, name: 'DiscordAccountResponseDto' },
+            ],
+        },
     })
-        name: string;
-
-    @IsOptional()
     @ApiProperty({
-        description: 'Governator pfp',
+        description: 'Array of accounts',
+        isArray: true,
+        type: AccountBase,
         required: false,
     })
-        image: string;
+        provider_accounts: (EthereumAccountResponseDto | DiscordAccountResponseDto)[];
 
-    @IsEmail()
-    @IsOptional()
-    @ApiProperty({
-        description: 'user email',
-        required: false,
-    })
-        email: string;
-
-    @IsBoolean()
-    @IsOptional()
-    @ApiProperty({
-        description: 'whether email is verified',
-        required: false,
-    })
-        emailVerified: boolean;
-
+    @IsString()
     @ApiProperty({
         description: 'Datetime when record was created',
         required: false,
     })
         createdAt: string;
 
+    @IsString()
     @ApiProperty({
         description: 'Datetime when record was last updated',
         required: false,
@@ -55,6 +48,6 @@ export class UserResponseDto {
 
 }
 
-export class UserCreateDto extends OmitType(UserResponseDto, ['_id', 'createdAt', 'updatedAt'] as const) {}
+export class UserCreateDto extends OmitType(UserResponseDto, ['_id', 'createdAt', 'updatedAt', 'provider_accounts'] as const) {}
 
 export class UserUpdateDto extends PartialType(UserCreateDto) {}
