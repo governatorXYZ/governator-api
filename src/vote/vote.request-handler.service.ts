@@ -61,22 +61,22 @@ export class VoteRequestHandlerService {
             if(accountVotes.length === 0) {
                 this.logger.debug('first time vote of account on this poll');
 
-                voteResponseDtos.push(await this.voteMongoService.createVote(voteCreateDto));
+                voteCreateDto.vote_power != '0' ? voteResponseDtos.push(await this.voteMongoService.createVote(voteCreateDto)) : 0;
 
             } else if(accountVotes.length > 0) {
                 const isDuplicate = this.isDuplicateVote(accountVotes, voteCreateDto);
 
                 this.logger.debug('not a first-time vote, account has voted on this poll before');
 
-                if (isDuplicate) voteResponseDtos.push(await this.voteMongoService.deleteVote(voteCreateDto));
+                if (isDuplicate) voteCreateDto.vote_power != '0' ? voteResponseDtos.push(await this.voteMongoService.deleteVote(voteCreateDto)) : 0;
 
                 if (!isDuplicate) {
                     // poll is single vote type --> update vote
-                    if (poll.single_vote) voteResponseDtos.push(await this.voteMongoService.updateVote(voteCreateDto));
+                    if (poll.single_vote) voteCreateDto.vote_power != '0' ? voteResponseDtos.push(await this.voteMongoService.updateVote(voteCreateDto)) : 0;
 
                     // poll is multi vote type --> create vote
                     if (!poll.single_vote) {
-                        voteResponseDtos.push(await this.voteMongoService.createVote(voteCreateDto));
+                        voteCreateDto.vote_power != '0' ? voteResponseDtos.push(await this.voteMongoService.createVote(voteCreateDto)) : 0;
                     }
                 }
             }
