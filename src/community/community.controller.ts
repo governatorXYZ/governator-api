@@ -1,93 +1,52 @@
 import { Body, Controller, Delete, Get, Param, Post, Patch, MessageEvent } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
-import { PollCreateDto, PollUpdateDto } from './poll.dtos';
-import { PollMongoService } from './community.mongo.service';
-import { Poll } from './community.schema';
-import { SseService } from '../sse/sse.service';
+import { CommunityCreateDto, CommunityUpdateDto, CommunityResponseDto } from './community.dtos';
+import { CommunityMongoService } from './community.mongo.service';
+import { Community } from './community.schema';
 import constants from '../common/constants';
 import web3Utils from '../web3/web3.util';
 
-@ApiTags('Poll')
+@ApiTags('Community')
 @ApiSecurity('api_key')
 @Controller()
-export class PollController {
+export class CommunityController {
     constructor(
-        protected mongoService: PollMongoService,
-        protected sseService: SseService,
+        protected mongoService: CommunityMongoService,
     ) {
         // do nothing
     }
 
-    @Get('poll/list')
-    @ApiOperation({ description: 'Fetch all polls' })
-    async fetchAllPolls() {
-        return await this.mongoService.fetchAllPolls();
+    @Get('community/list')
+    @ApiOperation({ description: 'Fetch all communities' })
+    async fetchAllCommunities() {
+        return await this.mongoService.fetchAllCommunities();
     }
 
-    @Get('poll/:poll_id')
-    @ApiOperation({ description: 'Fetch poll by ID' })
-    @ApiParam({ name: 'poll_id', description: 'Get poll by ID' })
-    async fetchPollById(@Param('poll_id') id) {
-        return await this.mongoService.fetchPollById(id);
+    @Get('community/:community_id')
+    @ApiOperation({ description: 'Fetch community by ID' })
+    @ApiParam({ name: 'community_id', description: 'Get community by ID' })
+    async fetchCommunityById(@Param('community_id') id) {
+        return await this.mongoService.fetchCommunityById(id);
     }
 
-    @Get('poll/user/:author_user_id')
-    @ApiOperation({ description: 'Fetch polls by author' })
-    @ApiParam({ name: 'author_user_id', description: 'Governator user ID' })
-    async fetchPollByUser(@Param('author_user_id') author_user_id) {
-        return await this.mongoService.fetchPollByUser(author_user_id);
+    @Post('community/create')
+    @ApiOperation({ description: 'Create a new community' })
+    @ApiCreatedResponse({ description: `Returns the created community object`, type: CommunityResponseDto })
+    async createCommunity(@Body() params: CommunityCreateDto): Promise<Community> {
+        return await this.mongoService.createCommunity(params);
     }
 
-    @Get('poll/user/:author_user_id/active')
-    @ApiOperation({ description: 'Fetch active polls by author' })
-    @ApiParam({ name: 'author_user_id', description: 'Governator user ID' })
-    async fetchPollByUserOngoing(@Param('author_user_id') author_user_id) {
-        return await this.mongoService.fetchPollByUserOngoing(author_user_id);
+    @Patch('community/update/:community_id')
+    @ApiParam({ name: 'community_id', description: 'ID of community to be updated' })
+    @ApiCreatedResponse({ description: `Returns the updated community object`, type: CommunityResponseDto })
+    async updateCommunity(@Param('community_id') id, @Body() community: CommunityUpdateDto): Promise<Community> {
+        return await this.mongoService.updateCommunity(id, community);
     }
 
-    @Post('poll/create')
-    @ApiOperation({ description: 'Create a new poll' })
-    @ApiCreatedResponse({ description: `Returns the created poll object and emits ${constants.EVENT_POLL_CREATE} event`, type: PollCreateDto })
-    async createPoll(@Body() params: PollCreateDto): Promise<Poll> {
-        if (params.strategy_config) {
-            // sanitizing block heights
-            let block = null;
-            for await (const strategy of params.strategy_config) {
-                if (strategy.block_height <= 0) {
-                    if (!block) block = await web3Utils.getEthersProvider(1).getBlockNumber();
-                    strategy.block_height = block - strategy.block_height;
-                }
-            }
-        }
-        const poll = await this.mongoService.createPoll(params);
-        await this.sseService.emit({
-            data: poll,
-            type: constants.EVENT_POLL_CREATE,
-        } as MessageEvent);
-        return poll;
-    }
-
-    @Patch('poll/update/:poll_id')
-    @ApiParam({ name: 'poll_id', description: 'ID of poll to be updated' })
-    @ApiCreatedResponse({ description: `Returns the updated poll object and emits ${constants.EVENT_POLL_UPDATE} event`, type: PollCreateDto })
-    async updatePoll(@Param('poll_id') id, @Body() poll: PollUpdateDto): Promise<Poll> {
-        const updatePoll = await this.mongoService.updatePoll(id, poll);
-        await this.sseService.emit({
-            data: updatePoll,
-            type: constants.EVENT_POLL_UPDATE,
-        } as MessageEvent);
-        return updatePoll;
-    }
-
-    @Delete('poll/delete/:poll_id')
-    @ApiParam({ name: 'poll_id', description: 'ID of poll to be deleted' })
-    @ApiCreatedResponse({ description: `Returns the deleted poll object and emits ${constants.EVENT_POLL_DELETE} event`, type: PollCreateDto })
-    async deletePoll(@Param('poll_id') id): Promise<Poll> {
-        const deletePoll = await this.mongoService.deletePoll(id);
-        await this.sseService.emit({
-            data: deletePoll,
-            type: constants.EVENT_POLL_DELETE,
-        } as MessageEvent);
-        return deletePoll;
+    @Delete('community/delete/:community_id')
+    @ApiParam({ name: 'community_id', description: 'ID of community to be deleted' })
+    @ApiCreatedResponse({ description: `Returns the deleted community object`, type: CommunityResponseDto })
+    async deleteCommunity(@Param('community_id') id): Promise<Community> {
+        return await this.mongoService.deleteCommunity(id);
     }
 }

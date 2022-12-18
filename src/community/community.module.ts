@@ -2,13 +2,13 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CommunityMongoService } from './community.mongo.service';
 import { Community, CommunitySchema } from './community.schema';
-import { CoummunityController } from './community.controller';
+import { CommunityController } from './community.controller';
 
 @Module({
     imports: [
         MongooseModule.forFeature([{ name: Community.name, schema: CommunitySchema }]),
     ],
-    controllers: [CoummunityController],
+    controllers: [CommunityController],
     providers: [CommunityMongoService],
 })
-export class PollModule {}
+export class CommunityModule {}

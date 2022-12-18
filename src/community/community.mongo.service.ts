@@ -1,164 +1,76 @@
-import { HttpException, HttpStatus, Injectable, Logger, MessageEvent } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Community, CommunityDocument } from './community.schema';
-import { PollCreateDto, StrategyConfig } from './community.dtos';
-import { SchedulerRegistry } from '@nestjs/schedule';
-import { CronJob } from 'cron';
-import constants from '../common/constants';
-import { SseService } from '../sse/sse.service';
-import { StrategyMongoService } from '../web3/strategy/strategy.mongo.service';
+import { CommunityCreateDto, CommunityUpdateDto } from './community.dtos';
 
 @Injectable()
-export class PollMongoService {
-    private readonly logger = new Logger(PollMongoService.name);
+export class CommunityMongoService {
+    private readonly logger = new Logger(CommunityMongoService.name);
 
     constructor(
-        @InjectModel(Poll.name) private pollModel: Model<PollDocument>,
-        private schedulerRegistry: SchedulerRegistry,
-        protected sseService: SseService,
-        protected strategyService: StrategyMongoService,
+        @InjectModel(Community.name) private communityModel: Model<CommunityDocument>,
     ) {
         // do nothing
     }
 
-    async onApplicationBootstrap(): Promise<void> {
-        this.logger.debug('Creating CRON jobs for all active Polls');
-
-        const now = new Date(Date.now());
+    async createCommunity(communityCreateDto: CommunityCreateDto): Promise<Community> {
+        this.logger.log('Creating new community in db');
 
         try {
-            const polls = await this.pollModel.find({ end_time : {
-                $gte: now.toISOString(),
-            } }).exec();
 
-            polls.forEach(poll => this.createPollEndScheduler(poll));
+            return await this.communityModel.create(communityCreateDto);
 
         } catch (e) {
-            this.logger.error('Failed to fetch polls from db', e);
 
-            throw new HttpException('Failed to fetch polls from db', HttpStatus.BAD_REQUEST);
+            this.logger.error('Failed to create community in db', e);
+
+            throw new HttpException('Failed to create community in db', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    async createPoll(pollCreateDto: PollCreateDto): Promise<Poll> {
-        this.logger.log('Creating new poll in db');
-
+    async fetchAllCommunities(): Promise<Community[]> {
         try {
-
-            // add strategy_type to strategy_config
-            const updatedStratConf: StrategyConfig[] = [];
-            for (const strategy of pollCreateDto.strategy_config.values()) {
-                strategy.strategy_type = (await this.strategyService.findOneStrategy({ _id: strategy.strategy_id })).strategy_type;
-                updatedStratConf.push(strategy);
-            }
-            pollCreateDto.strategy_config = updatedStratConf;
-
-            const newPoll = await this.pollModel.create(pollCreateDto);
-
-            await this.createPollEndScheduler(newPoll);
-
-            this.logger.debug(JSON.stringify(newPoll));
-            return newPoll;
+            return await this.communityModel.find().exec();
 
         } catch (e) {
+            this.logger.error('Failed to fetch communities from db', e);
 
-            this.logger.error('Failed to create poll in db', e);
-
-            throw new HttpException('Failed to create poll in db', HttpStatus.BAD_REQUEST);
+            throw new HttpException('Failed to fetch communities from db', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    async createPollEndScheduler(poll: Poll) {
-        const job = new CronJob(new Date(poll.end_time), () => {
-            this.logger.warn(`cron job running for ${poll._id}`);
-
-            this.endPoll(poll._id);
-        });
-
-        this.schedulerRegistry.addCronJob(poll._id, job);
-
-        job.start();
-
-        this.logger.warn(`Cron job created for Poll ID ${poll._id} running on ${this.schedulerRegistry.getCronJob(poll._id).nextDate()}`);
-    }
-
-    async endPoll(pollId) {
-        this.logger.warn(`poll end has been called on Poll ${pollId}. Emitting POLL_COMPLETE event`);
-
-        await this.sseService.emit({
-            data: { poll_id: pollId },
-            type: constants.EVENT_POLL_COMPLETE,
-        } as MessageEvent);
-    }
-
-    async fetchAllPolls(): Promise<Poll[]> {
+    async fetchCommunityById(id: string): Promise<Community> {
         try {
-            return await this.pollModel.find().exec();
+            return await this.communityModel.findById(id).exec();
 
         } catch (e) {
-            this.logger.error('Failed to fetch polls from db', e);
+            this.logger.error('Failed to fetch community from db', e);
 
-            throw new HttpException('Failed to fetch polls from db', HttpStatus.BAD_REQUEST);
+            throw new HttpException('Failed to fetch community from db', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    async fetchPollById(id): Promise<Poll> {
+    async updateCommunity(id: string, communityUpdateDto: CommunityUpdateDto): Promise<Community> {
         try {
-            return await this.pollModel.findById(id).exec();
+            return this.communityModel.findByIdAndUpdate(id, communityUpdateDto, { new: true }).exec();
 
         } catch (e) {
-            this.logger.error('Failed to fetch poll from db', e);
+            this.logger.error('Failed to update community in db', e);
 
-            throw new HttpException('Failed to fetch poll from db', HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    async updatePoll(id, poll): Promise<Poll> {
-        try {
-            return this.pollModel.findByIdAndUpdate(id, poll, { new: true }).exec();
-
-        } catch (e) {
-            this.logger.error('Failed to update poll in db', e);
-
-            throw new HttpException('Failed to update poll in db', HttpStatus.BAD_REQUEST);
+            throw new HttpException('Failed to update community in db', HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
     }
 
-    async deletePoll(id): Promise<any> {
+    async deleteCommunity(id: string): Promise<Community> {
         try {
-            return this.pollModel.findOneAndDelete({ _id: id }).exec();
+            return this.communityModel.findOneAndDelete({ _id: id }).exec();
 
         } catch (e) {
-            this.logger.error('Failed to delete poll from db', e);
+            this.logger.error('Failed to delete community from db', e);
 
-            throw new HttpException('Failed to delete poll from db', HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    async fetchPollByUser(user_id): Promise<Poll[]> {
-        try {
-            return this.pollModel.find({ author_user_id: user_id }).exec();
-
-        } catch (e) {
-            this.logger.error('Failed to fetch poll from db', e);
-
-            throw new HttpException('Failed to fetch poll from db', HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    async fetchPollByUserOngoing(user_id): Promise<Poll[]> {
-        try {
-            return this.pollModel.find({ author_user_id: user_id,
-                end_time: {
-                    $gt:  new Date(Date.now()),
-                } }).exec();
-
-        } catch (e) {
-            this.logger.error('Failed to fetch poll from db', e);
-
-            throw new HttpException('Failed to fetch poll from db', HttpStatus.BAD_REQUEST);
+            throw new HttpException('Failed to delete community from db', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

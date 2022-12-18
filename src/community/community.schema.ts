@@ -1,5 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document } from 'mongoose';
+import { 
+    CommunityAdministratorBase,
+    CommunityClientConfigBase
+} from './community.dtos'
 
 export type CommunityDocument = Community & Document;
 
@@ -11,29 +15,17 @@ export class Community {
     @Prop({ required: true })
         name: string;
 
-    @Prop({ required: false, type: Object })
-        client_config: Record<string, any>;
+    @Prop({ required: true, type: Object })
+        administrators: CommunityAdministratorBase[];
 
-    @Prop({ required: false, type: Object })
-        poll_options: Record<string, any>;
+    @Prop({ required: true, type: Object })
+        client_config: CommunityClientConfigBase[];
 
-    @Prop({ required: false, type: Array })
-        strategy_config: StrategyConfig[];
-
-    @Prop({ required: false, default: false })
-        allow_options_for_anyone: boolean;
-
-    @Prop({ required: false, default: false })
-        single_vote: boolean;
-
-    @Prop({ required: true, type: mongoose.Schema.Types.Date })
-        end_time: Date;
-
-    @Prop({ required: true })
-        description: string;
-
-    @Prop({ required: true })
-        author_user_id: string;
+    // @Prop({ required: true, type: Object })
+    //     auth_config: AuthConfig[];
+    
+    // @Prop({ required: true })
+    //     subscription: string;
 }
 
-export const PollSchema = SchemaFactory.createForClass(Poll);
+export const CommunitySchema = SchemaFactory.createForClass(Community);
