@@ -6,7 +6,7 @@ import {
     IsNumberString,
     IsMongoId,
     IsNotEmpty,
-    ValidateNested, IsIn, IsEthereumAddress, ArrayNotEmpty
+    ValidateNested, IsIn, IsEthereumAddress, ArrayNotEmpty, IsHash
 } from 'class-validator';
 import { ApiProperty, OmitType, PartialType, IntersectionType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
@@ -66,7 +66,7 @@ export class CommunityAdministratorEthereumDto extends CommunityAdministratorBas
 export abstract class CommunityClientConfigBase extends CommunityAdministratorBase {
 }
 
-export class CommunityClientConfigDiscordDto extends CommunityAdministratorBase {
+export class CommunityClientConfigDiscordDto extends CommunityClientConfigBase {
 
     @IsNotEmpty()
     @IsNumberString()
@@ -143,6 +143,133 @@ export class CommunityClientConfigDiscordDto extends CommunityAdministratorBase 
         user_denylist: string[];
 }
 
+
+export abstract class EthereumValidationBase {
+    @IsNotEmpty()
+    @IsEthereumAddress()
+    @ApiProperty({
+        description: 'Contract address to use for ownership validation',
+        required: true,
+    })
+        address: string;
+
+    @IsNotEmpty()
+    @IsArray()
+    @ArrayNotEmpty()
+    @IsNumberString({}, {each: true})
+    @ApiProperty({
+        description: 'What chains to include when checking',
+        required: true,
+    })
+        chain_ids: string[];
+}
+
+class BalanceOf extends EthereumValidationBase {
+       
+    @IsOptional()
+    @IsNotEmpty()
+    @IsNumberString()
+    @ApiProperty({
+        description: 'Minimum balance in wei (as string) - constract must implement ERC-20 balanceOf',
+        required: false,
+    })
+        balance_threshold: string;
+}
+
+class OwnerOf extends EthereumValidationBase {
+    
+    @IsArray()
+    @ArrayNotEmpty()
+    @IsNumberString({}, {each: true})
+    @ApiProperty({
+        description: 'List of token Ids to validate - contract must implement ERC-721 ownerOf',
+        required: true,
+    })
+        token_ids: string[];
+}
+
+export class CommunityClientConfigEthereumDto extends CommunityClientConfigBase {
+
+    @IsNotEmpty()
+    @IsEthereumAddress()
+    @ApiProperty({
+        description: 'Ethereum community address (e.g. DAO multisig or owner address)',
+        required: true,
+    })
+        address: string;
+
+    @IsOptional()
+    @IsArray()
+    @ArrayNotEmpty()
+    @IsEthereumAddress({each:true})
+    @ApiProperty({
+        description: 'Addresses allowed to create polls',
+        required: false,
+        isArray: true,
+    })
+        address_allowlist: string[];
+
+    @IsOptional()
+    @IsArray()
+    @ArrayNotEmpty()
+    @IsEthereumAddress({each:true})
+    @ApiProperty({
+        description: 'Addresses NOT allowed to create polls',
+        required: false,
+        isArray: true,
+    })
+        address_denylist: string[];
+
+    @IsOptional()
+    @IsArray()
+    @ArrayNotEmpty()
+    @ValidateNested({ each: true })
+    @Type(() => EthereumValidationBase, {
+        keepDiscriminatorProperty: true,
+        discriminator: {
+            property: 'address',
+            subTypes: [
+                { value: BalanceOf, name: 'BalanceOf' },
+                { value: OwnerOf, name: 'OwnerOf' },
+            ],
+        },
+    })
+    @ApiProperty({
+        description: 'Validation criteria to give permission to create contracts',
+        required: false,
+        type: CommunityAdministratorBase,
+        example: [
+            { address: 'EthereumAdressOfMyNFT', chain_ids: ['1'] },
+            { address: 'EthereumAdressOfMyNFT', chain_ids: ['1'], token_ids: ['NumberString'] },
+            { address: 'EthereumAdressOfMyToken', chain_ids: ['1'], balance_threshold: ['1000000000000000000'] },
+        ],
+        isArray: true,
+    })
+        validation_constraints: (BalanceOf | OwnerOf)[];
+    
+    @IsOptional()
+    @IsArray()
+    @ArrayNotEmpty()
+    @IsHash('md5', {each:true})
+    @ApiProperty({
+        description: 'Token startegies allowed to be used in polls',
+        required: false,
+        isArray: true,
+    })
+        token_strategy_allowlist: string[];
+    
+    @IsOptional()
+    @IsArray()
+    @ArrayNotEmpty()
+    @IsHash('md5', {each:true})
+    @ApiProperty({
+        description: 'Token startegies NOT allowed to be used in polls',
+        required: false,
+        isArray: true,
+    })
+        token_strategy_denylist: string[];
+}
+
 export class CommunityResponseDto {
 
     @IsMongoId()
@@ -197,6 +324,7 @@ export class CommunityResponseDto {
             property: 'provider_id',
             subTypes: [
                 { value: CommunityClientConfigDiscordDto, name: 'discord' },
+                { value: CommunityClientConfigEthereumDto, name: 'ethereum' },
             ],
         },
     })
@@ -214,23 +342,20 @@ export class CommunityResponseDto {
                 role_denylist: ['NumberString'],
                 user_allowlist: ['NumberString'],
                 user_denylist: ['NumberString']
+            },
+            { 
+                provider_id: 'ethereum',
+                address: 'NumberString',
+                address_allowlist: ['NumberString'],
+                address_denylist: ['NumberString'],
+                token_strategy_allowlist: ['NumberString'],
+                token_strategy_denylist: ['NumberString'],
+                validation_constraints: [{ address: 'EthereumAdressOfMyNFT', chain_ids: ['1'] }]
             }
         ],
         isArray: true,
     })
-        client_config: CommunityClientConfigDiscordDto[];
-
-    // @IsNotEmpty()
-    // @IsArray()
-    // @ValidateNested({ each: true })
-    // @Type(() => AuthConfig)
-    // @ApiProperty({
-    //     description: '',
-    //     required: false,
-    //     type: AuthConfig,
-    //     isArray: true,
-    // })
-    //     auth_config: AuthConfig[];
+        client_config: (CommunityClientConfigDiscordDto | CommunityClientConfigEthereumDto)[];
 
     @IsString()
     @ApiProperty({

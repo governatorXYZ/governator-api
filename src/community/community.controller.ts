@@ -3,8 +3,6 @@ import { ApiCreatedResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from
 import { CommunityCreateDto, CommunityUpdateDto, CommunityResponseDto } from './community.dtos';
 import { CommunityMongoService } from './community.mongo.service';
 import { Community } from './community.schema';
-import constants from '../common/constants';
-import web3Utils from '../web3/web3.util';
 
 @ApiTags('Community')
 @ApiSecurity('api_key')
