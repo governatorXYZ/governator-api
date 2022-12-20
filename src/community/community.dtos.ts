@@ -257,17 +257,6 @@ export class CommunityClientConfigEthereumDto extends CommunityClientConfigBase 
         isArray: true,
     })
         token_strategy_allowlist: string[];
-    
-    @IsOptional()
-    @IsArray()
-    @ArrayNotEmpty()
-    @IsHash('md5', {each:true})
-    @ApiProperty({
-        description: 'Token startegies NOT allowed to be used in polls',
-        required: false,
-        isArray: true,
-    })
-        token_strategy_denylist: string[];
 }
 
 export class CommunityResponseDto {

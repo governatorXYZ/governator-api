@@ -28,6 +28,7 @@ export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
         transform: true,
         whitelist: true,
         forbidNonWhitelisted: true,
+        enableDebugMessages: true,
     }));
 
     // set cors origin policy from .env
