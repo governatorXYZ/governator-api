@@ -45,8 +45,6 @@ export class StrategyBaseController {
             strategy_type: this._getConf().strategy_type,
         };
 
-        await this.strategyMongoService.updateOneByIdStrategy(hash, filter);
-
         const stale = await this.strategyMongoService.findManyStrategy({ updatedAt: { $lt: new Date(Date.now() - 10000) } });
 
         if (stale.length > 0) {
@@ -57,6 +55,7 @@ export class StrategyBaseController {
             }
         }
 
+        await this.strategyMongoService.updateOneByIdStrategy(hash, filter);
     }
 
     runStrategy(
