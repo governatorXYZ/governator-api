@@ -16,6 +16,11 @@ import { Transform, Type } from 'class-transformer';
 import { ObjectId } from 'mongodb';
 import constants from '../common/constants';
 import { IsAfterNow } from '../common/isAfterNowConstraint'
+import { DiscordEmbedFieldLength } from './discordEmbedFieldLengthConstraint'
+
+// Maximum number of fields to be used by poll_options and role_restrictions combined
+// Discord limit is 25, leaving 5 fields for date, vote count, strategy name, and misc
+const MAX_EMBED_FIELD_LENGTH = 20;
 
 export class PollOptionDto {
     @IsNotEmpty()
@@ -27,6 +32,7 @@ export class PollOptionDto {
         poll_option_id: string;
 
     @IsNotEmpty()
+    @MaxLength(250)
     @ApiProperty({
         description: 'Poll option id',
         required: true,
@@ -148,7 +154,12 @@ export class PollResponseDto {
         description: 'Client config for this poll',
         required: true,
         type: ClientConfigBase,
-        example: [{ provider_id: 'discord', channel_id: '12345', message_id: '12345', role_restrictions: ['123', '234'] }],
+        example: [{ 
+            provider_id: 'discord', 
+            channel_id: 'Snowflake', 
+            message_id: 'Snowflake',
+            role_restrictions: ['Snowflake'] 
+        }],
         isArray: true,
     })
         client_config: ClientConfigDiscordDto[];
@@ -166,7 +177,9 @@ export class PollResponseDto {
     })
         strategy_config: StrategyConfig[];
 
-    @ArrayMaxSize(8)
+    // TODO: Bot can only have 5 buttons per ActionRow. Supporting > 5 will require bot code refactor
+    @ArrayMaxSize(5, {message: "Currently only 5 poll_options are supported"})
+    @DiscordEmbedFieldLength('client_config', MAX_EMBED_FIELD_LENGTH)
     @ValidateNested({ each: true })
     @Type(() => PollOptionDto)
     @ApiProperty({

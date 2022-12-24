@@ -15,6 +15,7 @@ const conf = {
     // modify to match your startegy setting in CONFIG.ts
     name: apiConfig.STRATEGY_NONE,
     strategy_type: strategyTypes.STRATEGY_TYPE_ONE_EQUALS_ONE,
+    description: "This strategy allowes for one vote per discord user."
 };
 
 @ApiTags(conf.api_tag)

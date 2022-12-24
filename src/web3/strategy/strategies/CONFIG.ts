@@ -4,6 +4,6 @@ export default Object.freeze({
     STRATEGY_BANKLESS_DAO: 'BANK - Token Weighted',
     STRATEGY_NONE: 'Standard (1 Vote = 1 Vote)',
     STRATEGY_POOLY: 'POOLY - ERC721 Weighted',
-    STRATEGY_DAOPUNKS: 'DAOPUNKS - ERC721 Gated',
+    STRATEGY_DAOPUNKS: 'DAOPUNKS - ERC721 Weighted',
     // add strategy names here
 });

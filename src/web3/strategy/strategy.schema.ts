@@ -17,6 +17,9 @@ export class Strategy {
 
     @Prop({ required: true })
         endpoint: string;
+    
+    @Prop({ required: true })
+        description: string;
 
     @Prop({ required: false })
         createdAt: string;

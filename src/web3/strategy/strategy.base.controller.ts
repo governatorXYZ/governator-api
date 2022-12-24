@@ -43,6 +43,7 @@ export class StrategyBaseController {
             name: this._getConf().name,
             endpoint: this._getConf().api_url_base + '/' + formatKebab(this._getConf().name),
             strategy_type: this._getConf().strategy_type,
+            description: this._getConf().description,
         };
 
         const stale = await this.strategyMongoService.findManyStrategy({ updatedAt: { $lt: new Date(Date.now() - 10000) } });
