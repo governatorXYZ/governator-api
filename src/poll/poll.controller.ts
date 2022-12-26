@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Patch, MessageEvent } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Patch, MessageEvent, Logger } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { PollCreateDto, PollUpdateDto } from './poll.dtos';
 import { PollMongoService } from './poll.mongo.service';
@@ -6,14 +6,20 @@ import { Poll } from './poll.schema';
 import { SseService } from '../sse/sse.service';
 import constants from '../common/constants';
 import web3Utils from '../web3/web3.util';
+import { VoteRequestHandlerService } from '../vote/vote.request-handler.service';
+
 
 @ApiTags('Poll')
 @ApiSecurity('api_key')
 @Controller()
 export class PollController {
+
+    private readonly logger = new Logger(PollController.name);
+
     constructor(
         protected mongoService: PollMongoService,
         protected sseService: SseService,
+        protected voteRequestHandlerService: VoteRequestHandlerService,
     ) {
         // do nothing
     }
@@ -59,8 +65,12 @@ export class PollController {
                 }
             }
         }
+
         const poll = await this.mongoService.createPoll(params);
-        await this.sseService.emit({
+
+        if (Number(process.env.CACHE)) this.voteRequestHandlerService.cacheVotePowers(poll);
+
+        this.sseService.emit({
             data: poll,
             type: constants.EVENT_POLL_CREATE,
         } as MessageEvent);

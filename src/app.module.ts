@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, CacheModule } from '@nestjs/common';
 import * as Joi from 'joi';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -46,6 +46,7 @@ const ENV = process.env.NODE_ENV;
             limit: 50 * 50,
         }),
         ScheduleModule.forRoot(),
+        CacheModule.register({isGlobal: true}),
         PollModule,
         UserModule,
         AccountModule,
