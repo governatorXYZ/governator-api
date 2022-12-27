@@ -11,6 +11,7 @@ import { StrategyRequestDto } from '../web3/strategy/strategy.dtos';
 import axios, { AxiosResponse } from 'axios';
 import { DiscordAccountResponseDto, EthereumAccountResponseDto } from '../account/account.dtos';
 import { Cache } from 'cache-manager';
+import Utils from '../common/utils';
 
 @Injectable()
 export class VoteRequestHandlerService {
@@ -21,7 +22,7 @@ export class VoteRequestHandlerService {
         private userService: UserService,
         private voteMongoService: VoteMongoService,
         private strategyMongoService: StrategyMongoService,
-        @Inject(CACHE_MANAGER) private cacheManager: Cache
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
     ) {
         // do nothing
     }
@@ -100,6 +101,8 @@ export class VoteRequestHandlerService {
                 let strategyEndpoint: string;
                 let strategyRequestDto: StrategyRequestDto;
                 let votePowerOfAccount: void | AxiosResponse;
+                let key: string;
+                let cachedVotePower: string;
 
                 switch(strategyConf.strategy_type) {
 
@@ -111,34 +114,28 @@ export class VoteRequestHandlerService {
                         vote_power: '1',
                         poll_id: poll._id,
                         provider_id: account.provider_id,
-                        account_id: account._id
+                        account_id: account._id,
                     });
                     break;
 
                 case strategyTypes.STRATEGY_TYPE_TOKEN_WEIGHTED:
                     if (!(account.provider_id === 'ethereum')) break;
 
-                    const key = account.provider_id + ':' + account._id + ':' + poll._id;
+                    key = Utils.formatCacheKey(account.provider_id, account._id, poll._id);
 
-                    const cache: string = await this.cacheManager.get(key);
+                    cachedVotePower = await this.cacheManager.get(key);
 
-                    console.log('VOTE SHOULD BE CACHED')
-
-                    console.log((Number(process.env.CACHE) === 1 && cache));
-
-                    console.log(cache)
-
-                    if (Number(process.env.CACHE) === 1 && cache) {
-                        this.logger.debug(`getting vote power from cache key: ${key} value: ${cache}`)
-                        voteCreateDtos.push({ 
-                            ...voteRequestDto, 
-                            vote_power: cache, 
+                    if (Number(process.env.CACHE) === 1 && cachedVotePower) {
+                        this.logger.debug(`getting vote power from cache key: ${key} value: ${cachedVotePower}`);
+                        voteCreateDtos.push({
+                            ...voteRequestDto,
+                            vote_power: cachedVotePower,
                             poll_id: poll._id,
                             provider_id: account.provider_id,
-                            account_id: account._id 
+                            account_id: account._id,
                         });
                         break;
-                    };
+                    }
 
                     strategyEndpoint = (await this.strategyMongoService.findManyStrategy({ _id: strategyConf.strategy_id }))[0].endpoint;
                     strategyRequestDto = { account_id: account._id, block_height: strategyConf.block_height };
@@ -163,7 +160,7 @@ export class VoteRequestHandlerService {
                         vote_power: (votePowerOfAccount as AxiosResponse).data,
                         poll_id: poll._id,
                         provider_id: account.provider_id,
-                        account_id: account._id
+                        account_id: account._id,
                     });
                     break;
                 }
@@ -214,12 +211,12 @@ export class VoteRequestHandlerService {
 
         const users = await this.userService.fetchAllUsers();
 
-        let voteRequestDto: VoteRequestDto
+        let voteRequestDto: VoteRequestDto;
 
         users.forEach(async (user) => {
             for (const account of user.provider_accounts) {
 
-                const key = account.provider_id + ':' + account._id + ':' + poll._id;
+                const key = Utils.formatCacheKey(account.provider_id, account._id, poll._id);
 
                 this.logger.log(await this.cacheManager.get(key));
 
@@ -231,22 +228,22 @@ export class VoteRequestHandlerService {
                     voteRequestDto = {
                         account_id: account._id,
                         poll_option_id: poll.poll_options[0].poll_option_id,
-                        provider_id: account.provider_id   
-                    }
+                        provider_id: account.provider_id,
+                    };
 
                     this.calculateVotePowers(voteRequestDto, poll, [account])
                         .then(
                             (votePowers) => {
                                 votePowers.forEach(async (votePower) => {
-                                    this.logger.debug(`caching vote power of account ${account._id}`)
-                                    this.logger.debug(`setting cache with key: ${key} value: ${votePower.vote_power} ttl: ${ttl}`)
-                                    await this.cacheManager.set(key, votePower.vote_power, ttl)
-                                })
-                            }  
-                        )
+                                    this.logger.debug(`caching vote power of account ${account._id}`);
+                                    this.logger.debug(`setting cache with key: ${key} value: ${votePower.vote_power} ttl: ${ttl}`);
+                                    await this.cacheManager.set(key, votePower.vote_power, ttl);
+                                });
+                            },
+                        );
                 }
             }
-        })
+        });
 
 
     }

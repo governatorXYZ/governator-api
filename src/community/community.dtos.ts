@@ -6,9 +6,9 @@ import {
     IsNumberString,
     IsMongoId,
     IsNotEmpty,
-    ValidateNested, IsIn, IsEthereumAddress, ArrayNotEmpty, IsHash
+    ValidateNested, IsIn, IsEthereumAddress, ArrayNotEmpty, IsHash,
 } from 'class-validator';
-import { ApiProperty, OmitType, PartialType, IntersectionType } from '@nestjs/swagger';
+import { ApiProperty, OmitType, PartialType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { ObjectId } from 'mongodb';
 import constants from '../common/constants';
@@ -29,7 +29,7 @@ export class CommunityAdministratorDiscordDto extends CommunityAdministratorBase
     @IsOptional()
     @IsArray()
     @ArrayNotEmpty()
-    @IsNumberString({},{each:true})
+    @IsNumberString({}, { each:true })
     @ApiProperty({
         description: 'Discord user IDs of the administrator',
         required: false,
@@ -40,7 +40,7 @@ export class CommunityAdministratorDiscordDto extends CommunityAdministratorBase
     @IsOptional()
     @IsArray()
     @ArrayNotEmpty()
-    @IsNumberString({},{each:true})
+    @IsNumberString({}, { each:true })
     @ApiProperty({
         description: 'Discord role IDs of the administrator',
         required: false,
@@ -79,7 +79,7 @@ export class CommunityClientConfigDiscordDto extends CommunityClientConfigBase {
     @IsOptional()
     @IsArray()
     @ArrayNotEmpty()
-    @IsNumberString({},{each:true})
+    @IsNumberString({}, { each:true })
     @ApiProperty({
         description: 'Discord channel IDs of channels Governator is allowed to post in',
         required: false,
@@ -90,7 +90,7 @@ export class CommunityClientConfigDiscordDto extends CommunityClientConfigBase {
     @IsOptional()
     @IsArray()
     @ArrayNotEmpty()
-    @IsNumberString({},{each:true})
+    @IsNumberString({}, { each:true })
     @ApiProperty({
         description: 'Discord channel IDs of channels Governator is NOT allowed to post in',
         required: false,
@@ -101,7 +101,7 @@ export class CommunityClientConfigDiscordDto extends CommunityClientConfigBase {
     @IsOptional()
     @IsArray()
     @ArrayNotEmpty()
-    @IsNumberString({},{each:true})
+    @IsNumberString({}, { each:true })
     @ApiProperty({
         description: 'Discord role IDs of members who are allowed to create governator polls',
         required: false,
@@ -112,7 +112,7 @@ export class CommunityClientConfigDiscordDto extends CommunityClientConfigBase {
     @IsOptional()
     @IsArray()
     @ArrayNotEmpty()
-    @IsNumberString({},{each:true})
+    @IsNumberString({}, { each:true })
     @ApiProperty({
         description: 'Discord role IDs of members who are NOT allowed to create governator polls',
         required: false,
@@ -123,7 +123,7 @@ export class CommunityClientConfigDiscordDto extends CommunityClientConfigBase {
     @IsOptional()
     @IsArray()
     @ArrayNotEmpty()
-    @IsNumberString({},{each:true})
+    @IsNumberString({}, { each:true })
     @ApiProperty({
         description: 'Discord user IDs of members who are allowed to create governator polls',
         required: false,
@@ -134,7 +134,7 @@ export class CommunityClientConfigDiscordDto extends CommunityClientConfigBase {
     @IsOptional()
     @IsArray()
     @ArrayNotEmpty()
-    @IsNumberString({},{each:true})
+    @IsNumberString({}, { each:true })
     @ApiProperty({
         description: 'Discord user IDs of members who are NOT allowed to create governator polls',
         required: false,
@@ -156,7 +156,7 @@ export abstract class EthereumValidationBase {
     @IsNotEmpty()
     @IsArray()
     @ArrayNotEmpty()
-    @IsNumberString({}, {each: true})
+    @IsNumberString({}, { each: true })
     @ApiProperty({
         description: 'What chains to include when checking',
         required: true,
@@ -180,7 +180,7 @@ class OwnerOf extends EthereumValidationBase {
     
     @IsArray()
     @ArrayNotEmpty()
-    @IsNumberString({}, {each: true})
+    @IsNumberString({}, { each: true })
     @ApiProperty({
         description: 'List of token Ids to validate - contract must implement ERC-721 ownerOf',
         required: true,
@@ -201,7 +201,7 @@ export class CommunityClientConfigEthereumDto extends CommunityClientConfigBase 
     @IsOptional()
     @IsArray()
     @ArrayNotEmpty()
-    @IsEthereumAddress({each:true})
+    @IsEthereumAddress({ each:true })
     @ApiProperty({
         description: 'Addresses allowed to create polls',
         required: false,
@@ -212,7 +212,7 @@ export class CommunityClientConfigEthereumDto extends CommunityClientConfigBase 
     @IsOptional()
     @IsArray()
     @ArrayNotEmpty()
-    @IsEthereumAddress({each:true})
+    @IsEthereumAddress({ each:true })
     @ApiProperty({
         description: 'Addresses NOT allowed to create polls',
         required: false,
@@ -250,7 +250,7 @@ export class CommunityClientConfigEthereumDto extends CommunityClientConfigBase 
     @IsOptional()
     @IsArray()
     @ArrayNotEmpty()
-    @IsHash('md5', {each:true})
+    @IsHash('md5', { each:true })
     @ApiProperty({
         description: 'Token startegies allowed to be used in polls',
         required: false,
@@ -322,7 +322,7 @@ export class CommunityResponseDto {
         required: true,
         type: CommunityClientConfigBase,
         example: [
-            { 
+            {
                 provider_id: 'discord',
                 guild_id: 'NumberString',
                 channel_allowlist: ['NumberString'],
@@ -330,17 +330,17 @@ export class CommunityResponseDto {
                 role_allowlist: ['NumberString'],
                 role_denylist: ['NumberString'],
                 user_allowlist: ['NumberString'],
-                user_denylist: ['NumberString']
+                user_denylist: ['NumberString'],
             },
-            { 
+            {
                 provider_id: 'ethereum',
                 address: 'NumberString',
                 address_allowlist: ['NumberString'],
                 address_denylist: ['NumberString'],
                 token_strategy_allowlist: ['NumberString'],
                 token_strategy_denylist: ['NumberString'],
-                validation_constraints: [{ address: 'EthereumAdressOfMyNFT', chain_ids: ['1'] }]
-            }
+                validation_constraints: [{ address: 'EthereumAdressOfMyNFT', chain_ids: ['1'] }],
+            },
         ],
         isArray: true,
     })

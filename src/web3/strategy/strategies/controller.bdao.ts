@@ -19,9 +19,9 @@ const conf = {
     // modify to match your startegy setting in CONFIG.ts
     name: apiConfig.STRATEGY_BANKLESS_DAO,
     strategy_type: strategyTypes.STRATEGY_TYPE_TOKEN_WEIGHTED,
-    description: "Weighted voting strategy for BANK token on Ethereum mainnet and polygon. " + 
-        "Your voting power will be calculated as the total balance of BANK (mainnet & polygon) " + 
-        "for all your verified wallets at the speciefied block-height."
+    description: 'Weighted voting strategy for BANK token on Ethereum mainnet and polygon. ' +
+        'Your voting power will be calculated as the total balance of BANK (mainnet & polygon) ' +
+        'for all your verified wallets at the speciefied block-height.',
 };
 
 @ApiTags(conf.api_tag)

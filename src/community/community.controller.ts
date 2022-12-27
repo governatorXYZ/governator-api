@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Patch, MessageEvent } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Patch } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { CommunityCreateDto, CommunityUpdateDto, CommunityResponseDto } from './community.dtos';
 import { CommunityMongoService } from './community.mongo.service';
@@ -29,21 +29,21 @@ export class CommunityController {
 
     @Post('community/create')
     @ApiOperation({ description: 'Create a new community' })
-    @ApiCreatedResponse({ description: `Returns the created community object`, type: CommunityResponseDto })
+    @ApiCreatedResponse({ description: 'Returns the created community object', type: CommunityResponseDto })
     async createCommunity(@Body() params: CommunityCreateDto): Promise<Community> {
         return await this.mongoService.createCommunity(params);
     }
 
     @Patch('community/update/:community_id')
     @ApiParam({ name: 'community_id', description: 'ID of community to be updated' })
-    @ApiCreatedResponse({ description: `Returns the updated community object`, type: CommunityResponseDto })
+    @ApiCreatedResponse({ description: 'Returns the updated community object', type: CommunityResponseDto })
     async updateCommunity(@Param('community_id') id, @Body() community: CommunityUpdateDto): Promise<Community> {
         return await this.mongoService.updateCommunity(id, community);
     }
 
     @Delete('community/delete/:community_id')
     @ApiParam({ name: 'community_id', description: 'ID of community to be deleted' })
-    @ApiCreatedResponse({ description: `Returns the deleted community object`, type: CommunityResponseDto })
+    @ApiCreatedResponse({ description: 'Returns the deleted community object', type: CommunityResponseDto })
     async deleteCommunity(@Param('community_id') id): Promise<Community> {
         return await this.mongoService.deleteCommunity(id);
     }

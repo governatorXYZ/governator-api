@@ -15,8 +15,8 @@ import { ApiProperty, OmitType, PartialType, PickType } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import { ObjectId } from 'mongodb';
 import constants from '../common/constants';
-import { IsAfterNow } from '../common/isAfterNowConstraint'
-import { DiscordEmbedFieldLength } from './discordEmbedFieldLengthConstraint'
+import { IsAfterNow } from '../common/isAfterNowConstraint';
+import { DiscordEmbedFieldLength } from './discordEmbedFieldLengthConstraint';
 
 // Maximum number of fields to be used by poll_options and role_restrictions combined
 // Discord limit is 25, leaving 5 fields for date, vote count, strategy name, and misc
@@ -162,11 +162,11 @@ export class PollResponseDto {
         description: 'Client config for this poll',
         required: true,
         type: ClientConfigBase,
-        example: [{ 
-            provider_id: 'discord', 
-            channel_id: 'Snowflake', 
+        example: [{
+            provider_id: 'discord',
+            channel_id: 'Snowflake',
             message_id: 'Snowflake',
-            role_restrictions: ['Snowflake'] 
+            role_restrictions: ['Snowflake'],
         }],
         isArray: true,
     })
@@ -186,7 +186,7 @@ export class PollResponseDto {
         strategy_config: StrategyConfig[];
 
     // TODO: Bot can only have 5 buttons per ActionRow. Supporting > 5 will require bot code refactor
-    @ArrayMaxSize(5, {message: "Currently only 5 poll_options are supported"})
+    @ArrayMaxSize(5, { message: 'Currently only 5 poll_options are supported' })
     @DiscordEmbedFieldLength('client_config', MAX_EMBED_FIELD_LENGTH)
     @ValidateNested({ each: true })
     @Type(() => PollOptionDto)

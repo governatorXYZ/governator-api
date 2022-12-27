@@ -8,7 +8,7 @@ import { CronJob } from 'cron';
 import constants from '../common/constants';
 import { SseService } from '../sse/sse.service';
 import { StrategyMongoService } from '../web3/strategy/strategy.mongo.service';
-import { Cache } from 'cache-manager'
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class PollMongoService {

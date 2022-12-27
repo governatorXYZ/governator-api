@@ -13,7 +13,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { Web3Module } from './web3/web3.module';
 import { ScheduleModule } from '@nestjs/schedule';
-import { CommunityModule } from './community/community.module'
+import { CommunityModule } from './community/community.module';
 
 const ENV = process.env.NODE_ENV;
 
@@ -46,7 +46,7 @@ const ENV = process.env.NODE_ENV;
             limit: 50 * 50,
         }),
         ScheduleModule.forRoot(),
-        CacheModule.register({isGlobal: true}),
+        CacheModule.register({ isGlobal: true }),
         PollModule,
         UserModule,
         AccountModule,

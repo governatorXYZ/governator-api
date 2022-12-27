@@ -1,5 +1,5 @@
 import { forwardRef, HttpException, HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
-import { ethers, Contract } from 'ethers';
+import { Contract } from 'ethers';
 import * as erc20json from './ERC20.json';
 import * as erc721json from './ERC721.json';
 import * as erc1155json from './ERC1155.json';

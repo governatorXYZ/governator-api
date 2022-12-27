@@ -19,9 +19,9 @@ const conf = {
     // modify to match your startegy setting in CONFIG.ts
     name: apiConfig.STRATEGY_DAOPUNKS,
     strategy_type: strategyTypes.STRATEGY_TYPE_TOKEN_WEIGHTED,
-    description: "Weighted voting strategy for DAOPUNK NFT holders " +
-        "Your voting power will be calculated as the total number of DAOPUNKs " +
-        "for all your verified wallets at the specified block-height."
+    description: 'Weighted voting strategy for DAOPUNK NFT holders ' +
+        'Your voting power will be calculated as the total number of DAOPUNKs ' +
+        'for all your verified wallets at the specified block-height.',
 };
 
 @ApiTags(conf.api_tag)
@@ -69,7 +69,7 @@ export class DaoPunksStrategy extends StrategyBaseController implements OnApplic
         strategyResult: any,
         logger: Logger,
     ): string {
-        let votingPower = ethers.BigNumber.from('0');
+        const votingPower = ethers.BigNumber.from('0');
 
 
         for (const token of (strategyResult as ERC20TokenBalances).tokenBalances) {
