@@ -117,7 +117,7 @@ export class BankTokenWeightedStrategy extends StrategyBaseController implements
 
 
         for (const token of (strategyResult as ERC20TokenBalances).tokenBalances) {
-            const bigNumber = ethers.utils.parseUnits(token.balance);
+            const bigNumber = ethers.BigNumber.from(token.balance);;
 
             logger.debug(`balance ${token.balance}`);
             logger.debug(`balanceBigN ${token.balance}`);

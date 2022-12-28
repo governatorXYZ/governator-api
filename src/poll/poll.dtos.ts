@@ -62,7 +62,7 @@ export class ClientConfigDiscordDto extends ClientConfigBase {
     @IsNotEmpty()
     @IsNumberString()
     @ApiProperty({
-        description: 'Channel to post in',
+        description: 'Server to post in',
         required: true,
     })
         guild_id: string;
