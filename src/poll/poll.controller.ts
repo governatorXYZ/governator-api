@@ -68,7 +68,7 @@ export class PollController {
 
         const poll = await this.mongoService.createPoll(params);
 
-        if (Number(process.env.CACHE)) this.voteRequestHandlerService.cacheVotePowers(poll);
+        if (Number(process.env.CACHE)) this.voteRequestHandlerService.cacheVotePowersByPoll(poll);
 
         this.sseService.emit({
             data: poll,

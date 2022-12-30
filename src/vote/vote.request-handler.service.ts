@@ -12,6 +12,7 @@ import axios, { AxiosResponse } from 'axios';
 import { DiscordAccountResponseDto, EthereumAccountResponseDto } from '../account/account.dtos';
 import { Cache } from 'cache-manager';
 import Utils from '../common/utils';
+import { EthereumAccount } from 'src/account/ethereumAccount.schema';
 
 @Injectable()
 export class VoteRequestHandlerService {
@@ -206,47 +207,71 @@ export class VoteRequestHandlerService {
         }
     }
 
-    async cacheVotePowers(poll: Poll): Promise<void> {
+    async cacheVotePowersByPoll(poll: Poll): Promise<void> {
         if(!poll.strategy_config.find((conf) => conf.strategy_type === strategyTypes.STRATEGY_TYPE_TOKEN_WEIGHTED)) return;
 
         const users = await this.userService.fetchAllUsers();
 
-        let voteRequestDto: VoteRequestDto;
-
         users.forEach(async (user) => {
             for (const account of user.provider_accounts) {
 
-                const key = Utils.formatCacheKey(account.provider_id, account._id, poll._id);
+                if (!(account.provider_id === 'ethereum')) continue;
 
-                this.logger.log(await this.cacheManager.get(key));
+                this.setVotePowerCache(poll, account as EthereumAccountResponseDto);
+            }
+        });
+    }
 
-                if (await this.cacheManager.get(key)) continue;
+    async cacheVotePowersByAccount(account: EthereumAccountResponseDto): Promise<void> {
 
-                const ttl = new Date(poll.end_time).getTime() - new Date(Date.now()).getTime();
-
-                if (account.provider_id === 'ethereum') {
-                    voteRequestDto = {
-                        account_id: account._id,
-                        poll_option_id: poll.poll_options[0].poll_option_id,
-                        provider_id: account.provider_id,
-                    };
-
-                    this.calculateVotePowers(voteRequestDto, poll, [account])
-                        .then(
-                            (votePowers) => {
-                                votePowers.forEach(async (votePower) => {
-                                    this.logger.debug(`caching vote power of account ${account._id}`);
-                                    this.logger.debug(`setting cache with key: ${key} value: ${votePower.vote_power} ttl: ${ttl}`);
-                                    await this.cacheManager.set(key, votePower.vote_power, ttl);
-                                });
-                            },
-                        );
+        const polls = await this.pollService.fetchAllPolls({
+            end_time: {
+                $gt:  new Date(Date.now()),
+            },
+            strategy_config: {
+                $elemMatch: {
+                    strategy_type: strategyTypes.STRATEGY_TYPE_TOKEN_WEIGHTED,
                 }
             }
         });
 
+        this.logger.debug(`caching vote power of acccount ${account._id} for polls ${polls.map(poll => poll._id)}`);
 
+        if(!polls.length || polls.length === 0) return;
+
+        polls.forEach(async (poll) => {
+
+            this.setVotePowerCache(poll, account);
+        });
     }
 
+    async setVotePowerCache(poll: Poll, account: EthereumAccountResponseDto) {
 
+        let voteRequestDto: VoteRequestDto;
+
+        const key = Utils.formatCacheKey(account.provider_id, account._id, poll._id);
+
+        if (await this.cacheManager.get(key)) return;
+
+        const ttl = new Date(poll.end_time).getTime() - new Date(Date.now()).getTime();
+
+        if (account.provider_id === 'ethereum') {
+            voteRequestDto = {
+                account_id: account._id,
+                poll_option_id: poll.poll_options[0].poll_option_id,
+                provider_id: account.provider_id,
+            };
+
+            this.calculateVotePowers(voteRequestDto, poll, [account])
+                .then(
+                    (votePowers) => {
+                        votePowers.forEach(async (votePower) => {
+                            this.logger.debug(`caching vote power of account ${account._id}`);
+                            this.logger.debug(`setting cache with key: ${key} value: ${votePower.vote_power} ttl: ${ttl}`);
+                            await this.cacheManager.set(key, votePower.vote_power, ttl);
+                        });
+                    },
+                );
+        }
+    }
 }

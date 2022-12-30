@@ -4,6 +4,8 @@ import { SiweMessage, SiweResponse, generateNonce } from 'siwe';
 import { SiweNonceMongoService } from './siweNonce.mongo.service';
 import { SiweVerifyDto } from './siwe.dtos';
 import { UserService } from '../../user/user.service';
+import { VoteRequestHandlerService } from '../../vote/vote.request-handler.service';
+import { EthereumAccountResponseDto } from 'src/account/account.dtos';
 
 @Injectable()
 export class SiweService {
@@ -12,6 +14,7 @@ export class SiweService {
         private ethereumAccountMongoService: EthereumAccountMongoService,
         private siweNonceMongoService: SiweNonceMongoService,
         private userMongoService: UserService,
+        private voteRequestHandlerService: VoteRequestHandlerService,
     ) {
         // do nothing
     }
@@ -58,6 +61,8 @@ export class SiweService {
         }
 
         this.logger.log('Signature verification successful');
+
+        if (Number(process.env.CACHE)) this.voteRequestHandlerService.cacheVotePowersByAccount(account as EthereumAccountResponseDto);
 
         account.signed_message = siweVerifyDto.signed_message;
 

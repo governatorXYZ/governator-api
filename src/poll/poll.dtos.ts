@@ -20,7 +20,7 @@ import { DiscordEmbedFieldLength } from './discordEmbedFieldLengthConstraint';
 
 // Maximum number of fields to be used by poll_options and role_restrictions combined
 // Discord limit is 25, leaving 5 fields for date, vote count, strategy name, and misc
-const MAX_EMBED_FIELD_LENGTH = 20;
+const MAX_EMBED_FIELD_LENGTH = 19;
 
 export class PollOptionDto {
     @IsNotEmpty()

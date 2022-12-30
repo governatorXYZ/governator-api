@@ -94,9 +94,9 @@ export class PollMongoService {
         } as MessageEvent);
     }
 
-    async fetchAllPolls(): Promise<Poll[]> {
+    async fetchAllPolls(filter: Record<any, any> = {}): Promise<Poll[]> {
         try {
-            return await this.pollModel.find().exec();
+            return await this.pollModel.find(filter).exec();
 
         } catch (e) {
             this.logger.error('Failed to fetch polls from db', e);
