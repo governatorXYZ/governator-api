@@ -1,9 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document } from 'mongoose';
-import { 
+import {
     CommunityAdministratorBase,
-    CommunityClientConfigBase
-} from './community.dtos'
+    CommunityClientConfigBase,
+} from './community.dtos';
 
 export type CommunityDocument = Community & Document;
 

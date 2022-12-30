@@ -19,6 +19,10 @@ const conf = {
     // modify to match your startegy setting in CONFIG.ts
     name: apiConfig.STRATEGY_POOLY,
     strategy_type: strategyTypes.STRATEGY_TYPE_TOKEN_WEIGHTED,
+    description: 'Weighted voting strategy for POOLY NFT holders ' +
+        'Your voting power will be calculated based on the type of POOLY you hold ' +
+        'POOLY1 = 1, POOLY2 = 2, POOLY3 = 3. ' +
+        'Sum of all your verified wallets at the specified block-height.',
 };
 
 @ApiTags(conf.api_tag)
