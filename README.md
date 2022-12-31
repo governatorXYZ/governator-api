@@ -32,4 +32,4 @@ if you used the default values from `.env.template` the app will run on `localho
 
 ## License
 
-Governator is [AGPLv3](LICENSE).
+Governator is [MIT](LICENSE).

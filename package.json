@@ -4,7 +4,7 @@
   "description": "",
   "author": "Governator team",
   "private": true,
-  "license": "AGPLv3",
+  "license": "MIT",
   "scripts": {
     "precommit": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix && yarn test && yarn build",
     "prebuild": "rimraf dist",
