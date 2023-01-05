@@ -17,16 +17,17 @@ const conf = {
     api_tag: apiConfig.API_TAG,
     api_url_base: apiConfig.API_TAG.toLowerCase(),
     // modify to match your startegy setting in CONFIG.ts
-    name: apiConfig.STRATEGY_BANKLESS_DAO,
+    name: apiConfig.STRATEGY_POOLY,
     strategy_type: strategyTypes.STRATEGY_TYPE_TOKEN_WEIGHTED,
-    description: 'Weighted voting strategy for BANK token on Ethereum mainnet and polygon. ' +
-        'Your voting power will be calculated as the total balance of BANK (mainnet & polygon) ' +
-        'for all your verified wallets at the speciefied block-height.',
+    description: 'Weighted voting strategy for POOLY NFT holders ' +
+        'Your voting power will be calculated based on the type of POOLY you hold ' +
+        'POOLY1 = 1, POOLY2 = 2, POOLY3 = 3. ' +
+        'Sum of all your verified wallets at the specified block-height.',
 };
 
 @ApiTags(conf.api_tag)
 @Controller(conf.api_url_base)
-export class BankTokenWeightedStrategy extends StrategyBaseController implements OnApplicationBootstrap {
+export class PoolyErc721WeightedStrategy extends StrategyBaseController implements OnApplicationBootstrap {
     constructor(
         protected strategyService: StrategyBaseService,
         protected strategyMongoService: StrategyMongoService,
@@ -44,64 +45,32 @@ export class BankTokenWeightedStrategy extends StrategyBaseController implements
         // tokenWhitelistService: TokenWhitelistMongoService,
     ) {
 
-        let equivalentBlock = null;
-
-        if (blockHeight < 0) {
-            equivalentBlock = blockHeight;
-
-        } else if (blockHeight === 0) {
-            equivalentBlock = await (await evmService.getEthersProvider(137)).getBlockNumber();
-
+        if (blockHeight === 0) {
             blockHeight = await (await evmService.getEthersProvider(1)).getBlockNumber();
-
-        } else {
-            const mainnetProvider = await evmService.getEthersProvider(1);
-
-            // logger.debug(`timestamp ${(await mainnetProvider.getBlock(blockHeight)).timestamp}`);
-
-            // TODO: make own graph because sometimes down (rate limit?) - also implement retry here to avoid rate limit
-            // might utilize TheGraph's indexer. You can create a very simple subgraph that just stores a Block that contains a block number and timestamp. Once indexer is done indexing, you can query the data using GraphQL and write to your DB.
-            const gqlResult = await graphqlService.query(
-                'https://blockfinder.snapshot.org/',
-                `query {blocks (where: { ts: ${(await mainnetProvider.getBlock(blockHeight)).timestamp}, network_in: ["137"] }) {
-            network
-            number}}`,
-            );
-
-            try {
-                if ((gqlResult.data.blocks.length > 0) && (gqlResult.data.blocks[0].number >= 13000000)) equivalentBlock = gqlResult.data.blocks[0].number;
-
-            } catch {
-                logger.debug('failed to fetch equivalent block from graph');
-
-            }
         }
 
         logger.debug(`blockHeight: ${blockHeight}`);
 
-        logger.debug(`equivalentBlockHeight: ${equivalentBlock}`);
-
-        const banklessTokenMain: ERC20BalanceOfDto = {
-            contractAddress: '0x2d94aa3e47d9d5024503ca8491fce9a2fb4da198',
+        const pooly1: ERC20BalanceOfDto = {
+            contractAddress: '0x90B3832e2F2aDe2FE382a911805B6933C056D6ed',
             chain_id: 1,
             block_height: blockHeight,
         };
 
-        const banklessTokenPolygon: ERC20BalanceOfDto = {
-            contractAddress: '0xDB7Cb471dd0b49b29CAB4a1C14d070f27216a0Ab',
-            chain_id: 137,
-            block_height: equivalentBlock,
+        const pooly2: ERC20BalanceOfDto = {
+            contractAddress: '0x3545192b340F50d77403DC0A64cf2b32F03d00A9',
+            chain_id: 1,
+            block_height: blockHeight,
         };
 
-        let tokens: TokenList;
+        const pooly3: ERC20BalanceOfDto = {
+            contractAddress: '0x5663e3E096f1743e77B8F71b5DE0CF9Dfd058523',
+            chain_id: 1,
+            block_height: blockHeight,
+        };
 
-        if (banklessTokenPolygon.block_height) {
-            tokens = { tokens: [banklessTokenMain, banklessTokenPolygon] };
+        const tokens: TokenList = { tokens: [pooly1, pooly2, pooly3] };
 
-        } else {
-            tokens = { tokens: [banklessTokenMain] };
-
-        }
 
         logger.debug(`getting balances for token list: ${JSON.stringify(tokens)}`);
 
@@ -113,22 +82,23 @@ export class BankTokenWeightedStrategy extends StrategyBaseController implements
         strategyResult: any,
         logger: Logger,
     ): string {
-        let votingPower = ethers.BigNumber.from('0');
+        let votingPower = 0;
 
 
         for (const token of (strategyResult as ERC20TokenBalances).tokenBalances) {
-            const bigNumber = ethers.BigNumber.from(token.balance);;
 
-            logger.debug(`balance ${token.balance}`);
-            logger.debug(`balanceBigN ${token.balance}`);
-
-            votingPower = votingPower.add(bigNumber);
+            if (token.tokenSymbol === 'POOLY3' && ethers.BigNumber.from(token.balance).gt(ethers.BigNumber.from(0))) {
+                votingPower = 3;
+            } else if (token.tokenSymbol === 'POOLY2' && ethers.BigNumber.from(token.balance).gt(ethers.BigNumber.from(0))) {
+                votingPower = 2;
+            } else if (token.tokenSymbol === 'POOLY1' && ethers.BigNumber.from(token.balance).gt(ethers.BigNumber.from(0))) {
+                votingPower = 1;
+            }
         }
 
 
         logger.debug(`Total voting power: ${votingPower.toString()}`);
 
-        // return ethers.utils.formatEther(votingPower).toString();
         return votingPower.toString();
 
     }

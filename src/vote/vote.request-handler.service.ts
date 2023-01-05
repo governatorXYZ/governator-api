@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger, CACHE_MANAGER, Inject } from '@nestjs/common';
 import { VoteCreateDto, VoteRawResponseDto, VoteRequestDto, VoteResponseDto } from './vote.dto';
 import { Poll } from '../poll/poll.schema';
 import { UserService } from '../user/user.service';
@@ -10,6 +10,9 @@ import { StrategyMongoService } from '../web3/strategy/strategy.mongo.service';
 import { StrategyRequestDto } from '../web3/strategy/strategy.dtos';
 import axios, { AxiosResponse } from 'axios';
 import { DiscordAccountResponseDto, EthereumAccountResponseDto } from '../account/account.dtos';
+import { Cache } from 'cache-manager';
+import Utils from '../common/utils';
+import { EthereumAccount } from 'src/account/ethereumAccount.schema';
 
 @Injectable()
 export class VoteRequestHandlerService {
@@ -20,6 +23,7 @@ export class VoteRequestHandlerService {
         private userService: UserService,
         private voteMongoService: VoteMongoService,
         private strategyMongoService: StrategyMongoService,
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
     ) {
         // do nothing
     }
@@ -61,22 +65,22 @@ export class VoteRequestHandlerService {
             if(accountVotes.length === 0) {
                 this.logger.debug('first time vote of account on this poll');
 
-                voteResponseDtos.push(await this.voteMongoService.createVote(voteCreateDto));
+                voteCreateDto.vote_power != '0' ? voteResponseDtos.push(await this.voteMongoService.createVote(voteCreateDto)) : 0;
 
             } else if(accountVotes.length > 0) {
                 const isDuplicate = this.isDuplicateVote(accountVotes, voteCreateDto);
 
                 this.logger.debug('not a first-time vote, account has voted on this poll before');
 
-                if (isDuplicate) voteResponseDtos.push(await this.voteMongoService.deleteVote(voteCreateDto));
+                if (isDuplicate) voteCreateDto.vote_power != '0' ? voteResponseDtos.push(await this.voteMongoService.deleteVote(voteCreateDto)) : 0;
 
                 if (!isDuplicate) {
                     // poll is single vote type --> update vote
-                    if (poll.single_vote) voteResponseDtos.push(await this.voteMongoService.updateVote(voteCreateDto));
+                    if (poll.single_vote) voteCreateDto.vote_power != '0' ? voteResponseDtos.push(await this.voteMongoService.updateVote(voteCreateDto)) : 0;
 
                     // poll is multi vote type --> create vote
                     if (!poll.single_vote) {
-                        voteResponseDtos.push(await this.voteMongoService.createVote(voteCreateDto));
+                        voteCreateDto.vote_power != '0' ? voteResponseDtos.push(await this.voteMongoService.createVote(voteCreateDto)) : 0;
                     }
                 }
             }
@@ -98,16 +102,42 @@ export class VoteRequestHandlerService {
                 let strategyEndpoint: string;
                 let strategyRequestDto: StrategyRequestDto;
                 let votePowerOfAccount: void | AxiosResponse;
+                let key: string;
+                let cachedVotePower: string;
 
                 switch(strategyConf.strategy_type) {
 
                 case strategyTypes.STRATEGY_TYPE_ONE_EQUALS_ONE:
                     if (!(account.provider_id === 'discord')) break;
-                    voteCreateDtos.push({ ...voteRequestDto, vote_power: '1', poll_id: poll._id, provider_id: account.provider_id, account_id: account._id });
+
+                    voteCreateDtos.push({
+                        ...voteRequestDto,
+                        vote_power: '1',
+                        poll_id: poll._id,
+                        provider_id: account.provider_id,
+                        account_id: account._id,
+                    });
                     break;
 
                 case strategyTypes.STRATEGY_TYPE_TOKEN_WEIGHTED:
                     if (!(account.provider_id === 'ethereum')) break;
+
+                    key = Utils.formatCacheKey(account.provider_id, account._id, poll._id);
+
+                    cachedVotePower = await this.cacheManager.get(key);
+
+                    if (Number(process.env.CACHE) === 1 && cachedVotePower) {
+                        this.logger.debug(`getting vote power from cache key: ${key} value: ${cachedVotePower}`);
+                        voteCreateDtos.push({
+                            ...voteRequestDto,
+                            vote_power: cachedVotePower,
+                            poll_id: poll._id,
+                            provider_id: account.provider_id,
+                            account_id: account._id,
+                        });
+                        break;
+                    }
+
                     strategyEndpoint = (await this.strategyMongoService.findManyStrategy({ _id: strategyConf.strategy_id }))[0].endpoint;
                     strategyRequestDto = { account_id: account._id, block_height: strategyConf.block_height };
 
@@ -126,7 +156,13 @@ export class VoteRequestHandlerService {
 
                     if (process.env.NODE_ENV === 'development') this.logger.log((votePowerOfAccount as AxiosResponse).data);
 
-                    voteCreateDtos.push({ ...voteRequestDto, vote_power: (votePowerOfAccount as AxiosResponse).data, poll_id: poll._id, provider_id: account.provider_id, account_id: account._id });
+                    voteCreateDtos.push({
+                        ...voteRequestDto,
+                        vote_power: (votePowerOfAccount as AxiosResponse).data,
+                        poll_id: poll._id,
+                        provider_id: account.provider_id,
+                        account_id: account._id,
+                    });
                     break;
                 }
             }
@@ -171,5 +207,71 @@ export class VoteRequestHandlerService {
         }
     }
 
+    async cacheVotePowersByPoll(poll: Poll): Promise<void> {
+        if(!poll.strategy_config.find((conf) => conf.strategy_type === strategyTypes.STRATEGY_TYPE_TOKEN_WEIGHTED)) return;
 
+        const users = await this.userService.fetchAllUsers();
+
+        users.forEach(async (user) => {
+            for (const account of user.provider_accounts) {
+
+                if (!(account.provider_id === 'ethereum')) continue;
+
+                this.setVotePowerCache(poll, account as EthereumAccountResponseDto);
+            }
+        });
+    }
+
+    async cacheVotePowersByAccount(account: EthereumAccountResponseDto): Promise<void> {
+
+        const polls = await this.pollService.fetchAllPolls({
+            end_time: {
+                $gt:  new Date(Date.now()),
+            },
+            strategy_config: {
+                $elemMatch: {
+                    strategy_type: strategyTypes.STRATEGY_TYPE_TOKEN_WEIGHTED,
+                }
+            }
+        });
+
+        this.logger.debug(`caching vote power of acccount ${account._id} for polls ${polls.map(poll => poll._id)}`);
+
+        if(!polls.length || polls.length === 0) return;
+
+        polls.forEach(async (poll) => {
+
+            this.setVotePowerCache(poll, account);
+        });
+    }
+
+    async setVotePowerCache(poll: Poll, account: EthereumAccountResponseDto) {
+
+        let voteRequestDto: VoteRequestDto;
+
+        const key = Utils.formatCacheKey(account.provider_id, account._id, poll._id);
+
+        if (await this.cacheManager.get(key)) return;
+
+        const ttl = new Date(poll.end_time).getTime() - new Date(Date.now()).getTime();
+
+        if (account.provider_id === 'ethereum') {
+            voteRequestDto = {
+                account_id: account._id,
+                poll_option_id: poll.poll_options[0].poll_option_id,
+                provider_id: account.provider_id,
+            };
+
+            this.calculateVotePowers(voteRequestDto, poll, [account])
+                .then(
+                    (votePowers) => {
+                        votePowers.forEach(async (votePower) => {
+                            this.logger.debug(`caching vote power of account ${account._id}`);
+                            this.logger.debug(`setting cache with key: ${key} value: ${votePower.vote_power} ttl: ${ttl}`);
+                            await this.cacheManager.set(key, votePower.vote_power, ttl);
+                        });
+                    },
+                );
+        }
+    }
 }

@@ -1,5 +1,5 @@
 import { forwardRef, HttpException, HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
-import { ethers, Contract } from 'ethers';
+import { Contract } from 'ethers';
 import * as erc20json from './ERC20.json';
 import * as erc721json from './ERC721.json';
 import * as erc1155json from './ERC1155.json';
@@ -46,7 +46,7 @@ export class EvmService {
                     contractAddress: token.contractAddress,
                     tokenName: await connectedToken.name(),
                     tokenSymbol: await connectedToken.symbol(),
-                    balance: ethers.utils.formatEther(await connectedToken.balanceOf(ethAddress, { blockTag: token.block_height })),
+                    balance: (await connectedToken.balanceOf(ethAddress, { blockTag: token.block_height })).toString(),
                     chain_id: token.chain_id,
                     block_height: token.block_height,
                 } as ERC20TokenBalanceDetail);

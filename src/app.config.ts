@@ -28,6 +28,7 @@ export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
         transform: true,
         whitelist: true,
         forbidNonWhitelisted: true,
+        enableDebugMessages: true,
     }));
 
     // set cors origin policy from .env
@@ -49,7 +50,7 @@ export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
         .setTitle('Governator API')
         .setDescription('REST API for Governator')
         .setVersion(configService.get('npm_package_version'))
-        .addApiKey({ type: 'apiKey', name: 'X-API-KEY', in: 'header' })
+        .addApiKey({ type: 'apiKey', name: 'X-API-KEY', in: 'header' }, 'api_key')
         .build();
     const document = SwaggerModule.createDocument(app, swaggerConfig);
     if (setupSwaggerModule) SwaggerModule.setup(globalPrefix, app, document);

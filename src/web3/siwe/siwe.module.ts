@@ -6,6 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { SiweNonce, SiweNonceSchema } from './siweNonce.schema';
 import { SiweNonceMongoService } from './siweNonce.mongo.service';
 import { UserModule } from '../../user/user.module';
+import { VoteModule } from '../../vote/vote.module';
 
 
 @Module({
@@ -13,6 +14,7 @@ import { UserModule } from '../../user/user.module';
         MongooseModule.forFeature([{ name: SiweNonce.name, schema: SiweNonceSchema }]),
         AccountModule,
         UserModule,
+        VoteModule,
     ],
     controllers: [SiweController],
     providers: [SiweService, SiweNonceMongoService],

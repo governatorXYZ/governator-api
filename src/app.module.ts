@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, CacheModule } from '@nestjs/common';
 import * as Joi from 'joi';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -8,11 +8,12 @@ import { SseModule } from './sse/sse.module';
 import { UserModule } from './user/user.module';
 import { VoteModule } from './vote/vote.module';
 import { ClientRequestModule } from './client-request/client-request.module';
-import { AuthModule } from './auth/auth.modute';
+import { AuthModule } from './auth/auth.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { Web3Module } from './web3/web3.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { CommunityModule } from './community/community.module';
 
 const ENV = process.env.NODE_ENV;
 
@@ -45,6 +46,7 @@ const ENV = process.env.NODE_ENV;
             limit: 50 * 50,
         }),
         ScheduleModule.forRoot(),
+        CacheModule.register({ isGlobal: true }),
         PollModule,
         UserModule,
         AccountModule,
@@ -53,6 +55,7 @@ const ENV = process.env.NODE_ENV;
         ClientRequestModule,
         SseModule,
         AuthModule,
+        CommunityModule,
     ],
     providers: [
         {

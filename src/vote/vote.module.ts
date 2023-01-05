@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Vote, VoteSchema } from './vote.schema';
 import { VoteController } from './vote.controller';
@@ -11,11 +11,12 @@ import { StrategyModule } from '../web3/strategy/strategy.module';
 @Module({
     imports: [
         MongooseModule.forFeature([{ name: Vote.name, schema: VoteSchema }]),
-        PollModule,
+        forwardRef(() => PollModule),
         UserModule,
         StrategyModule,
     ],
     controllers: [VoteController],
     providers: [VoteMongoService, VoteRequestHandlerService],
+    exports: [VoteRequestHandlerService],
 })
 export class VoteModule {}

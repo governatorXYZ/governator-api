@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document } from 'mongoose';
-import { StrategyConfig } from './poll.dtos';
+import { StrategyConfig, PollOptionDto } from './poll.dtos';
 
 export type PollDocument = Poll & Document;
 
@@ -15,8 +15,8 @@ export class Poll {
     @Prop({ required: false, type: Object })
         client_config: Record<string, any>;
 
-    @Prop({ required: false, type: Object })
-        poll_options: Record<string, any>;
+    @Prop({ required: false, type: Array })
+        poll_options: PollOptionDto[];
 
     @Prop({ required: false, type: Array })
         strategy_config: StrategyConfig[];
