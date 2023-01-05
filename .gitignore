@@ -36,3 +36,8 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+# API client
+/src/api-client
+governator-api-spec.json
+.yarnrc.yml

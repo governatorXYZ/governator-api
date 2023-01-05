@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Patch } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { CommunityCreateDto, CommunityUpdateDto, CommunityResponseDto } from './community.dtos';
 import { CommunityMongoService } from './community.mongo.service';
 import { Community } from './community.schema';
@@ -16,6 +16,7 @@ export class CommunityController {
 
     @Get('community/list')
     @ApiOperation({ description: 'Fetch all communities' })
+    @ApiOkResponse({ description: 'Returns the created community object', type: CommunityResponseDto, isArray: true })
     async fetchAllCommunities() {
         return await this.mongoService.fetchAllCommunities();
     }
@@ -23,6 +24,7 @@ export class CommunityController {
     @Get('community/:community_id')
     @ApiOperation({ description: 'Fetch community by ID' })
     @ApiParam({ name: 'community_id', description: 'Get community by ID' })
+    @ApiOkResponse({ description: 'Returns the created community object', type: CommunityResponseDto })
     async fetchCommunityById(@Param('community_id') id) {
         return await this.mongoService.fetchCommunityById(id);
     }

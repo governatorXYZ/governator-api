@@ -9,10 +9,10 @@ import {
     Get,
     Logger,
 } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { SseService } from '../sse/sse.service';
 import constants from '../common/constants';
-import { DiscordRequestDto, DiscordResponsetDto } from './client-request.dtos';
+import { DiscordRequestDto, DiscordResponseDto } from './client-request.dtos';
 import { v4 as uuidv4 } from 'uuid';
 import { ClientRequestService } from './client-request.service';
 import { firstValueFrom, throwError, timeout } from 'rxjs';
@@ -33,7 +33,7 @@ export class ClientRequestController {
     @Throttle(60, 60)
     @Get('client/discord/:guild_id/:datasource/:discord_user_id')
     @ApiOperation({ description: 'Request data from client' })
-    @ApiCreatedResponse({ description: `Emits the ${constants.EVENT_REQUEST_CLIENT_DATA} event with specified payload`, type: DiscordRequestDto })
+    @ApiOkResponse({ description: `Emits the ${constants.EVENT_REQUEST_CLIENT_DATA} event with specified payload`, type: DiscordResponseDto })
     @ApiParam({
         description: 'discord guild (=server) ID',
         type: String,
@@ -87,7 +87,7 @@ export class ClientRequestController {
     @Post('client/discord/data-response')
     @ApiOperation({ description: 'Client can submit requested data to this endpoint' })
     @ApiCreatedResponse({ description: 'Forwards client response to the get request observable' })
-    async sendResponse(@Body() params: DiscordResponsetDto): Promise<void> {
+    async sendResponse(@Body() params: DiscordResponseDto): Promise<void> {
         await this.clientRequestService.emit(params);
     }
 
