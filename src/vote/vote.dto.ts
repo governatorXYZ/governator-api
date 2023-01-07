@@ -3,6 +3,15 @@ import { ObjectId } from 'mongodb';
 import { VoteRawResponseUpdate } from './types';
 import { IsIn, IsMongoId, IsOptional, IsString } from 'class-validator';
 import constants from '../common/constants';
+import { VoteDocument } from './vote.schema';
+import { Types } from 'mongoose';
+
+export class VoteByPollAggregate {
+    aggregate: any[];
+    votes: (VoteDocument & {
+        _id: Types.ObjectId;
+    })[];
+}
 
 export class VoteRawResponseDto {
 

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsIn, IsNotEmpty, IsNumberString, IsOptional, IsUUID } from 'class-validator';
+import { IsArray, IsIn, IsNumberString, IsOptional, IsUUID } from 'class-validator';
 import constants from '../common/constants';
 import { Type } from 'class-transformer';
 
@@ -50,14 +50,14 @@ export class DiscordRequestDto {
 }
 
 class ClientResponseDataDto {
-    @IsNotEmpty()
-    @ApiProperty({
-        description: 'name of channel or role indexed by ID (snowflake)',
-    })
-        snowflake: string;
+    // @IsNotEmpty()
+    // @ApiProperty({
+    //     description: 'name of channel or role indexed by ID (snowflake)',
+    // })
+        [key: string]: string;
 }
 
-export class DiscordResponsetDto {
+export class DiscordResponseDto {
     @IsUUID()
     @ApiProperty({
         description: 'Unique Id of this request (as received from request)',

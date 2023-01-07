@@ -12,7 +12,6 @@ import axios, { AxiosResponse } from 'axios';
 import { DiscordAccountResponseDto, EthereumAccountResponseDto } from '../account/account.dtos';
 import { Cache } from 'cache-manager';
 import Utils from '../common/utils';
-import { EthereumAccount } from 'src/account/ethereumAccount.schema';
 
 @Injectable()
 export class VoteRequestHandlerService {
@@ -231,8 +230,8 @@ export class VoteRequestHandlerService {
             strategy_config: {
                 $elemMatch: {
                     strategy_type: strategyTypes.STRATEGY_TYPE_TOKEN_WEIGHTED,
-                }
-            }
+                },
+            },
         });
 
         this.logger.debug(`caching vote power of acccount ${account._id} for polls ${polls.map(poll => poll._id)}`);

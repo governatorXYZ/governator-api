@@ -8,9 +8,8 @@ import { ethers } from 'ethers';
 import { HttpException, HttpStatus } from '@nestjs/common';
 
 export abstract class AccountBase {
-    @IsMongoId()
     @ApiProperty({
-        description: 'mongodb account id',
+        description: 'account id',
         required: false,
     })
         _id: string;
@@ -22,6 +21,15 @@ export abstract class AccountBase {
         example: new ObjectId(),
     })
         user_id: string;
+    
+    @IsIn(Array.from(constants.PROVIDERS.keys()))
+    @ApiProperty({
+        description: 'account provider id',
+        required: true,
+        example: 'ethereum | discord',
+        default: 'discord',
+    })
+        provider_id: string;
 
     @ApiProperty({
         description: 'Datetime when record was created',
@@ -47,22 +55,6 @@ export class DiscordAccountResponseDto extends AccountBase {
         example: '123456789873827394',
     })
         _id: string;
-
-    // @IsMongoId()
-    // @ApiProperty({
-    //     description: 'Governator user ID',
-    //     required: true,
-    // })
-    //     user_id: string;
-
-    @IsIn(Array.from(constants.PROVIDERS.keys()))
-    @ApiProperty({
-        description: 'discord',
-        required: true,
-        default: 'discord',
-        example: 'discord',
-    })
-        provider_id: string;
 
     @IsString()
     @ApiProperty({
@@ -121,15 +113,6 @@ export class EthereumAccountResponseDto extends AccountBase {
     //     required: true,
     // })
     //     user_id: string;
-
-    @IsIn(Array.from(constants.PROVIDERS.keys()))
-    @ApiProperty({
-        description: 'ethereum',
-        required: true,
-        example: 'ethereum',
-        default: 'ethereum',
-    })
-        provider_id: string;
 
     @IsString()
     @ApiProperty({

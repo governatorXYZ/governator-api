@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Post, Patch, MessageEvent, Logger } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
-import { PollCreateDto, PollUpdateDto } from './poll.dtos';
+import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { PollCreateDto, PollUpdateDto, PollResponseDto } from './poll.dtos';
 import { PollMongoService } from './poll.mongo.service';
 import { Poll } from './poll.schema';
 import { SseService } from '../sse/sse.service';
@@ -26,6 +26,7 @@ export class PollController {
 
     @Get('poll/list')
     @ApiOperation({ description: 'Fetch all polls' })
+    @ApiOkResponse({ description: 'Returns all polls', type: PollResponseDto, isArray: true })
     async fetchAllPolls() {
         return await this.mongoService.fetchAllPolls();
     }
@@ -33,6 +34,7 @@ export class PollController {
     @Get('poll/:poll_id')
     @ApiOperation({ description: 'Fetch poll by ID' })
     @ApiParam({ name: 'poll_id', description: 'Get poll by ID' })
+    @ApiOkResponse({ description: 'Returns poll by poll_id', type: PollResponseDto })
     async fetchPollById(@Param('poll_id') id) {
         return await this.mongoService.fetchPollById(id);
     }
@@ -40,6 +42,7 @@ export class PollController {
     @Get('poll/user/:author_user_id')
     @ApiOperation({ description: 'Fetch polls by author' })
     @ApiParam({ name: 'author_user_id', description: 'Governator user ID' })
+    @ApiOkResponse({ description: 'Returns polls by author_user_id', type: PollResponseDto, isArray: true })
     async fetchPollByUser(@Param('author_user_id') author_user_id) {
         return await this.mongoService.fetchPollByUser(author_user_id);
     }
@@ -47,13 +50,14 @@ export class PollController {
     @Get('poll/user/:author_user_id/active')
     @ApiOperation({ description: 'Fetch active polls by author' })
     @ApiParam({ name: 'author_user_id', description: 'Governator user ID' })
+    @ApiOkResponse({ description: 'Returns active polls by author_user_id', type: PollResponseDto, isArray: true })
     async fetchPollByUserOngoing(@Param('author_user_id') author_user_id) {
         return await this.mongoService.fetchPollByUserOngoing(author_user_id);
     }
 
     @Post('poll/create')
     @ApiOperation({ description: 'Create a new poll' })
-    @ApiCreatedResponse({ description: `Returns the created poll object and emits ${constants.EVENT_POLL_CREATE} event`, type: PollCreateDto })
+    @ApiCreatedResponse({ description: `Returns the created poll object and emits ${constants.EVENT_POLL_CREATE} event`, type: PollResponseDto })
     async createPoll(@Body() params: PollCreateDto): Promise<Poll> {
         if (params.strategy_config) {
             // sanitizing block heights
@@ -79,7 +83,7 @@ export class PollController {
 
     @Patch('poll/update/:poll_id')
     @ApiParam({ name: 'poll_id', description: 'ID of poll to be updated' })
-    @ApiCreatedResponse({ description: `Returns the updated poll object and emits ${constants.EVENT_POLL_UPDATE} event`, type: PollCreateDto })
+    @ApiCreatedResponse({ description: `Returns the updated poll object and emits ${constants.EVENT_POLL_UPDATE} event`, type: PollResponseDto })
     async updatePoll(@Param('poll_id') id, @Body() poll: PollUpdateDto): Promise<Poll> {
         const updatePoll = await this.mongoService.updatePoll(id, poll);
         await this.sseService.emit({
@@ -91,7 +95,7 @@ export class PollController {
 
     @Delete('poll/delete/:poll_id')
     @ApiParam({ name: 'poll_id', description: 'ID of poll to be deleted' })
-    @ApiCreatedResponse({ description: `Returns the deleted poll object and emits ${constants.EVENT_POLL_DELETE} event`, type: PollCreateDto })
+    @ApiCreatedResponse({ description: `Returns the deleted poll object and emits ${constants.EVENT_POLL_DELETE} event`, type: PollResponseDto })
     async deletePoll(@Param('poll_id') id): Promise<Poll> {
         const deletePoll = await this.mongoService.deletePoll(id);
         await this.sseService.emit({

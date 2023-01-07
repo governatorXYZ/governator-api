@@ -16,6 +16,7 @@ lerna-debug.log*
 .env
 .env.production
 .env.development
+.env.qa
 
 # Tests
 /coverage
@@ -36,3 +37,8 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+# API client
+/src/api-client
+governator-api-spec.json
+.yarnrc.yml
