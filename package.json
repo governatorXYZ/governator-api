@@ -1,6 +1,6 @@
 {
   "name": "governator-api-server",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "",
   "author": "Governator team",
   "private": false,
@@ -11,7 +11,7 @@
     "build": "yarn prebuild && nest build",
     "codegen": "yarn test:e2e && openapi-generator-cli generate -i ./governator-api-spec.json -g typescript-axios -o src/api-client --additional-properties=withoutPrefixEnums=true,withInterfaces=true,supportsES6=true,npmName=$API_CLIENT_NPM_PACKAGE_NAME,npmVersion=$npm_package_version",
     "codegen:dev": "export NODE_ENV=development eval $(grep '^NPM_TOKEN' ./.env.development) eval $(grep '^API_CLIENT_NPM_PACKAGE_NAME' ./.env.development) && yarn codegen && cd ./src/api-client && yarn publish --verbose --new-version $npm_package_version",
-    "codegen:prod": "export NODE_ENV=production && yarn codegen && cd ./src/api-client && yarn publish --verbose --new-version $npm_package_version",
+    "codegen:qa": "export NODE_ENV=qa eval $(grep '^NPM_TOKEN' ./.env.qa) eval $(grep '^API_CLIENT_NPM_PACKAGE_NAME' ./.env.qa) && yarn codegen && cd ./src/api-client && yarn publish --verbose --new-version $npm_package_version",
     "build:dev": "yarn build:client:dev && yarn prebuild && nest build",
     "build:prod": "yarn build:client:prod && yarn prebuild && nest build",
     "start": "nest start",

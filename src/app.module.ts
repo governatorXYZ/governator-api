@@ -24,7 +24,7 @@ const ENV = process.env.NODE_ENV;
             envFilePath: !ENV ? '.env' : `.env.${ENV}`,
             validationSchema: Joi.object({
                 NODE_ENV: Joi.string()
-                    .valid('development', 'production', 'test')
+                    .valid('development', 'production', 'qa')
                     .default('development'),
                 API_PORT: Joi.number().default(3000),
                 API_GLOBAL_PREFIX: Joi.string().default('api'),
