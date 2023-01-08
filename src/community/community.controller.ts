@@ -24,9 +24,17 @@ export class CommunityController {
     @Get('community/:community_id')
     @ApiOperation({ description: 'Fetch community by ID' })
     @ApiParam({ name: 'community_id', description: 'Get community by ID' })
-    @ApiOkResponse({ description: 'Returns the created community object', type: CommunityResponseDto })
+    @ApiOkResponse({ description: 'Returns community object', type: CommunityResponseDto })
     async fetchCommunityById(@Param('community_id') id) {
         return await this.mongoService.fetchCommunityById(id);
+    }
+
+    @Get('community/discord/:guild_id')
+    @ApiOperation({ description: 'Fetch community by Discord server ID' })
+    @ApiParam({ name: 'guild_id', description: 'Get community by Discord server ID' })
+    @ApiOkResponse({ description: 'Returns community object', type: CommunityResponseDto, isArray: true })
+    async fetchCommunityByDiscordGuildId(@Param('guild_id') id) {
+        return await this.mongoService.fetchCommunityByDiscordGuildId(id);
     }
 
     @Post('community/create')
