@@ -10,5 +10,6 @@ import { CommunityController } from './community.controller';
     ],
     controllers: [CommunityController],
     providers: [CommunityMongoService],
+    exports: [CommunityMongoService],
 })
 export class CommunityModule {}
