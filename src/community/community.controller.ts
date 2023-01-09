@@ -32,7 +32,7 @@ export class CommunityController {
     @Get('community/discord/:guild_id')
     @ApiOperation({ description: 'Fetch community by Discord server ID' })
     @ApiParam({ name: 'guild_id', description: 'Get community by Discord server ID' })
-    @ApiOkResponse({ description: 'Returns community object', type: CommunityResponseDto, isArray: true })
+    @ApiOkResponse({ description: 'Returns community object', type: CommunityResponseDto })
     async fetchCommunityByDiscordGuildId(@Param('guild_id') id) {
         return await this.mongoService.fetchCommunityByDiscordGuildId(id);
     }
