@@ -163,6 +163,7 @@ export class PollResponseDto {
         required: true,
         type: ClientConfigBase,
         example: [{
+            guild_id: 'Snowflake',
             provider_id: 'discord',
             channel_id: 'Snowflake',
             message_id: 'Snowflake',

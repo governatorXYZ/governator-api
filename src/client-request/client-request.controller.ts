@@ -17,6 +17,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { ClientRequestService } from './client-request.service';
 import { firstValueFrom, throwError, timeout } from 'rxjs';
 import { Throttle } from '@nestjs/throttler';
+import { CommunityMongoService } from 'src/community/community.mongo.service';
+import { CommunityClientConfigDiscordDto } from 'src/community/community.dtos';
 
 @ApiTags('Request data from client')
 @ApiSecurity('api_key')
@@ -26,6 +28,7 @@ export class ClientRequestController {
     constructor(
         protected sseService: SseService,
         protected clientRequestService: ClientRequestService,
+        protected communityService: CommunityMongoService,
     ) {
         // do nothing
     }
@@ -50,7 +53,7 @@ export class ClientRequestController {
         type: String,
         name:'discord_user_id',
     })
-    async sendRequest(@Param('guild_id') guild_id, @Param('datasource') datasource, @Param('discord_user_id') discordUserId): Promise<MessageEvent> {
+    async sendRequest(@Param('guild_id') guildId, @Param('datasource') datasource, @Param('discord_user_id') discordUserId): Promise<MessageEvent> {
 
         if (!constants.PROVIDERS.get('discord').methods.includes(datasource)) {
             throw new HttpException(`Invalid datasource, should be one of ${constants.PROVIDERS.get('discord').methods}`, HttpStatus.BAD_REQUEST);
@@ -60,13 +63,23 @@ export class ClientRequestController {
             if (!discordUserId || discordUserId === '') {
                 throw new HttpException('discord_user_id parameter is required', HttpStatus.BAD_REQUEST);
             }
+
+            const discordConfig = (await this.communityService.fetchCommunityByDiscordGuildId(guildId)).client_config.find(config => config.provider_id === 'discord') as CommunityClientConfigDiscordDto;
+
+            if (Array.isArray(discordConfig.user_allowlist) && discordConfig.user_allowlist.length && !discordConfig.user_allowlist.includes(discordUserId)) {
+                throw new HttpException('user does not have permission to perform this action', HttpStatus.BAD_REQUEST);
+            }
+
+            if (Array.isArray(discordConfig.user_denylist) && discordConfig.user_denylist.length && discordConfig.user_denylist.includes(discordUserId)) {
+                throw new HttpException('user does not have permission to perform this action', HttpStatus.BAD_REQUEST);
+            }
         }
 
         const data = new DiscordRequestDto;
         data.provider_id = 'discord';
         data.method = datasource;
         data.uuid = uuidv4();
-        data.guildId = guild_id;
+        data.guildId = guildId;
         data.userId = discordUserId;
 
         const event = {
