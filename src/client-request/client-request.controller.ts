@@ -64,13 +64,13 @@ export class ClientRequestController {
                 throw new HttpException('discord_user_id parameter is required', HttpStatus.BAD_REQUEST);
             }
 
-            const discordConfig = (await this.communityService.fetchCommunityByDiscordGuildId(guildId)).client_config.find(config => config.provider_id === 'discord') as CommunityClientConfigDiscordDto;
+            const discordConfig = (await this.communityService.fetchCommunityByDiscordGuildId(guildId))?.client_config.find(config => config.provider_id === 'discord') as CommunityClientConfigDiscordDto;
 
-            if (Array.isArray(discordConfig.user_allowlist) && discordConfig.user_allowlist.length && !discordConfig.user_allowlist.includes(discordUserId)) {
+            if (discordConfig && Array.isArray(discordConfig.user_allowlist) && discordConfig.user_allowlist.length && !discordConfig.user_allowlist.includes(discordUserId)) {
                 throw new HttpException('user does not have permission to perform this action', HttpStatus.BAD_REQUEST);
             }
 
-            if (Array.isArray(discordConfig.user_denylist) && discordConfig.user_denylist.length && discordConfig.user_denylist.includes(discordUserId)) {
+            if (discordConfig && Array.isArray(discordConfig.user_denylist) && discordConfig.user_denylist.length && discordConfig.user_denylist.includes(discordUserId)) {
                 throw new HttpException('user does not have permission to perform this action', HttpStatus.BAD_REQUEST);
             }
         }
