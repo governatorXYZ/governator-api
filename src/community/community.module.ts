@@ -1,13 +1,9 @@
-import { Logger, Module, HttpStatus, forwardRef, CACHE_MANAGER } from '@nestjs/common';
-import { MongooseModule, getModelToken } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Logger, Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
 import { CommunityMongoService } from './community.mongo.service';
-import { Community, CommunitySchema, CommunityDocument } from './community.schema';
+import { Community, CommunitySchema } from './community.schema';
 import { CommunityController } from './community.controller';
 import { CommunityClientConfigDiscordDto } from './community.dtos';
-import { Cache } from 'cache-manager';
-import { existsSync } from 'fs';
-
 
 @Module({
     imports: [
@@ -23,6 +19,7 @@ import { existsSync } from 'fs';
                         logger.log('Running mongoose pre-validate hook');
                         try {
                             // We fetch document with same guild_id in CommunityClientConfigDiscord from db
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                             // @ts-ignore
                             const exists = await this.constructor.findOne(
                                 {
@@ -49,6 +46,7 @@ import { existsSync } from 'fs';
                                 // since there seems to be no way to cancel the transaction or to update the validation function
                                 // we update the new documents ID to equal existing documents ID which will trigger a validation 
                                 // error and prevent document from being saved.
+                                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                                 // @ts-ignore
                                 this.set('_id', exists._id);
                             }
@@ -60,7 +58,6 @@ import { existsSync } from 'fs';
 
                     return schema;
                 },
-                // inject: [CACHE_MANAGER],
             },
         ]),
     ],
