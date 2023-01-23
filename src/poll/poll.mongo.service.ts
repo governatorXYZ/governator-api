@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, Logger, MessageEvent, CACHE_MANAGER, Inject } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger, MessageEvent } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Poll, PollDocument } from './poll.schema';
@@ -8,7 +8,6 @@ import { CronJob } from 'cron';
 import constants from '../common/constants';
 import { SseService } from '../sse/sse.service';
 import { StrategyMongoService } from '../web3/strategy/strategy.mongo.service';
-import { Cache } from 'cache-manager';
 
 @Injectable()
 export class PollMongoService {
@@ -19,7 +18,6 @@ export class PollMongoService {
         private schedulerRegistry: SchedulerRegistry,
         protected sseService: SseService,
         protected strategyService: StrategyMongoService,
-        @Inject(CACHE_MANAGER) private cacheManager: Cache,
     ) {
         // do nothing
     }

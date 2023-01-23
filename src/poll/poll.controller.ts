@@ -5,9 +5,8 @@ import { PollMongoService } from './poll.mongo.service';
 import { Poll } from './poll.schema';
 import { SseService } from '../sse/sse.service';
 import constants from '../common/constants';
-import web3Utils from '../web3/web3.util';
-import { VoteRequestHandlerService } from '../vote/vote.request-handler.service';
-
+import { PollCreateProducer } from './poll.q.producer.service';
+import { PollCreateConsumer } from './poll.q.consumer.service';
 
 @ApiTags('Poll')
 @ApiSecurity('api_key')
@@ -19,7 +18,8 @@ export class PollController {
     constructor(
         protected mongoService: PollMongoService,
         protected sseService: SseService,
-        protected voteRequestHandlerService: VoteRequestHandlerService,
+        private readonly pollCreateProducer: PollCreateProducer,
+        private readonly pollCreateConsumer: PollCreateConsumer,
     ) {
         // do nothing
     }
@@ -58,27 +58,13 @@ export class PollController {
     @Post('poll/create')
     @ApiOperation({ description: 'Create a new poll' })
     @ApiCreatedResponse({ description: `Returns the created poll object and emits ${constants.EVENT_POLL_CREATE} event`, type: PollResponseDto })
-    async createPoll(@Body() params: PollCreateDto): Promise<Poll> {
-        if (params.strategy_config) {
-            // sanitizing block heights
-            let block = null;
-            for await (const strategy of params.strategy_config) {
-                if (strategy.block_height <= 0) {
-                    if (!block) block = await web3Utils.getEthersProvider(1).getBlockNumber();
-                    strategy.block_height = block - strategy.block_height;
-                }
-            }
-        }
+    async createPoll(@Body() params: PollCreateDto): Promise<any> {
 
-        const poll = await this.mongoService.createPoll(params);
+        const job = await this.pollCreateProducer.pollCreateJob(params);
 
-        if (Number(process.env.CACHE)) this.voteRequestHandlerService.cacheVotePowersByPoll(poll);
+        this.logger.log(`PollCreate Job ${job.id} running. Awaiting result..`);
 
-        this.sseService.emit({
-            data: poll,
-            type: constants.EVENT_POLL_CREATE,
-        } as MessageEvent);
-        return poll;
+        return this.pollCreateConsumer.getReturnValueFromObservable(job);
     }
 
     @Patch('poll/update/:poll_id')
@@ -86,7 +72,7 @@ export class PollController {
     @ApiCreatedResponse({ description: `Returns the updated poll object and emits ${constants.EVENT_POLL_UPDATE} event`, type: PollResponseDto })
     async updatePoll(@Param('poll_id') id, @Body() poll: PollUpdateDto): Promise<Poll> {
         const updatePoll = await this.mongoService.updatePoll(id, poll);
-        await this.sseService.emit({
+        this.sseService.emit({
             data: updatePoll,
             type: constants.EVENT_POLL_UPDATE,
         } as MessageEvent);
@@ -98,7 +84,7 @@ export class PollController {
     @ApiCreatedResponse({ description: `Returns the deleted poll object and emits ${constants.EVENT_POLL_DELETE} event`, type: PollResponseDto })
     async deletePoll(@Param('poll_id') id): Promise<Poll> {
         const deletePoll = await this.mongoService.deletePoll(id);
-        await this.sseService.emit({
+        this.sseService.emit({
             data: deletePoll,
             type: constants.EVENT_POLL_DELETE,
         } as MessageEvent);
