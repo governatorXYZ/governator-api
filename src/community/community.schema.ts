@@ -12,7 +12,7 @@ export class Community {
     @Prop({ required: true, auto: true, type: mongoose.Schema.Types.ObjectId })
         _id: string;
 
-    @Prop({ required: true })
+    @Prop({ required: true, unique: true })
         name: string;
 
     @Prop({ required: true, type: Object })

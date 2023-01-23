@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import {
     DiscordAccountCreateDto,
     DiscordAccountResponseDto,
@@ -30,21 +30,21 @@ export class AccountController {
 
     @Get('account/ethereum/list')
     @ApiOperation({ description: 'List all Ethereum accounts' })
-    @ApiCreatedResponse({ description: 'Returns an Ethereum account object', type: EthereumAccountResponseDto, isArray: true })
+    @ApiOkResponse({ description: 'Returns an Ethereum account object', type: EthereumAccountResponseDto, isArray: true })
     async findManyEthereumAccount(): Promise<EthereumAccount[]> {
         return await this.ethereumMongoService.findManyAccount({});
     }
 
     @Get('account/ethereum/get-by-user-id/:user_id')
     @ApiOperation({ description: 'Find Ethereum accounts' })
-    @ApiCreatedResponse({ description: 'Returns an Ethereum account object array', type: EthereumAccountResponseDto, isArray: true })
+    @ApiOkResponse({ description: 'Returns an Ethereum account object array', type: EthereumAccountResponseDto, isArray: true })
     async findOneEthereumAccountByUserId(@Param() params: EthereumAccountUpdateUserDto): Promise<EthereumAccount[]> {
         return await this.ethereumMongoService.findManyAccount({ user_id: params.user_id });
     }
 
     @Get('account/ethereum/get-by-account-id/:_id')
     @ApiOperation({ description: 'Find an ethereum account' })
-    @ApiCreatedResponse({ description: 'Returns an Ethereum account object', type: EthereumAccountResponseDto })
+    @ApiOkResponse({ description: 'Returns an Ethereum account object', type: EthereumAccountResponseDto })
     async findOneEthereumAccountByProviderAccountId(@Param() params: EthereumAccountCreateDto): Promise<EthereumAccount> {
         return await this.ethereumMongoService.findOneAccount({ _id: params._id });
     }
@@ -75,7 +75,7 @@ export class AccountController {
 
     @Get('account/discord/list')
     @ApiOperation({ description: 'List all Discord accounts' })
-    @ApiCreatedResponse({ description: 'Returns an Discord account object', type: DiscordAccountResponseDto, isArray: true })
+    @ApiOkResponse({ description: 'Returns an Discord account object', type: DiscordAccountResponseDto, isArray: true })
     async findManyDiscordAccount(): Promise<DiscordAccount[]> {
         return await this.discordMongoService.findManyAccount({});
     }
@@ -83,14 +83,14 @@ export class AccountController {
 
     @Get('account/discord/get-by-user-id/:user_id')
     @ApiOperation({ description: 'Find discord accounts by governator id' })
-    @ApiCreatedResponse({ description: 'Returns a Discord account object', type: DiscordAccountResponseDto, isArray: true })
+    @ApiOkResponse({ description: 'Returns a Discord account object', type: DiscordAccountResponseDto, isArray: true })
     async findOneDiscordAccountByUserId(@Param() params: DiscordAccountValidateUserIdDto): Promise<DiscordAccount[]> {
         return await this.discordMongoService.findManyAccount({ user_id: params.user_id });
     }
 
     @Get('account/discord/get-by-account-id/:_id')
     @ApiOperation({ description: 'Find a discord account' })
-    @ApiCreatedResponse({ description: 'Returns a Discord account object', type: DiscordAccountResponseDto })
+    @ApiOkResponse({ description: 'Returns a Discord account object', type: DiscordAccountResponseDto })
     async findOneDiscordAccountByProviderAccountId(@Param() params: DiscordAccountValidateAccountIdDto): Promise<DiscordAccount> {
         return await this.discordMongoService.findOneAccount({ _id: params._id });
     }

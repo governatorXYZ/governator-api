@@ -51,6 +51,27 @@ export class CommunityMongoService {
         }
     }
 
+    // TODO: find better solution for this
+    async fetchCommunityByDiscordGuildId(guildId: string): Promise<Community> {
+        try {
+            return await this.communityModel.findOne(
+                {
+                    client_config: {
+                        '$elemMatch': {
+                            provider_id: 'discord',
+                            guild_id: guildId,
+                        },
+                    },
+                },
+            ).exec();
+
+        } catch (e) {
+            this.logger.error('Failed to fetch community from db', e);
+
+            throw new HttpException('Failed to fetch community from db', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     async updateCommunity(id: string, communityUpdateDto: CommunityUpdateDto): Promise<Community> {
         try {
             return this.communityModel.findByIdAndUpdate(id, communityUpdateDto, { new: true }).exec();
