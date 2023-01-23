@@ -13,7 +13,7 @@ export class SseController {
 
     @Sse('sse')
     stream(): Observable<Partial<MessageEvent>> {
-        return this.sseService.eventStream;
+        return this.sseService.observable;
     }
 
     @Post('sse/publish')

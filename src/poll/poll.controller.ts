@@ -58,7 +58,7 @@ export class PollController {
     @Post('poll/create')
     @ApiOperation({ description: 'Create a new poll' })
     @ApiCreatedResponse({ description: `Returns the created poll object and emits ${constants.EVENT_POLL_CREATE} event`, type: PollResponseDto })
-    async createPoll(@Body() params: PollCreateDto): Promise<any> {
+    async createPoll(@Body() params: PollCreateDto): Promise<PollResponseDto> {
 
         const job = await this.pollCreateProducer.pollCreateJob(params);
 

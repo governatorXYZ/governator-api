@@ -1,18 +1,28 @@
-import { Body, Controller, Get, Param, Post, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards, UseInterceptors, CACHE_MANAGER, Inject, Logger } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { VoteMongoService } from './vote.mongo.service';
-import { VoteRequestDto, VoteResponseDto, VoteByPollAggregate } from './vote.dto';
+import { VoteRequestDto, VoteResponseDto, VoteByPollAggregate } from './vote.dtos';
 import { VoteRequestHandlerService } from './vote.request-handler.service';
 import { VoteResultInterceptor } from './vote.result.interceptor';
 import { VoteRequestGuard } from './vote.request.guard';
+import Utils from 'src/common/utils';
+import { Cache } from 'cache-manager';
+import { VoteCreateConsumer } from './vote.q.consumer.service';
+import { VoteCreateProducer } from './vote.q.producer.service';
 
 @ApiTags('Vote')
 @ApiSecurity('api_key')
 @Controller()
 export class VoteController {
+
+    private readonly logger = new Logger(VoteController.name);
+
     constructor(
         protected mongoService: VoteMongoService,
         protected voteRequestHandlerService: VoteRequestHandlerService,
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
+        private readonly voteCreateProducer: VoteCreateProducer,
+        private readonly voteCreateConsumer: VoteCreateConsumer,
     ) {
         // do nothing
     }
@@ -80,7 +90,22 @@ export class VoteController {
     @ApiOperation({ description: 'Submit a vote' })
     @ApiCreatedResponse({ description: 'Returns vote object and method used (create/update/delete)', type: VoteResponseDto, isArray: true })
     async createVote(@Param('poll_id') poll_id, @Body() voteRequest: VoteRequestDto): Promise<VoteResponseDto[]> {
-        return await this.voteRequestHandlerService.validateVoteRequest(poll_id, voteRequest);
+
+        // check if value is cached
+        const key = Utils.formatCacheKey(voteRequest.provider_id, voteRequest.account_id, poll_id);
+        const cachedVotePower = await this.cacheManager.get(key);
+
+        // if it is cached we run directly, otherwise we create job which will apply a throttle
+        if (Number(process.env.CACHE) === 1 && cachedVotePower) {
+            return await this.voteRequestHandlerService.validateVoteRequest(poll_id, voteRequest);
+
+        } else {
+            const job = await this.voteCreateProducer.voteCreateJob(poll_id, voteRequest);
+
+            this.logger.log(`PollCreate Job ${job.id} running. Awaiting result..`);
+
+            return this.voteCreateConsumer.getReturnValueFromObservable(job);
+        }
     }
 
 }

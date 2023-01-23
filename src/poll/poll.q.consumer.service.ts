@@ -3,12 +3,12 @@ import { Job } from 'bull';
 import { Logger } from '@nestjs/common';
 import { Subject } from 'rxjs';
 import { PollMongoService } from './poll.mongo.service';
-import { PollCreateDto } from './poll.dtos';
+import { PollCreateDto, PollResponseDto } from './poll.dtos';
 import web3Utils from '../web3/web3.util';
 import { VoteRequestHandlerService } from '../vote/vote.request-handler.service';
 import { SseService } from '../sse/sse.service';
 import constants from '../common/constants';
-import { share, filter, take } from 'rxjs';
+import { filter, first } from 'rxjs';
 
 
 @Processor('poll-create')
@@ -24,15 +24,17 @@ export class PollCreateConsumer {
         this.eventStream = new Subject();
     }
 
-    async getReturnValueFromObservable(job) {
-        return new Promise(resolve=>{
-            this.eventStream.asObservable()
+    async getReturnValueFromObservable(job): Promise<PollResponseDto> {
+        return new Promise(resolve => {
+            this.eventStream
                 .pipe(
-                    take(1),
-                    share(),
+                    first(),
                     filter((data: any) => data.jobId === job.id),
-                ) .subscribe(
-                    { next: (data:any) => resolve(data.poll) },
+                ).subscribe(
+                    {
+                        next: (data:any) => resolve(data.poll),
+                        complete: () => this.logger.debug(`Observable for Job ${job.id} has completed`),
+                    },
                 );
         });
     }

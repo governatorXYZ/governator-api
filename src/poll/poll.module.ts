@@ -24,20 +24,6 @@ import { BullModule } from '@nestjs/bull';
                     duration: 2000,
                 },
             },
-            // {
-            //     name: 'vote-cast',
-            //     limiter: {
-            //         max: 2,
-            //         duration: 1000,
-            //     },
-            // },
-            // {
-            //     name: 'vote-result',
-            //     limiter: {
-            //         max: 10,
-            //         duration: 1000,
-            //     },
-            // },
         ),
     ],
     controllers: [PollController],

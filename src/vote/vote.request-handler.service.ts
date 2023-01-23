@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable, Logger, CACHE_MANAGER, Inject } from '@nestjs/common';
-import { VoteCreateDto, VoteRawResponseDto, VoteRequestDto, VoteResponseDto } from './vote.dto';
+import { VoteCreateDto, VoteRawResponseDto, VoteRequestDto, VoteResponseDto } from './vote.dtos';
 import { Poll } from '../poll/poll.schema';
 import { UserService } from '../user/user.service';
 import { UserResponseDto } from '../user/user.dtos';

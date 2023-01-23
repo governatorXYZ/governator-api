@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Vote, VoteDocument } from './vote.schema';
-import { VoteCreateDto, VoteRawResponseDto, VoteResponseDto } from './vote.dto';
+import { VoteCreateDto, VoteRawResponseDto, VoteResponseDto } from './vote.dtos';
 import { VoteRawResponseUpdate } from './types';
 import { UserService } from '../user/user.service';
 import { ethers } from 'ethers';
