@@ -51,25 +51,29 @@ const ENV = process.env.NODE_ENV;
         BullModule.forRootAsync({
             imports: [ConfigModule],
             useFactory: async (configService: ConfigService) => (
-                configService.get('UPSTASH_REDIS_URL') ?
-                    {
-                        redis: configService.get('UPSTASH_REDIS_URL'),
-                    } :
-                    {
-                        redis: {
-                            host: 'localhost',
-                            port: 6379,
-                        },
-                    }
+                {
+                    redis: {
+                        host: configService.get('REDIS_HOST'),
+                        port: configService.get('REDIS_PORT'),
+                        password: configService.get('REDIS_PASSWORD'),
+                        tls: {},
+                    },
+                }
+                // configService.get('UPSTASH_REDIS_URL') ?
+                //     {
+                //         redis: configService.get('UPSTASH_REDIS_URL'),
+                //     } :
+                //     {
+                //         redis: {
+                //             host: configService.get('REDIS_HOST'),
+                //             port: configService.get('REDIS_PORT'),
+                //             password: configService.get('REDIS_PASSWORD'),
+                //             tls: {},
+                //         },
+                //     }
             ),
             inject: [ConfigService],
         }),
-        // BullModule.forRoot({
-        //     redis: {
-        //         host: 'localhost',
-        //         port: 6379,
-        //     },
-        // }),
         PollModule,
         UserModule,
         AccountModule,
