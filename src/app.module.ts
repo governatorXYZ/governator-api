@@ -56,21 +56,9 @@ const ENV = process.env.NODE_ENV;
                         host: configService.get('REDIS_HOST'),
                         port: configService.get('REDIS_PORT'),
                         password: configService.get('REDIS_PASSWORD'),
-                        tls: {},
+                        username: configService.get('REDIS_USERNAME'),
                     },
                 }
-                // configService.get('UPSTASH_REDIS_URL') ?
-                //     {
-                //         redis: configService.get('UPSTASH_REDIS_URL'),
-                //     } :
-                //     {
-                //         redis: {
-                //             host: configService.get('REDIS_HOST'),
-                //             port: configService.get('REDIS_PORT'),
-                //             password: configService.get('REDIS_PASSWORD'),
-                //             tls: {},
-                //         },
-                //     }
             ),
             inject: [ConfigService],
         }),
