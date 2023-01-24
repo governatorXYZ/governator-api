@@ -10,6 +10,7 @@ import { SseService } from '../sse/sse.service';
 import constants from '../common/constants';
 import { filter, first } from 'rxjs';
 import { GraphqlService } from '../web3/token-vote/graphql/graphql.service';
+import { EvmService } from '../web3/token-vote/evm/evm.service';
 
 
 @Processor('poll-create')
@@ -22,6 +23,7 @@ export class PollCreateConsumer {
         protected voteRequestHandlerService: VoteRequestHandlerService,
         protected sseService: SseService,
         protected gqlService: GraphqlService,
+        protected evmService: EvmService,
     ) {
         this.eventStream = new Subject();
     }
@@ -77,11 +79,17 @@ export class PollCreateConsumer {
                 strategy.block_height.find(BlockHeight => BlockHeight.chain_id === '1').block = mainnetBlock;
             }
             
-            // add just polygon for now.
-            const polygonBlock = await this.gqlService.getEquivalentBlock(mainnetBlock, '137');
+            for (const chainId of constants.SUPPORTED_CHAIN_IDS) {
 
-            strategy.block_height.push({ chain_id: '137', block: polygonBlock });
+                if (chainId === '1') continue;
 
+                const equivalentBlock = await this.gqlService.getEquivalentBlock(mainnetBlock, chainId).catch(() => {
+                    // TODO MVP only! reimplement this with proper method to get equivalent block height
+                    return this.evmService.getEthersProvider(chainId);
+                });
+
+                strategy.block_height.push({ chain_id: chainId, block: equivalentBlock });
+            }
         }
 
         await job.progress(1);
