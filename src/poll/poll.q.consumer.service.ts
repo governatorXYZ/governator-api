@@ -9,6 +9,7 @@ import { VoteRequestHandlerService } from '../vote/vote.request-handler.service'
 import { SseService } from '../sse/sse.service';
 import constants from '../common/constants';
 import { filter, first } from 'rxjs';
+import { GraphqlService } from '../web3/token-vote/graphql/graphql.service';
 
 
 @Processor('poll-create')
@@ -20,6 +21,7 @@ export class PollCreateConsumer {
         protected mongoService: PollMongoService,
         protected voteRequestHandlerService: VoteRequestHandlerService,
         protected sseService: SseService,
+        protected gqlService: GraphqlService,
     ) {
         this.eventStream = new Subject();
     }
@@ -66,14 +68,22 @@ export class PollCreateConsumer {
 
         if (poll.strategy_config) {
             // sanitizing block heights
-            let block = null;
-            for await (const strategy of poll.strategy_config) {
-                if (strategy.block_height <= 0) {
-                    if (!block) block = await web3Utils.getEthersProvider(1).getBlockNumber();
-                    strategy.block_height = block - strategy.block_height;
-                }
+            const strategy = poll.strategy_config[0];
+            let mainnetBlock = strategy.block_height.find(BlockHeight => BlockHeight.chain_id === '1').block;
+
+            if (mainnetBlock <= 0) {
+                const block = await web3Utils.getEthersProvider(1).getBlockNumber();
+                mainnetBlock = block - mainnetBlock;
+                strategy.block_height.find(BlockHeight => BlockHeight.chain_id === '1').block = mainnetBlock;
             }
+            
+            // add just polygon for now.
+            const polygonBlock = await this.gqlService.getEquivalentBlock(mainnetBlock, '137');
+
+            strategy.block_height.push({ chain_id: '137', block: polygonBlock });
+
         }
+
         await job.progress(1);
 
         const dbPoll = await this.mongoService.createPoll(poll);

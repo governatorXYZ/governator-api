@@ -4,7 +4,7 @@ import { StrategyBaseController } from '../strategy.base.controller';
 import { StrategyBaseService } from '../strategy.base.service';
 import { StrategyMongoService } from '../strategy.mongo.service';
 import * as path from 'path';
-import { StrategyRequestDto } from '../strategy.dtos';
+import { BlockHeight, StrategyRequestDto } from '../strategy.dtos';
 import { formatKebab } from '../strategy.utils';
 import apiConfig from './CONFIG';
 import { ERC20BalanceOfDto, ERC20TokenBalances, TokenList } from '../../token-vote/evm/evm.dtos';
@@ -38,35 +38,33 @@ export class PoolyErc721WeightedStrategy extends StrategyBaseController implemen
     // modify: implement strategy here
     async strategy(
         ethAddress: string,
-        blockHeight: number | null,
+        blockHeights: BlockHeight[],
         evmService: EvmService,
         graphqlService: GraphqlService,
         logger: Logger,
         // tokenWhitelistService: TokenWhitelistMongoService,
     ) {
 
-        if (blockHeight === 0) {
-            blockHeight = await (await evmService.getEthersProvider(1)).getBlockNumber();
-        }
+        logger.debug(`blockHeights: ${blockHeights}`);
 
-        logger.debug(`blockHeight: ${blockHeight}`);
+        const mainnetBlock = blockHeights.find(block => block.chain_id === '1').block;
 
         const pooly1: ERC20BalanceOfDto = {
             contractAddress: '0x90B3832e2F2aDe2FE382a911805B6933C056D6ed',
             chain_id: 1,
-            block_height: blockHeight,
+            block_height: mainnetBlock,
         };
 
         const pooly2: ERC20BalanceOfDto = {
             contractAddress: '0x3545192b340F50d77403DC0A64cf2b32F03d00A9',
             chain_id: 1,
-            block_height: blockHeight,
+            block_height: mainnetBlock,
         };
 
         const pooly3: ERC20BalanceOfDto = {
             contractAddress: '0x5663e3E096f1743e77B8F71b5DE0CF9Dfd058523',
             chain_id: 1,
-            block_height: blockHeight,
+            block_height: mainnetBlock,
         };
 
         const tokens: TokenList = { tokens: [pooly1, pooly2, pooly3] };

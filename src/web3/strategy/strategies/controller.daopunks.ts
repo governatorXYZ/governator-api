@@ -4,7 +4,7 @@ import { StrategyBaseController } from '../strategy.base.controller';
 import { StrategyBaseService } from '../strategy.base.service';
 import { StrategyMongoService } from '../strategy.mongo.service';
 import * as path from 'path';
-import { StrategyRequestDto } from '../strategy.dtos';
+import { BlockHeight, StrategyRequestDto } from '../strategy.dtos';
 import { formatKebab } from '../strategy.utils';
 import apiConfig from './CONFIG';
 import { ERC20BalanceOfDto, ERC20TokenBalances, TokenList } from '../../token-vote/evm/evm.dtos';
@@ -37,23 +37,19 @@ export class DaoPunksStrategy extends StrategyBaseController implements OnApplic
     // modify: implement strategy here
     async strategy(
         ethAddress: string,
-        blockHeight: number | null,
+        blockHeights: BlockHeight[],
         evmService: EvmService,
         graphqlService: GraphqlService,
         logger: Logger,
         // tokenWhitelistService: TokenWhitelistMongoService,
     ) {
 
-        if (blockHeight === 0) {
-            blockHeight = await (await evmService.getEthersProvider(1)).getBlockNumber();
-        }
-
-        logger.debug(`blockHeight: ${blockHeight}`);
+        logger.debug(`blockHeights: ${JSON.stringify(blockHeights)}`);
 
         const daopunks: ERC20BalanceOfDto = {
             contractAddress: '0x700f045de43FcE6D2C25df0288b41669B7566BbE',
             chain_id: 1,
-            block_height: blockHeight,
+            block_height: blockHeights.find(block => block.chain_id === '1').block,
         };
 
         const tokens: TokenList = { tokens: [daopunks] };

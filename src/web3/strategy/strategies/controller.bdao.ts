@@ -4,7 +4,7 @@ import { StrategyBaseController } from '../strategy.base.controller';
 import { StrategyBaseService } from '../strategy.base.service';
 import { StrategyMongoService } from '../strategy.mongo.service';
 import * as path from 'path';
-import { StrategyRequestDto } from '../strategy.dtos';
+import { BlockHeight, StrategyRequestDto } from '../strategy.dtos';
 import { formatKebab } from '../strategy.utils';
 import apiConfig from './CONFIG';
 import { ERC20BalanceOfDto, ERC20TokenBalances, TokenList } from '../../token-vote/evm/evm.dtos';
@@ -37,54 +37,24 @@ export class BankTokenWeightedStrategy extends StrategyBaseController implements
     // modify: implement strategy here
     async strategy(
         ethAddress: string,
-        blockHeight: number | null,
+        blockHeights: BlockHeight[],
         evmService: EvmService,
         graphqlService: GraphqlService,
         logger: Logger,
         // tokenWhitelistService: TokenWhitelistMongoService,
     ) {
 
-        let equivalentBlock = null;
+        const equivalentBlock = blockHeights.find((blockHeight) => blockHeight.chain_id === '137').block;
+        const mainnetBlockHeight = blockHeights.find((blockHeight) => blockHeight.chain_id === '1').block;
 
-        if (blockHeight < 0) {
-            equivalentBlock = blockHeight;
-
-        } else if (blockHeight === 0) {
-            equivalentBlock = await (await evmService.getEthersProvider(137)).getBlockNumber();
-
-            blockHeight = await (await evmService.getEthersProvider(1)).getBlockNumber();
-
-        } else {
-            const mainnetProvider = await evmService.getEthersProvider(1);
-
-            // logger.debug(`timestamp ${(await mainnetProvider.getBlock(blockHeight)).timestamp}`);
-
-            // TODO: make own graph because sometimes down (rate limit?) - also implement retry here to avoid rate limit
-            // might utilize TheGraph's indexer. You can create a very simple subgraph that just stores a Block that contains a block number and timestamp. Once indexer is done indexing, you can query the data using GraphQL and write to your DB.
-            const gqlResult = await graphqlService.query(
-                'https://blockfinder.snapshot.org/',
-                `query {blocks (where: { ts: ${(await mainnetProvider.getBlock(blockHeight)).timestamp}, network_in: ["137"] }) {
-            network
-            number}}`,
-            );
-
-            try {
-                if ((gqlResult.data.blocks.length > 0) && (gqlResult.data.blocks[0].number >= 13000000)) equivalentBlock = gqlResult.data.blocks[0].number;
-
-            } catch {
-                logger.debug('failed to fetch equivalent block from graph');
-
-            }
-        }
-
-        logger.debug(`blockHeight: ${blockHeight}`);
+        logger.debug(`blockHeights: ${JSON.stringify(blockHeights)}`);
 
         logger.debug(`equivalentBlockHeight: ${equivalentBlock}`);
 
         const banklessTokenMain: ERC20BalanceOfDto = {
             contractAddress: '0x2d94aa3e47d9d5024503ca8491fce9a2fb4da198',
             chain_id: 1,
-            block_height: blockHeight,
+            block_height: mainnetBlockHeight,
         };
 
         const banklessTokenPolygon: ERC20BalanceOfDto = {
