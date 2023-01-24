@@ -5,7 +5,6 @@ import { VoteRequestDto, VoteResponseDto, VoteByPollAggregate } from './vote.dto
 import { VoteRequestHandlerService } from './vote.request-handler.service';
 import { VoteResultInterceptor } from './vote.result.interceptor';
 import { VoteRequestGuard } from './vote.request.guard';
-import Utils from 'src/common/utils';
 import { Cache } from 'cache-manager';
 import { VoteCreateConsumer } from './vote.q.consumer.service';
 import { VoteCreateProducer } from './vote.q.producer.service';
@@ -91,21 +90,12 @@ export class VoteController {
     @ApiCreatedResponse({ description: 'Returns vote object and method used (create/update/delete)', type: VoteResponseDto, isArray: true })
     async createVote(@Param('poll_id') poll_id, @Body() voteRequest: VoteRequestDto): Promise<VoteResponseDto[]> {
 
-        // check if value is cached
-        const key = Utils.formatCacheKey(voteRequest.provider_id, voteRequest.account_id, poll_id);
-        const cachedVotePower = await this.cacheManager.get(key);
+        const job = await this.voteCreateProducer.voteCreateJob(poll_id, voteRequest);
 
-        // if it is cached we run directly, otherwise we create job which will apply a throttle
-        if (Number(process.env.CACHE) === 1 && cachedVotePower) {
-            return await this.voteRequestHandlerService.validateVoteRequest(poll_id, voteRequest);
+        this.logger.log(`PollCreate Job ${job.id} running. Awaiting result..`);
 
-        } else {
-            const job = await this.voteCreateProducer.voteCreateJob(poll_id, voteRequest);
-
-            this.logger.log(`PollCreate Job ${job.id} running. Awaiting result..`);
-
-            return this.voteCreateConsumer.getReturnValueFromObservable(job);
-        }
+        return this.voteCreateConsumer.getReturnValueFromObservable(job);
+        
     }
 
 }

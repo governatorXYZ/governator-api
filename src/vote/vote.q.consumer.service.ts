@@ -54,8 +54,9 @@ export class VoteCreateConsumer {
  
     @Process()
     async voteCreateJob(job:Job<{voteRequest: VoteRequestDto, pollId: string}>) {
+        
 
-        const votes = await this.voteRequestHandlerService.validateVoteRequest(job.data.pollId, job.data.voteRequest);
+        const votes = await this.voteRequestHandlerService.handleVoteRequest(job.data.pollId, job.data.voteRequest);
         await job.progress(1);
 
         try {

@@ -8,6 +8,8 @@ import { UserModule } from '../user/user.module';
 import { VoteRequestHandlerService } from './vote.request-handler.service';
 import { StrategyModule } from '../web3/strategy/strategy.module';
 import { BullModule } from '@nestjs/bull';
+import { VoteCreateProducer } from './vote.q.producer.service';
+import { VoteCreateConsumer } from './vote.q.consumer.service';
 
 @Module({
     imports: [
@@ -17,7 +19,7 @@ import { BullModule } from '@nestjs/bull';
             {
                 name: 'vote-create',
                 limiter: {
-                    max: 2,
+                    max: 50,
                     duration: 1000,
                 },
             },
@@ -26,7 +28,7 @@ import { BullModule } from '@nestjs/bull';
         StrategyModule,
     ],
     controllers: [VoteController],
-    providers: [VoteMongoService, VoteRequestHandlerService],
+    providers: [VoteMongoService, VoteRequestHandlerService, VoteCreateProducer, VoteCreateConsumer],
     exports: [VoteRequestHandlerService],
 })
 export class VoteModule {}

@@ -20,8 +20,8 @@ import { BullModule } from '@nestjs/bull';
             {
                 name: 'poll-create',
                 limiter: {
-                    max: 1,
-                    duration: 2000,
+                    max: 10,
+                    duration: 1000,
                 },
             },
         ),
