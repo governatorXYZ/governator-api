@@ -48,12 +48,28 @@ const ENV = process.env.NODE_ENV;
         }),
         ScheduleModule.forRoot(),
         CacheModule.register({ isGlobal: true }),
-        BullModule.forRoot({
-            redis: {
-                host: 'localhost',
-                port: 6379,
-            },
+        BullModule.forRootAsync({
+            imports: [ConfigModule],
+            useFactory: async (configService: ConfigService) => (
+                configService.get('UPSTASH_REDIS_URL') ?
+                    {
+                        redis: configService.get('UPSTASH_REDIS_URL'),
+                    } :
+                    {
+                        redis: {
+                            host: 'localhost',
+                            port: 6379,
+                        },
+                    }
+            ),
+            inject: [ConfigService],
         }),
+        // BullModule.forRoot({
+        //     redis: {
+        //         host: 'localhost',
+        //         port: 6379,
+        //     },
+        // }),
         PollModule,
         UserModule,
         AccountModule,
