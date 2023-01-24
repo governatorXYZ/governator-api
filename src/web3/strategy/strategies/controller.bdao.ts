@@ -44,12 +44,12 @@ export class BankTokenWeightedStrategy extends StrategyBaseController implements
         // tokenWhitelistService: TokenWhitelistMongoService,
     ) {
 
-        const equivalentBlock = blockHeights.find((blockHeight) => blockHeight.chain_id === '137').block;
+        const polygonBlockHeight = blockHeights.find((blockHeight) => blockHeight.chain_id === '137').block;
         const mainnetBlockHeight = blockHeights.find((blockHeight) => blockHeight.chain_id === '1').block;
 
         logger.debug(`blockHeights: ${JSON.stringify(blockHeights)}`);
 
-        logger.debug(`equivalentBlockHeight: ${equivalentBlock}`);
+        logger.debug(`equivalentBlockHeight: ${polygonBlockHeight}`);
 
         const banklessTokenMain: ERC20BalanceOfDto = {
             contractAddress: '0x2d94aa3e47d9d5024503ca8491fce9a2fb4da198',
@@ -60,7 +60,7 @@ export class BankTokenWeightedStrategy extends StrategyBaseController implements
         const banklessTokenPolygon: ERC20BalanceOfDto = {
             contractAddress: '0xDB7Cb471dd0b49b29CAB4a1C14d070f27216a0Ab',
             chain_id: 137,
-            block_height: equivalentBlock,
+            block_height: polygonBlockHeight,
         };
 
         let tokens: TokenList;

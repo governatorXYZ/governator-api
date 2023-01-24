@@ -94,7 +94,6 @@ export class ClientRequestController {
         if (cached) {
             this.logger.debug('Found cached');
             this.logger.debug(key);
-            this.logger.debug('cache data', JSON.stringify(cached));
             return cached;
         }
 
