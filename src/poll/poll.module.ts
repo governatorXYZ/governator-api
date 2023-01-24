@@ -9,6 +9,7 @@ import { VoteModule } from '../vote/vote.module';
 import { PollCreateProducer } from './poll.q.producer.service';
 import { PollCreateConsumer } from './poll.q.consumer.service';
 import { BullModule } from '@nestjs/bull';
+import { Web3Module } from '../web3/web3.module';
 
 @Module({
     imports: [
@@ -25,6 +26,7 @@ import { BullModule } from '@nestjs/bull';
                 },
             },
         ),
+        Web3Module,
     ],
     controllers: [PollController],
     providers: [PollMongoService, PollCreateProducer, PollCreateConsumer],

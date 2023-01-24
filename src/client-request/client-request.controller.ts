@@ -8,6 +8,8 @@ import {
     Param,
     Get,
     Logger,
+    CACHE_MANAGER,
+    Inject,
 } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { SseService } from '../sse/sse.service';
@@ -19,6 +21,7 @@ import { firstValueFrom, throwError, timeout } from 'rxjs';
 import { Throttle } from '@nestjs/throttler';
 import { CommunityMongoService } from 'src/community/community.mongo.service';
 import { CommunityClientConfigDiscordDto } from 'src/community/community.dtos';
+import { Cache } from 'cache-manager';
 
 @ApiTags('Request data from client')
 @ApiSecurity('api_key')
@@ -29,6 +32,8 @@ export class ClientRequestController {
         protected sseService: SseService,
         protected clientRequestService: ClientRequestService,
         protected communityService: CommunityMongoService,
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
+
     ) {
         // do nothing
     }
@@ -82,6 +87,16 @@ export class ClientRequestController {
         data.guildId = guildId;
         data.userId = discordUserId;
 
+        const key = data.provider_id + ':' + data.method + ':' + data.guildId + ':' + data.userId;
+
+        const cached = await this.cacheManager.get(key);
+
+        if (cached) {
+            this.logger.debug('Found cached');
+            this.logger.debug(key);
+            return cached;
+        }
+
         const event = {
             data: data,
             type: constants.EVENT_REQUEST_CLIENT_DATA,
@@ -94,14 +109,19 @@ export class ClientRequestController {
         );
         this.sseService.emit(event as MessageEvent);
         this.logger.debug('awaiting client response');
-        return await firstValueFrom(observable);
+
+        const clientResponse = await firstValueFrom(observable);
+
+        this.cacheManager.set(key, clientResponse, 10 * 60);
+
+        return clientResponse;
     }
 
     @Post('client/discord/data-response')
     @ApiOperation({ description: 'Client can submit requested data to this endpoint' })
     @ApiCreatedResponse({ description: 'Forwards client response to the get request observable' })
     async sendResponse(@Body() params: DiscordResponseDto): Promise<void> {
-        await this.clientRequestService.emit(params);
+        this.clientRequestService.emit(params);
     }
 
 }

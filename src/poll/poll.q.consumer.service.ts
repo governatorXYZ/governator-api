@@ -9,6 +9,8 @@ import { VoteRequestHandlerService } from '../vote/vote.request-handler.service'
 import { SseService } from '../sse/sse.service';
 import constants from '../common/constants';
 import { filter, first } from 'rxjs';
+import { GraphqlService } from '../web3/token-vote/graphql/graphql.service';
+import { EvmService } from '../web3/token-vote/evm/evm.service';
 
 
 @Processor('poll-create')
@@ -20,6 +22,8 @@ export class PollCreateConsumer {
         protected mongoService: PollMongoService,
         protected voteRequestHandlerService: VoteRequestHandlerService,
         protected sseService: SseService,
+        protected gqlService: GraphqlService,
+        protected evmService: EvmService,
     ) {
         this.eventStream = new Subject();
     }
@@ -66,14 +70,28 @@ export class PollCreateConsumer {
 
         if (poll.strategy_config) {
             // sanitizing block heights
-            let block = null;
-            for await (const strategy of poll.strategy_config) {
-                if (strategy.block_height <= 0) {
-                    if (!block) block = await web3Utils.getEthersProvider(1).getBlockNumber();
-                    strategy.block_height = block - strategy.block_height;
-                }
+            const strategy = poll.strategy_config[0];
+            let mainnetBlock = strategy.block_height.find(BlockHeight => BlockHeight.chain_id === '1').block;
+
+            if (mainnetBlock <= 0) {
+                const block = await web3Utils.getEthersProvider(1).getBlockNumber();
+                mainnetBlock = block - mainnetBlock;
+                strategy.block_height.find(BlockHeight => BlockHeight.chain_id === '1').block = mainnetBlock;
+            }
+            
+            for (const chainId of constants.SUPPORTED_CHAIN_IDS) {
+
+                if (chainId === '1') continue;
+
+                const equivalentBlock = await this.gqlService.getEquivalentBlock(mainnetBlock, chainId).catch(() => {
+                    // TODO MVP only! reimplement this with proper method to get equivalent block height
+                    return this.evmService.getEthersProvider(chainId);
+                });
+
+                strategy.block_height.push({ chain_id: chainId, block: equivalentBlock });
             }
         }
+
         await job.progress(1);
 
         const dbPoll = await this.mongoService.createPoll(poll);
