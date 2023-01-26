@@ -32,7 +32,9 @@ export class PollMongoService {
                 $gte: now.toISOString(),
             } }).exec();
 
-            polls.forEach(poll => this.createPollEndScheduler(poll));
+            polls.forEach((poll) => {
+                this.createPollEndScheduler(poll);
+            });
 
         } catch (e) {
             this.logger.error('Failed to fetch polls from db', e);
