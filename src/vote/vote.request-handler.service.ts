@@ -28,6 +28,30 @@ export class VoteRequestHandlerService {
         // do nothing
     }
 
+    async onApplicationBootstrap(): Promise<void> {
+        if (Number(process.env.CACHE)) {
+            this.logger.debug('Caching all active Polls');
+
+            const now = new Date(Date.now());
+
+            try {
+                const polls = await this.pollService.fetchAllPolls({ end_time : {
+                    $gte: now.toISOString(),
+                } });
+
+                polls.forEach((poll) => {
+                    this.cacheVotePowersByPoll(poll);
+                });
+
+            } catch (e) {
+                this.logger.error('Failed to fetch polls from db', e);
+
+                throw new HttpException('Failed to fetch polls from db', HttpStatus.BAD_REQUEST);
+            }
+        }
+    }
+
+
     // Methods in this file are handling vote logic and should not be accessed by other public endpoints
     async handleVoteRequest(pollId: string, voteRequestDto: VoteRequestDto): Promise<VoteResponseDto[]> {
         
@@ -125,7 +149,8 @@ export class VoteRequestHandlerService {
     async setCachedVotePower(accountProviderId: string, accountId: string, poll: Poll, votePower: string): Promise<string> {
         const key = Utils.formatCacheKey(accountProviderId, accountId, poll._id);
 
-        const ttl = new Date(poll.end_time).getTime() - new Date(Date.now()).getTime();
+        // TODO cache-manager v4 uses seconds, needs to be changed to ms when upgrade to cache-manager v5
+        const ttl = (new Date(poll.end_time).getTime() - new Date(Date.now()).getTime()) / 1000;
 
         this.logger.debug(`caching vote power of account ${accountId}`);
         this.logger.debug(`setting cache with key: ${key} value: ${votePower} ttl: ${ttl}`);

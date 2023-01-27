@@ -53,10 +53,10 @@ const ENV = process.env.NODE_ENV;
             useFactory: async (configService: ConfigService) => (
                 {
                     redis: {
-                        host: configService.get('REDIS_HOST'),
-                        port: configService.get('REDIS_PORT'),
-                        password: configService.get('REDIS_PASSWORD'),
-                        username: configService.get('REDIS_USERNAME'),
+                        host: configService.get('REDIS_HOST_QUEUE'),
+                        port: configService.get('REDIS_PORT_QUEUE'),
+                        password: configService.get('REDIS_PASSWORD_QUEUE'),
+                        username: configService.get('REDIS_USERNAME_QUEUE'),
                     },
                 }
             ),
