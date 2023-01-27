@@ -155,7 +155,7 @@ export class VoteRequestHandlerService {
         this.logger.debug(`caching vote power of account ${accountId}`);
         this.logger.debug(`setting cache with key: ${key} value: ${votePower} ttl: ${ttl}`);
 
-        await this.cacheManager.set(key, votePower, ttl);
+        await this.cacheManager.set(key, votePower ? votePower : '0', ttl);
 
         return votePower;
     }
