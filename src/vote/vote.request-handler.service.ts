@@ -155,7 +155,7 @@ export class VoteRequestHandlerService {
         this.logger.debug(`caching vote power of account ${accountId}`);
         this.logger.debug(`setting cache with key: ${key} value: ${votePower} ttl: ${ttl}`);
 
-        await this.cacheManager.set(key, votePower, ttl);
+        await this.cacheManager.set(key, votePower ? votePower : '0', ttl);
 
         return votePower;
     }
@@ -178,7 +178,7 @@ export class VoteRequestHandlerService {
             if (process.env.NODE_ENV === 'development') this.logger.error(JSON.stringify(e));
         });
 
-        if ((!votePowerOfAccount) || !votePowerOfAccount.data) return;
+        if ((!votePowerOfAccount) || !votePowerOfAccount.data) return '0';
 
         if (process.env.NODE_ENV === 'development') this.logger.debug(`Vote power from strategy ${(votePowerOfAccount as AxiosResponse).data}`);
 
