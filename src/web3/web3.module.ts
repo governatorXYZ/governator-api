@@ -5,5 +5,6 @@ import { StrategyModule } from './strategy/strategy.module';
 
 @Module({
     imports: [SiweModule, TokenVoteModule, StrategyModule],
+    exports: [TokenVoteModule],
 })
 export class Web3Module {}

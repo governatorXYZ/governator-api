@@ -3,7 +3,7 @@ import { StrategyBaseService } from './strategy.base.service';
 import crypto from 'crypto';
 import { StrategyMongoService } from './strategy.mongo.service';
 import { ApiOkResponse, ApiParam, ApiSecurity } from '@nestjs/swagger';
-import { StrategyRequestDto } from './strategy.dtos';
+import { BlockHeight, StrategyRequestDto } from './strategy.dtos';
 import { EvmService } from '../token-vote/evm/evm.service';
 import { GraphqlService } from '../token-vote/graphql/graphql.service';
 import { formatKebab } from './strategy.utils';
@@ -63,7 +63,7 @@ export class StrategyBaseController {
     runStrategy(
         params: StrategyRequestDto,
         strategy: (accountId: string,
-                   blockHeight: number | null,
+                   blockHeight: BlockHeight[],
                    evmService: EvmService,
                    graphqlService: GraphqlService,
                    logger: Logger,

@@ -9,7 +9,7 @@ import {
     IsNumberString,
     IsMongoId,
     IsNotEmpty,
-    ValidateNested, ArrayMaxSize, IsIn, IsUUID, IsNumber,
+    ValidateNested, ArrayMaxSize, IsIn, IsUUID,
 } from 'class-validator';
 import { ApiProperty, OmitType, PartialType, PickType } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
@@ -17,6 +17,7 @@ import { ObjectId } from 'mongodb';
 import constants from '../common/constants';
 import { IsAfterNow } from '../common/isAfterNowConstraint';
 import { DiscordEmbedFieldLength } from './discordEmbedFieldLengthConstraint';
+import { BlockHeight } from 'src/web3/strategy/strategy.dtos';
 
 // Maximum number of fields to be used by poll_options and role_restrictions combined
 // Discord limit is 25, leaving 5 fields for date, vote count, strategy name, and misc
@@ -111,12 +112,14 @@ export class StrategyConfig {
     })
         strategy_id: string;
 
-    @IsNumber()
+    @IsArray()
     @ApiProperty({
         description: 'Block height (block number or offset)',
         required: true,
+        isArray: true,
+        type: BlockHeight,
     })
-        block_height: number;
+        block_height: BlockHeight[];
 }
 
 export class StrategyConfigCreate extends PickType(StrategyConfig, ['strategy_id', 'block_height'] as const) {

@@ -1,12 +1,13 @@
 import { Injectable, Logger, MessageEvent } from '@nestjs/common';
-import { Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import constants from '../common/constants';
 
 @Injectable()
 export class SseService {
     private readonly logger = new Logger(SseService.name);
-    readonly eventStream: Subject<any>;
+    private readonly eventStream: Subject<any>;
+    readonly observable: Observable<any>;
 
     @Cron(CronExpression.EVERY_30_SECONDS)
     handleCron() {
@@ -18,6 +19,7 @@ export class SseService {
 
     constructor() {
         this.eventStream = new Subject();
+        this.observable = this.eventStream.asObservable();
     }
 
     emit(event: MessageEvent): void {
