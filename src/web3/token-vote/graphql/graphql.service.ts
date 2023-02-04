@@ -5,12 +5,15 @@ import { ApolloClient } from 'apollo-client';
 import fetch from 'node-fetch';
 import { createHttpLink } from 'apollo-link-http';
 import { InMemoryCache } from 'apollo-cache-inmemory';
+import { EvmService } from '../../token-vote/evm/evm.service';
 
 
 @Injectable()
 export class GraphqlService {
     private readonly logger = new Logger(GraphqlService.name);
-    constructor() {
+    constructor(
+        protected evmService: EvmService,
+    ) {
         // do nothing
     }
 
@@ -47,6 +50,30 @@ export class GraphqlService {
         }
 
         return result;
+    }
+
+    async getEquivalentBlock(blockHeight, chainId) {
+
+        if(chainId !== '137') {
+            return 0;
+        }
+
+        const mainnetProvider = await this.evmService.getEthersProvider(1);
+
+        const gqlResult = await this.query(
+            'https://blockfinder.snapshot.org/',
+            `query {blocks (where: { ts: ${(await mainnetProvider.getBlock(blockHeight)).timestamp}, network_in: ["${chainId}"] }) {
+        network
+        number}}`,
+        );
+    
+        try {
+            if ((gqlResult.data.blocks.length > 0) && (gqlResult.data.blocks[0].number >= 13000000)) return gqlResult.data.blocks[0].number;
+    
+        } catch (e) {
+            this.logger.error('failed to fetch equivalent block from graph', e);
+            return 0;
+        }
     }
 
 }

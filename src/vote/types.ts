@@ -1,4 +1,4 @@
-import { VoteRawResponseDto } from './vote.dto';
+import { VoteRawResponseDto } from './vote.dtos';
 
 export interface VoteRawResponseUpdate {
     oldVote: VoteRawResponseDto,

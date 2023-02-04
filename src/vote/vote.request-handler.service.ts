@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable, Logger, CACHE_MANAGER, Inject } from '@nestjs/common';
-import { VoteCreateDto, VoteRawResponseDto, VoteRequestDto, VoteResponseDto } from './vote.dto';
+import { VoteCreateDto, VoteRawResponseDto, VoteRequestDto, VoteResponseDto } from './vote.dtos';
 import { Poll } from '../poll/poll.schema';
 import { UserService } from '../user/user.service';
 import { UserResponseDto } from '../user/user.dtos';
@@ -12,6 +12,7 @@ import axios, { AxiosResponse } from 'axios';
 import { DiscordAccountResponseDto, EthereumAccountResponseDto } from '../account/account.dtos';
 import { Cache } from 'cache-manager';
 import Utils from '../common/utils';
+import { StrategyConfig } from 'src/poll/poll.dtos';
 
 @Injectable()
 export class VoteRequestHandlerService {
@@ -27,8 +28,94 @@ export class VoteRequestHandlerService {
         // do nothing
     }
 
+    async onApplicationBootstrap(): Promise<void> {
+        if (Number(process.env.CACHE)) {
+            this.logger.debug('Caching all active Polls');
+
+            const now = new Date(Date.now());
+
+            try {
+                const polls = await this.pollService.fetchAllPolls({ end_time : {
+                    $gte: now.toISOString(),
+                } });
+
+                polls.forEach((poll) => {
+                    this.cacheVotePowersByPoll(poll);
+                });
+
+            } catch (e) {
+                this.logger.error('Failed to fetch polls from db', e);
+
+                throw new HttpException('Failed to fetch polls from db', HttpStatus.BAD_REQUEST);
+            }
+        }
+    }
+
+
     // Methods in this file are handling vote logic and should not be accessed by other public endpoints
-    async validateVoteRequest(pollId: string, voteRequestDto: VoteRequestDto) {
+    async handleVoteRequest(pollId: string, voteRequestDto: VoteRequestDto): Promise<VoteResponseDto[]> {
+        
+        const { poll, user } = await this.validate(pollId, voteRequestDto);
+        
+        const voteCreateDtos: VoteCreateDto[] = [];
+
+        const strategyConf = poll.strategy_config[0];
+
+        for (const account of user.provider_accounts) {
+
+            if (process.env.NODE_ENV === 'development') this.logger.log(`Processing vote request of account ${JSON.stringify(account)}`);
+            let cachedVotePower: string;
+            let votePower: string;
+
+            switch(strategyConf.strategy_type) {
+
+            case strategyTypes.STRATEGY_TYPE_ONE_EQUALS_ONE:
+                if (!(account.provider_id === 'discord')) break;
+
+                voteCreateDtos.push({
+                    ...voteRequestDto,
+                    vote_power: '1',
+                    poll_id: poll._id,
+                    provider_id: account.provider_id,
+                    account_id: account._id,
+                });
+
+                break;
+
+            case strategyTypes.STRATEGY_TYPE_TOKEN_WEIGHTED:
+                if (!(account.provider_id === 'ethereum')) break;
+
+                this.logger.warn(account.provider_id);
+
+                if (Number(process.env.CACHE) === 1) {
+                    cachedVotePower = await this.getCachedVotePower(account.provider_id, account._id, pollId);
+                    votePower = cachedVotePower ? cachedVotePower :
+                        await this.setCachedVotePower(
+                            account.provider_id,
+                            account._id,
+                            poll,
+                            await this.runTokenStrategy(strategyConf, account),
+                        );
+                } else {
+                    votePower = await this.runTokenStrategy(strategyConf, account);
+                }
+
+                voteCreateDtos.push({
+                    ...voteRequestDto,
+                    vote_power: votePower,
+                    poll_id: poll._id,
+                    provider_id: account.provider_id,
+                    account_id: account._id,
+                });
+
+                break;
+            }
+        }
+
+        return this.createBatchVotes(voteCreateDtos, poll);
+    }
+
+    async validate(pollId: string, voteRequestDto: VoteRequestDto): Promise<{ poll: Poll, user: UserResponseDto }> {
 
         if (process.env.NODE_ENV === 'development') this.logger.log(`Attempting to validate vote request for pollID: ${pollId}, with request body: ${JSON.stringify(voteRequestDto)}`);
 
@@ -42,15 +129,63 @@ export class VoteRequestHandlerService {
         if (!user) throw new HttpException('User not found', HttpStatus.CONFLICT);
         this.logger.debug('User ID is valid');
 
-        this.logger.debug('Calculating vote powers');
-        const voteCreateDtos: VoteCreateDto[] = await this.calculateVotePowers(voteRequestDto, poll, user.provider_accounts);
-        if (process.env.NODE_ENV === 'development') this.logger.debug(`Following votes will be recorded (voteCreateDtos): \n${JSON.stringify(voteCreateDtos)}`);
-        if (voteCreateDtos.length === 0) return [];
-
-        return await this.createBatchVotes(voteCreateDtos, poll);
+        return { poll, user };
     }
 
-    async createBatchVotes(voteCreateDtos: VoteCreateDto[], poll: Poll) {
+    async getCachedVotePower(accountProviderId: string, accountId: string, pollId: string): Promise<string> {
+
+        const key = Utils.formatCacheKey(accountProviderId, accountId, pollId);
+
+        const votePower = await this.cacheManager.get(key);
+
+        if (process.env.NODE_ENV === 'development') this.logger.debug(`Key ${key}`);
+
+        if (process.env.NODE_ENV === 'development') this.logger.debug(`Vote power from cache ${votePower}`);
+
+        return votePower;
+
+    }
+
+    async setCachedVotePower(accountProviderId: string, accountId: string, poll: Poll, votePower: string): Promise<string> {
+        const key = Utils.formatCacheKey(accountProviderId, accountId, poll._id);
+
+        // TODO cache-manager v4 uses seconds, needs to be changed to ms when upgrade to cache-manager v5
+        const ttl = (new Date(poll.end_time).getTime() - new Date(Date.now()).getTime()) / 1000;
+
+        this.logger.debug(`caching vote power of account ${accountId}`);
+        this.logger.debug(`setting cache with key: ${key} value: ${votePower} ttl: ${ttl}`);
+
+        await this.cacheManager.set(key, votePower ? votePower : '0', ttl);
+
+        return votePower;
+    }
+
+    /* TODO: MVP implementation for running token weighted strategies. Due to the way the strategy templates are
+    *   implemented, this method makes a http call to our own endpoint. This will change with future implementation
+    *   of strategy templates. */
+    async runTokenStrategy(strategyConf: StrategyConfig, account: (EthereumAccountResponseDto | DiscordAccountResponseDto)): Promise<string> {
+        const strategyEndpoint = (await this.strategyMongoService.findManyStrategy({ _id: strategyConf.strategy_id }))[0].endpoint;
+        const strategyRequestDto: StrategyRequestDto = { account_id: account._id, block_height: strategyConf.block_height };
+
+        const votePowerOfAccount = await axios.post(
+            `http://localhost:${process.env.PORT}/${process.env.API_GLOBAL_PREFIX}/${strategyEndpoint}`,
+            strategyRequestDto,
+            {
+                transformResponse: (r) => r,
+                headers: { 'X-API-KEY': process.env.API_KEY, accept: 'application/json', 'Content-Type': 'application/json' },
+            },
+        ).catch(e => {
+            if (process.env.NODE_ENV === 'development') this.logger.error(JSON.stringify(e));
+        });
+
+        if ((!votePowerOfAccount) || !votePowerOfAccount.data) return '0';
+
+        if (process.env.NODE_ENV === 'development') this.logger.debug(`Vote power from strategy ${(votePowerOfAccount as AxiosResponse).data}`);
+
+        return votePowerOfAccount.data;
+    }
+
+    async createBatchVotes(voteCreateDtos: VoteCreateDto[], poll: Poll): Promise<VoteResponseDto[]> {
         const voteResponseDtos: VoteResponseDto[] = [];
 
         // we have one voteCreateDto per account
@@ -87,91 +222,6 @@ export class VoteRequestHandlerService {
         return voteResponseDtos;
     }
 
-    /* TODO: MVP implementation for running token weighted strategies. Due to the way the strategy templates are
-    *   implemented, this method makes a http call to our own endpoint. This will change with future implementation
-    *   of strategy templates. */
-    async calculateVotePowers(voteRequestDto: VoteRequestDto, poll: Poll, userAccounts: (EthereumAccountResponseDto | DiscordAccountResponseDto)[]): Promise<VoteCreateDto[]> {
-        const voteCreateDtos: VoteCreateDto[] = [];
-
-        for (const strategyConf of poll.strategy_config) {
-
-            for (const account of userAccounts) {
-
-                if (process.env.NODE_ENV === 'development') this.logger.debug(`processing account ${JSON.stringify(account)}`);
-                let strategyEndpoint: string;
-                let strategyRequestDto: StrategyRequestDto;
-                let votePowerOfAccount: void | AxiosResponse;
-                let key: string;
-                let cachedVotePower: string;
-
-                switch(strategyConf.strategy_type) {
-
-                case strategyTypes.STRATEGY_TYPE_ONE_EQUALS_ONE:
-                    if (!(account.provider_id === 'discord')) break;
-
-                    voteCreateDtos.push({
-                        ...voteRequestDto,
-                        vote_power: '1',
-                        poll_id: poll._id,
-                        provider_id: account.provider_id,
-                        account_id: account._id,
-                    });
-                    break;
-
-                case strategyTypes.STRATEGY_TYPE_TOKEN_WEIGHTED:
-                    if (!(account.provider_id === 'ethereum')) break;
-
-                    key = Utils.formatCacheKey(account.provider_id, account._id, poll._id);
-
-                    cachedVotePower = await this.cacheManager.get(key);
-
-                    if (Number(process.env.CACHE) === 1 && cachedVotePower) {
-                        this.logger.debug(`getting vote power from cache key: ${key} value: ${cachedVotePower}`);
-                        voteCreateDtos.push({
-                            ...voteRequestDto,
-                            vote_power: cachedVotePower,
-                            poll_id: poll._id,
-                            provider_id: account.provider_id,
-                            account_id: account._id,
-                        });
-                        break;
-                    }
-
-                    strategyEndpoint = (await this.strategyMongoService.findManyStrategy({ _id: strategyConf.strategy_id }))[0].endpoint;
-                    strategyRequestDto = { account_id: account._id, block_height: strategyConf.block_height };
-
-                    votePowerOfAccount = await axios.post(
-                        `http://localhost:${process.env.PORT}/${process.env.API_GLOBAL_PREFIX}/${strategyEndpoint}`,
-                        strategyRequestDto,
-                        {
-                            transformResponse: (r) => r,
-                            headers: { 'X-API-KEY': process.env.API_KEY, accept: 'application/json', 'Content-Type': 'application/json' },
-                        },
-                    ).catch(e => {
-                        if (process.env.NODE_ENV === 'development') this.logger.error(JSON.stringify(e));
-                    });
-
-                    if (!votePowerOfAccount) return;
-
-                    if (process.env.NODE_ENV === 'development') this.logger.log((votePowerOfAccount as AxiosResponse).data);
-
-                    voteCreateDtos.push({
-                        ...voteRequestDto,
-                        vote_power: (votePowerOfAccount as AxiosResponse).data,
-                        poll_id: poll._id,
-                        provider_id: account.provider_id,
-                        account_id: account._id,
-                    });
-                    break;
-                }
-            }
-        }
-
-        this.logger.log('votes calculated successfully');
-
-        return voteCreateDtos;
-    }
-
     isDuplicateVote(accountVotes: VoteRawResponseDto[], voteCreateDto: VoteCreateDto): boolean {
         const voteOptions: string[] = [];
         accountVotes.map((vote) => voteOptions.push(vote.poll_option_id));
@@ -180,7 +230,7 @@ export class VoteRequestHandlerService {
         return voteOptions.includes(voteCreateDto.poll_option_id);
     }
 
-    async getPoll(pollId): Promise<Poll> {
+    async getPoll(pollId: string): Promise<Poll> {
         try {
             const poll = await this.pollService.fetchPollById(pollId);
             this.logger.debug('POLL found ', poll);
@@ -216,7 +266,13 @@ export class VoteRequestHandlerService {
 
                 if (!(account.provider_id === 'ethereum')) continue;
 
-                this.setVotePowerCache(poll, account as EthereumAccountResponseDto);
+                const cached = await this.getCachedVotePower(account.provider_id, account._id, poll._id);
+
+                if (cached) continue;
+                
+                const votePower = await this.runTokenStrategy(poll.strategy_config[0], account);
+
+                this.setCachedVotePower(account.provider_id, account._id, poll, votePower);
             }
         });
     }
@@ -239,38 +295,15 @@ export class VoteRequestHandlerService {
         if(!polls.length || polls.length === 0) return;
 
         polls.forEach(async (poll) => {
+            if (!(account.provider_id === 'ethereum')) return;
 
-            this.setVotePowerCache(poll, account);
+            const cached = await this.getCachedVotePower(account.provider_id, account._id, poll._id);
+
+            if (cached) return;
+                
+            const votePower = await this.runTokenStrategy(poll.strategy_config[0], account);
+
+            this.setCachedVotePower(account.provider_id, account._id, poll, votePower);
         });
-    }
-
-    async setVotePowerCache(poll: Poll, account: EthereumAccountResponseDto) {
-
-        let voteRequestDto: VoteRequestDto;
-
-        const key = Utils.formatCacheKey(account.provider_id, account._id, poll._id);
-
-        if (await this.cacheManager.get(key)) return;
-
-        const ttl = new Date(poll.end_time).getTime() - new Date(Date.now()).getTime();
-
-        if (account.provider_id === 'ethereum') {
-            voteRequestDto = {
-                account_id: account._id,
-                poll_option_id: poll.poll_options[0].poll_option_id,
-                provider_id: account.provider_id,
-            };
-
-            this.calculateVotePowers(voteRequestDto, poll, [account])
-                .then(
-                    (votePowers) => {
-                        votePowers.forEach(async (votePower) => {
-                            this.logger.debug(`caching vote power of account ${account._id}`);
-                            this.logger.debug(`setting cache with key: ${key} value: ${votePower.vote_power} ttl: ${ttl}`);
-                            await this.cacheManager.set(key, votePower.vote_power, ttl);
-                        });
-                    },
-                );
-        }
     }
 }

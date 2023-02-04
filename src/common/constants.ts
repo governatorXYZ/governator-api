@@ -22,4 +22,6 @@ export default Object.freeze({
     // SNAPSHOT
     SNAPSHOT_GRAPHQL_URL: 'https://hub.snapshot.org/graphql',
 
+    SUPPORTED_CHAIN_IDS: ['1', '137'],
+
 });

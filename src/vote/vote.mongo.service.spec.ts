@@ -11,7 +11,7 @@ import { PollDocument } from '../poll/poll.schema';
 import { UserCreateDto, UserUpdateDto } from '../user/user.dtos';
 import { PollCreateDto, PollResponseDto } from '../poll/poll.dtos';
 import { PollMongoService } from '../poll/poll.mongo.service';
-import { VoteRawResponseDto } from './vote.dto';
+import { VoteRawResponseDto } from './vote.dtos';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { createMock } from '@golevelup/ts-jest';
 

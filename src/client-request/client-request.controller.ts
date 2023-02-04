@@ -8,6 +8,9 @@ import {
     Param,
     Get,
     Logger,
+    UseInterceptors,
+    CacheInterceptor,
+    CacheTTL,
 } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { SseService } from '../sse/sse.service';
@@ -33,6 +36,8 @@ export class ClientRequestController {
         // do nothing
     }
 
+    @UseInterceptors(CacheInterceptor)
+    @CacheTTL(600)
     @Throttle(60, 60)
     @Get('client/discord/:guild_id/:datasource/:discord_user_id')
     @ApiOperation({ description: 'Request data from client' })
@@ -94,14 +99,17 @@ export class ClientRequestController {
         );
         this.sseService.emit(event as MessageEvent);
         this.logger.debug('awaiting client response');
-        return await firstValueFrom(observable);
+
+        const clientResponse = await firstValueFrom(observable);
+
+        return clientResponse;
     }
 
     @Post('client/discord/data-response')
     @ApiOperation({ description: 'Client can submit requested data to this endpoint' })
     @ApiCreatedResponse({ description: 'Forwards client response to the get request observable' })
     async sendResponse(@Body() params: DiscordResponseDto): Promise<void> {
-        await this.clientRequestService.emit(params);
+        this.clientRequestService.emit(params);
     }
 
 }

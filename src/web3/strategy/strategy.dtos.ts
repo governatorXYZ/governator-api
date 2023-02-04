@@ -1,5 +1,21 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsArray, IsOptional, IsString, IsUrl, MaxLength } from 'class-validator';
 import { ApiProperty, OmitType } from '@nestjs/swagger';
+
+export class BlockHeight {
+    @IsNotEmpty()
+    @ApiProperty({
+        description: 'chain Id',
+        required: false,
+    })
+        chain_id: string;
+
+    @IsNotEmpty()
+    @ApiProperty({
+        description: 'block',
+        required: false,
+    })
+        block: number;
+}
 
 export class StrategyRequestDto {
 
@@ -11,12 +27,14 @@ export class StrategyRequestDto {
         account_id: string;
 
     @IsOptional()
-    @IsNumber()
+    @IsArray()
     @ApiProperty({
         description: 'user to get voting power of',
         required: false,
+        isArray: true,
+        type: BlockHeight,
     })
-        block_height: number | null;
+        block_height: BlockHeight[];
 }
 
 export class StrategyResponseDto {
@@ -37,7 +55,7 @@ export class StrategyResponseDto {
 
     @IsUrl()
     @ApiProperty({
-        description: 'endpoint',
+        description: 'Endpoint',
         required: true,
     })
         endpoint: string;
