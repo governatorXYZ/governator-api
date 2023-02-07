@@ -1,0 +1,53 @@
+name: Deploy to Production Environment
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+jobs:
+  Deploy-Production:
+    if: |
+      github.event.pull_request.merged == true
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.13.0
+      - name: Install dependencies
+        run: yarn install
+      - name: Lint Code
+        run: yarn lint
+      - name: Build and Compile Typescript
+        run: yarn build
+      - name: Deploy to Heroku Production Environment
+        uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_app_name: 'governator-api-prod'
+          healthcheck: "https://governator-api-prod.herokuapp.com/health"
+          delay: 5
+          heroku_email: ${{secrets.HEROKU_EMAIL}}
+          procfile: 'web: yarn start:prod'
+        env:
+          HD_ALCHEMY_API_KEY_ETHEREUM_MAIN: ${{secrets.ALCHEMY_API_KEY_ETHEREUM_MAIN}}
+          HD_ALCHEMY_API_KEY_POLYGON_MAIN: ${{secrets.ALCHEMY_API_KEY_POLYGON_MAIN}}
+          HD_API_GLOBAL_PREFIX: ${{vars.GOVERNATOR_API_GLOBAL_PREFIX}}
+          HD_API_KEY: ${{secrets.PROD_GOVERNATOR_API_KEY}}
+          HD_API_PORT: ${{vars.GOVERNATOR_API_PORT}}
+          HD_CACHE: ${{vars.PROD_CACHE}}
+          HD_CORS_ORIGIN: ${{vars.PROD_CORS_ORIGIN}}
+          HD_ETHERSCAN_API_KEY: ${{secrets.ETHERSCAN_API_KEY}}
+          HD_INFURA_ETHEREUM_MAIN_ID: ${{secrets.INFURA_ETHEREUM_MAIN_ID}}
+          HD_INFURA_ETHEREUM_MAIN_SECRET: ${{secrets.INFURA_ETHEREUM_MAIN_SECRET}}
+          HD_MONGODB_CLUSTER: ${{secrets.PROD_MONGODB_CLUSTER}}
+          HD_MONGODB_DATABASE: ${{secrets.PROD_MONGODB_DATABASE}}
+          HD_MONGODB_PASS: ${{secrets.PROD_MONGODB_PASS}}
+          HD_MONGODB_PREFIX: ${{secrets.PROD_MONGODB_PREFIX}}
+          HD_MONGODB_USERNAME: ${{secrets.PROD_MONGODB_USERNAME}}
+          HD_MONGO_LOCAL: ""            
+          HD_REDIS_HOST_QUEUE: ${{secrets.PROD_REDIS_HOST_QUEUE}}
+          HD_REDIS_PASSWORD_QUEUE: ${{secrets.PROD_REDIS_PASSWORD_QUEUE}}
+          HD_REDIS_PORT_QUEUE: ${{secrets.PROD_REDIS_PORT_QUEUE}}
+          HD_REDIS_USERNAME_QUEUE: ${{secrets.PROD_REDIS_USERNAME_QUEUE}}
