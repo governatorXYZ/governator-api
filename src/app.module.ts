@@ -14,6 +14,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { Web3Module } from './web3/web3.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CommunityModule } from './community/community.module';
+import { BullModule } from '@nestjs/bull';
 
 const ENV = process.env.NODE_ENV;
 
@@ -47,6 +48,20 @@ const ENV = process.env.NODE_ENV;
         }),
         ScheduleModule.forRoot(),
         CacheModule.register({ isGlobal: true }),
+        BullModule.forRootAsync({
+            imports: [ConfigModule],
+            useFactory: async (configService: ConfigService) => (
+                {
+                    redis: {
+                        host: configService.get('REDIS_HOST_QUEUE'),
+                        port: configService.get('REDIS_PORT_QUEUE'),
+                        password: configService.get('REDIS_PASSWORD_QUEUE'),
+                        username: configService.get('REDIS_USERNAME_QUEUE'),
+                    },
+                }
+            ),
+            inject: [ConfigService],
+        }),
         PollModule,
         UserModule,
         AccountModule,
