@@ -26,6 +26,9 @@ jobs:
           NODE_ENV: development
           MONGO_LOCAL: ${{ secrets.SDK_MONGO_LOCAL }}
           GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
+          SDK_GIT_ORG_OR_USER: ${{ vars.SDK_GIT_ORG_OR_USER }}
+          SDK_GIT_USER: ${{ vars.SDK_GIT_USER }}
+          SDK_GIT_REPO: ${{ vars.SDK_GIT_REPO }}
           GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
           API_CLIENT_NPM_PACKAGE_NAME: "governator-sdk"
           API_CLIENT_REPOSITORY_URL: "https://github.com/governatorXYZ/governator-sdk"
@@ -34,9 +37,10 @@ jobs:
           cd ./src/api-client
           sed -i -e 's/pull origin/pull -Xtheirs origin/g' ./git_push.sh
           sed -i -e 's/master/main/g' ./git_push.sh
+          sed -i '48s#.*#git remote add origin https://${git_user_id}:"${GIT_TOKEN}"@${git_host}/"${SDK_GIT_ORG_OR_USER}"/${git_repo_id}.git#' git_push.sh
           git config --global init.defaultBranch main
           git config --global user.email "$GIT_EMAIL"
-          git config --global user.name tikisailor
+          git config --global user.name "$SDK_GIT_USER"
           git config --global pull.rebase true
-          /bin/sh ./git_push.sh tikisailor test-governator-sdk "SDK release" github.com
+          /bin/sh ./git_push.sh "$SDK_GIT_USER" "$SDK_GIT_REPO" "SDK release" github.com
       - run: echo "Job completed with exit status ${{ job.status }}."   
