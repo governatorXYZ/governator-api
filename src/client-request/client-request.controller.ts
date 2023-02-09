@@ -20,8 +20,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { ClientRequestService } from './client-request.service';
 import { firstValueFrom, throwError, timeout } from 'rxjs';
 import { Throttle } from '@nestjs/throttler';
-import { CommunityMongoService } from 'src/community/community.mongo.service';
-import { CommunityClientConfigDiscordDto } from 'src/community/community.dtos';
+import { CommunityMongoService } from '../community/community.mongo.service';
+import { CommunityClientConfigDiscordDto } from '../community/community.dtos';
 
 @ApiTags('Request data from client')
 @ApiSecurity('api_key')

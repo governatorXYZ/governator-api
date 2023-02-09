@@ -12,7 +12,7 @@ import axios, { AxiosResponse } from 'axios';
 import { DiscordAccountResponseDto, EthereumAccountResponseDto } from '../account/account.dtos';
 import { Cache } from 'cache-manager';
 import Utils from '../common/utils';
-import { StrategyConfig } from 'src/poll/poll.dtos';
+import { StrategyConfig } from '../poll/poll.dtos';
 
 @Injectable()
 export class VoteRequestHandlerService {
