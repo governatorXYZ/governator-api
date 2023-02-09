@@ -38,6 +38,7 @@ jobs:
           sed -i -e 's/pull origin/pull -Xtheirs origin/g' ./git_push.sh
           sed -i -e 's/master/main/g' ./git_push.sh
           sed -i '48s#.*#git remote add origin https://${git_user_id}:"${GIT_TOKEN}"@${git_host}/"${SDK_GIT_ORG_OR_USER}"/${git_repo_id}.git#' git_push.sh
+          sed -i -e 's#GIT_USER_ID/GIT_REPO_ID#governatorXYZ/governator-sdk#g' ./package.json
           git config --global init.defaultBranch main
           git config --global user.email "$GIT_EMAIL"
           git config --global user.name "$SDK_GIT_USER"
