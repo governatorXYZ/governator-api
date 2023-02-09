@@ -26,10 +26,8 @@ jobs:
         with:
           heroku_api_key: ${{secrets.HEROKU_API_KEY}}
           heroku_app_name: 'governator-api-prod'
-          healthcheck: "https://governator-api-prod.herokuapp.com/health"
-          delay: 5
           heroku_email: ${{secrets.HEROKU_EMAIL}}
-          procfile: 'web: yarn start:prod'
+          branch: main
         env:
           HD_ALCHEMY_API_KEY_ETHEREUM_MAIN: ${{secrets.ALCHEMY_API_KEY_ETHEREUM_MAIN}}
           HD_ALCHEMY_API_KEY_POLYGON_MAIN: ${{secrets.ALCHEMY_API_KEY_POLYGON_MAIN}}
