@@ -62,6 +62,13 @@ export class StrategyResponseDto {
 
     @IsString()
     @ApiProperty({
+        description: 'Type of strategy',
+        required: true,
+    })
+        strategy_type: string;
+
+    @IsString()
+    @ApiProperty({
         description: 'Datetime when record was created',
         required: false,
     })
