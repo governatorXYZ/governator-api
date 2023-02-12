@@ -5,6 +5,9 @@ import { Subject } from 'rxjs';
 import { VoteRequestHandlerService } from './vote.request-handler.service';
 import { filter, first } from 'rxjs';
 import { VoteRequestDto, VoteResponseDto } from './vote.dtos';
+import constants from '../common/constants';
+import { SseService } from '../sse/sse.service';
+import { VoteMongoService } from './vote.mongo.service';
 
 @Processor('vote-create')
 export class VoteCreateConsumer {
@@ -13,6 +16,8 @@ export class VoteCreateConsumer {
 
     constructor(
         protected voteRequestHandlerService: VoteRequestHandlerService,
+        protected voteMongoService: VoteMongoService,
+        protected sseService: SseService,
     ) {
         this.eventStream = new Subject();
     }
@@ -68,6 +73,17 @@ export class VoteCreateConsumer {
             this.logger.error('Failed to push to event stream', e);
             return 1;
         }
+
+        if (votes.length > 0) {
+
+            const voteCount = await this.voteMongoService.fetchVoteUserCount(job.data.pollId).catch();
+
+            this.sseService.emit({
+                data: { poll_id: job.data.pollId, vote_count: voteCount },
+                type: constants.EVENT_VOTE_CREATE,
+            } as MessageEvent);
+        }
+        
         await job.progress(2);
 
         return 0;

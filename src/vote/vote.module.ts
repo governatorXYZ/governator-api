@@ -10,6 +10,7 @@ import { StrategyModule } from '../web3/strategy/strategy.module';
 import { BullModule } from '@nestjs/bull';
 import { VoteCreateProducer } from './vote.q.producer.service';
 import { VoteCreateConsumer } from './vote.q.consumer.service';
+import { SseModule } from '../sse/sse.module';
 
 @Module({
     imports: [
@@ -26,6 +27,7 @@ import { VoteCreateConsumer } from './vote.q.consumer.service';
         ),
         UserModule,
         StrategyModule,
+        SseModule,
     ],
     controllers: [VoteController],
     providers: [VoteMongoService, VoteRequestHandlerService, VoteCreateProducer, VoteCreateConsumer],
