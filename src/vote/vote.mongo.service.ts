@@ -116,7 +116,7 @@ export class VoteMongoService {
         }
     }
 
-    async fetchVoteUserCount(pollId) {
+    async fetchVoteUserCount(pollId: string) {
         this.logger.log('counting votes per user');
 
         const voteUsers = [];
