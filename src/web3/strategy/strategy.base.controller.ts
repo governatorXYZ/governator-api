@@ -1,13 +1,12 @@
-import { Controller, Get, Logger, Param } from '@nestjs/common';
+import { Controller, Logger } from '@nestjs/common';
 import { StrategyBaseService } from './strategy.base.service';
 import crypto from 'crypto';
 import { StrategyMongoService } from './strategy.mongo.service';
-import { ApiOkResponse, ApiParam, ApiSecurity } from '@nestjs/swagger';
+import { ApiSecurity } from '@nestjs/swagger';
 import { BlockHeight, StrategyRequestDto } from './strategy.dtos';
 import { EvmService } from '../token-vote/evm/evm.service';
 import { GraphqlService } from '../token-vote/graphql/graphql.service';
 import { formatKebab } from './strategy.utils';
-import { Strategy } from './strategy.schema';
 
 @ApiSecurity('api_key')
 @Controller()
@@ -80,20 +79,5 @@ export class StrategyBaseController {
             strategy,
             resultTransformer,
         );
-    }
-
-    // do not modify
-    @Get('find/one/:_id')
-    @ApiParam({ name: '_id', description: 'Strategy ID' })
-    @ApiOkResponse({ description: 'Returns specified strategies', type: Strategy })
-    async get(@Param('_id') id): Promise<any> {
-        return ((await this.strategyMongoService.findManyStrategy({ _id: id }))[0]);
-    }
-
-    // do not modify
-    @Get('find/all')
-    @ApiOkResponse({ description: 'Returns all strategies', type: Strategy, isArray: true })
-    async getAll(): Promise<any> {
-        return await this.strategyMongoService.findManyStrategy({});
     }
 }
