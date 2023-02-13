@@ -111,6 +111,13 @@ export class StrategyConfig {
         required: true,
     })
         strategy_id: string;
+    
+    @IsOptional()
+    @ApiProperty({
+        description: 'Strategy specific options',
+        required: false,
+    })
+        strategy_options: Record<string, any>;
 
     @IsArray()
     @ApiProperty({
@@ -122,7 +129,7 @@ export class StrategyConfig {
         block_height: BlockHeight[];
 }
 
-export class StrategyConfigCreate extends PickType(StrategyConfig, ['strategy_id', 'block_height'] as const) {
+export class StrategyConfigCreate extends PickType(StrategyConfig, ['strategy_id', 'block_height', 'strategy_options'] as const) {
     @IsOptional()
     @IsIn(constants.STRATEGY_TYPES)
     @ApiProperty({

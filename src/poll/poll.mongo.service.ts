@@ -85,10 +85,10 @@ export class PollMongoService {
         this.logger.warn(`Cron job created for Poll ID ${poll._id} running on ${this.schedulerRegistry.getCronJob(poll._id).nextDate()}`);
     }
 
-    async endPoll(pollId) {
+    async endPoll(pollId: string) {
         this.logger.warn(`poll end has been called on Poll ${pollId}. Emitting POLL_COMPLETE event`);
 
-        await this.sseService.emit({
+        this.sseService.emit({
             data: { poll_id: pollId },
             type: constants.EVENT_POLL_COMPLETE,
         } as MessageEvent);
@@ -128,9 +128,14 @@ export class PollMongoService {
 
     }
 
-    async deletePoll(id): Promise<any> {
+    async deletePoll(id: string): Promise<any> {
         try {
-            return this.pollModel.findOneAndDelete({ _id: id }).exec();
+
+            const deletePoll = this.pollModel.findOneAndDelete({ _id: id }).exec();
+
+            if (this.schedulerRegistry.doesExist('cron', id)) this.schedulerRegistry.deleteCronJob(id);
+
+            return deletePoll;
 
         } catch (e) {
             this.logger.error('Failed to delete poll from db', e);

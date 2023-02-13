@@ -3,10 +3,9 @@ import { StrategyBaseService } from './strategy.base.service';
 import crypto from 'crypto';
 import { StrategyMongoService } from './strategy.mongo.service';
 import { ApiSecurity } from '@nestjs/swagger';
-import { BlockHeight, StrategyRequestDto } from './strategy.dtos';
-import { EvmService } from '../token-vote/evm/evm.service';
-import { GraphqlService } from '../token-vote/graphql/graphql.service';
+import { StrategyRequestDto } from './strategy.dtos';
 import { formatKebab } from './strategy.utils';
+import { ResultTransformerFunction, StrategyFunction } from './strategy.types';
 
 @ApiSecurity('api_key')
 @Controller()
@@ -61,17 +60,8 @@ export class StrategyBaseController {
 
     runStrategy(
         params: StrategyRequestDto,
-        strategy: (accountId: string,
-                   blockHeight: BlockHeight[],
-                   evmService: EvmService,
-                   graphqlService: GraphqlService,
-                   logger: Logger,
-                   // tokenWhitelistService: TokenWhitelistMongoService,
-                   ) => any,
-        resultTransformer: (preloads: any[],
-                            strategyResult: any,
-                            logger: Logger,
-                            ) => string,
+        strategy: StrategyFunction,
+        resultTransformer: ResultTransformerFunction,
     ) {
         this.logger.debug(`Running strategy ${strategy.name}`);
         return this.strategyService.runStrategy(
