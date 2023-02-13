@@ -1,17 +1,16 @@
-import { Body, Controller, HttpCode, HttpStatus, Logger, OnApplicationBootstrap, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, OnApplicationBootstrap, Post } from '@nestjs/common';
 import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { StrategyBaseController } from '../strategy.base.controller';
 import { StrategyBaseService } from '../strategy.base.service';
 import { StrategyMongoService } from '../strategy.mongo.service';
 import * as path from 'path';
-import { BlockHeight, StrategyRequestDto } from '../strategy.dtos';
+import { StrategyRequestDto } from '../strategy.dtos';
 import { formatKebab } from '../strategy.utils';
 import apiConfig from './CONFIG';
 import { ERC20BalanceOfDto, ERC20TokenBalances, TokenList } from '../../token-vote/evm/evm.dtos';
-import { EvmService } from '../../token-vote/evm/evm.service';
-import { GraphqlService } from '../../token-vote/graphql/graphql.service';
 import { ethers } from 'ethers';
 import { strategyTypes } from '../../../common/constants';
+import { ResultTransformerParams, StrategyUtils } from '../strategy.types';
 
 const conf = {
     api_tag: apiConfig.API_TAG,
@@ -24,9 +23,14 @@ const conf = {
         'for all your verified wallets at the speciefied block-height.',
 };
 
+// do not modify
 @ApiTags(conf.api_tag)
 @Controller(conf.api_url_base)
+
+// modify: rename class
 export class BankTokenWeightedStrategy extends StrategyBaseController implements OnApplicationBootstrap {
+
+    // do not modify
     constructor(
         protected strategyService: StrategyBaseService,
         protected strategyMongoService: StrategyMongoService,
@@ -35,21 +39,14 @@ export class BankTokenWeightedStrategy extends StrategyBaseController implements
     }
 
     // modify: implement strategy here
-    async strategy(
-        ethAddress: string,
-        blockHeights: BlockHeight[],
-        evmService: EvmService,
-        graphqlService: GraphqlService,
-        logger: Logger,
-        // tokenWhitelistService: TokenWhitelistMongoService,
-    ) {
+    async strategy(strategyUtils: StrategyUtils) {
 
-        const polygonBlockHeight = blockHeights.find((blockHeight) => blockHeight.chain_id === '137').block;
-        const mainnetBlockHeight = blockHeights.find((blockHeight) => blockHeight.chain_id === '1').block;
+        const polygonBlockHeight = strategyUtils.strategyRequest.block_height.find((blockHeight) => blockHeight.chain_id === '137').block;
+        const mainnetBlockHeight = strategyUtils.strategyRequest.block_height.find((blockHeight) => blockHeight.chain_id === '1').block;
 
-        logger.debug(`blockHeights: ${JSON.stringify(blockHeights)}`);
+        strategyUtils.logger.debug(`blockHeights: ${JSON.stringify(strategyUtils.strategyRequest.block_height)}`);
 
-        logger.debug(`equivalentBlockHeight: ${polygonBlockHeight}`);
+        strategyUtils.logger.debug(`equivalentBlockHeight: ${polygonBlockHeight}`);
 
         const banklessTokenMain: ERC20BalanceOfDto = {
             contractAddress: '0x2d94aa3e47d9d5024503ca8491fce9a2fb4da198',
@@ -73,30 +70,27 @@ export class BankTokenWeightedStrategy extends StrategyBaseController implements
 
         }
 
-        logger.debug(`getting balances for token list: ${JSON.stringify(tokens)}`);
+        strategyUtils.logger.debug(`getting balances for token list: ${JSON.stringify(tokens)}`);
 
-        return await evmService.getErc20TokenBalances(ethAddress, tokens);
+        return await strategyUtils.evmService.getErc20TokenBalances(strategyUtils.strategyRequest.account_id, tokens);
     }
 
     // transform strategy result, or use to chain strategies
-    responseTransformer(
-        strategyResult: any,
-        logger: Logger,
-    ): string {
+    responseTransformer(resultTransformerParams: ResultTransformerParams): string {
         let votingPower = ethers.BigNumber.from('0');
 
 
-        for (const token of (strategyResult as ERC20TokenBalances).tokenBalances) {
+        for (const token of (resultTransformerParams.strategyResult as ERC20TokenBalances).tokenBalances) {
             const bigNumber = ethers.BigNumber.from(token.balance);
 
-            logger.debug(`balance ${token.balance}`);
-            logger.debug(`balanceBigN ${token.balance}`);
+            resultTransformerParams.logger.debug(`balance ${token.balance}`);
+            resultTransformerParams.logger.debug(`balanceBigN ${token.balance}`);
 
             votingPower = votingPower.add(bigNumber);
         }
 
 
-        logger.debug(`Total voting power: ${votingPower.toString()}`);
+        resultTransformerParams.logger.debug(`Total voting power: ${votingPower.toString()}`);
 
         // return ethers.utils.formatEther(votingPower).toString();
         return votingPower.toString();

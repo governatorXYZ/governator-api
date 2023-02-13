@@ -1,16 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { EvmService } from '../token-vote/evm/evm.service';
-import { TokenWhitelistMongoService } from '../token-vote/token-whitelist/token-whitelist.mongo.service';
 import { GraphqlService } from '../token-vote/graphql/graphql.service';
 import { StrategyRequestDto } from './strategy.dtos';
-import * as ethers from 'ethers';
+import { ResultTransformerFunction, StrategyFunction } from './strategy.types';
 
 @Injectable()
 export class StrategyBaseService {
     readonly logger = new Logger(StrategyBaseService.name);
     constructor(
-        protected tokenVoteService: EvmService,
-        protected tokenWhitelistService: TokenWhitelistMongoService,
+        protected evmService: EvmService,
         protected graphqlService: GraphqlService,
     ) {
         // do nothing.
@@ -18,22 +16,27 @@ export class StrategyBaseService {
 
     async runStrategy(
         params: StrategyRequestDto,
-        strategy,
-        resultTransformer,
+        strategy: StrategyFunction,
+        resultTransformer: ResultTransformerFunction,
     ): Promise<any> {
         const strategyResult = await strategy(
-            params.account_id,
-            params.block_height ?? null,
-            this.tokenVoteService,
-            this.graphqlService,
-            this.logger,
-            this.tokenWhitelistService,
+            {
+                strategyRequest: {
+                    account_id: params.account_id,
+                    block_height: params.block_height ?? null,
+                    strategy_options: params.strategy_options,
+                },
+                evmService: this.evmService,
+                graphqlService: this.graphqlService,
+                logger: this.logger,
+            },
         );
 
         return resultTransformer(
-            strategyResult,
-            this.logger,
-            ethers,
+            {
+                strategyResult: strategyResult,
+                logger: this.logger,
+            },
         );
     }
 }

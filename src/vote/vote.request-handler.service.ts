@@ -165,7 +165,7 @@ export class VoteRequestHandlerService {
     *   of strategy templates. */
     async runTokenStrategy(strategyConf: StrategyConfig, account: (EthereumAccountResponseDto | DiscordAccountResponseDto)): Promise<string> {
         const strategyEndpoint = (await this.strategyMongoService.findManyStrategy({ _id: strategyConf.strategy_id }))[0].endpoint;
-        const strategyRequestDto: StrategyRequestDto = { account_id: account._id, block_height: strategyConf.block_height };
+        const strategyRequestDto: StrategyRequestDto = { account_id: account._id, block_height: strategyConf.block_height, strategy_options: strategyConf.strategy_options ?? {} };
 
         const votePowerOfAccount = await axios.post(
             `http://localhost:${process.env.PORT}/${process.env.API_GLOBAL_PREFIX}/${strategyEndpoint}`,

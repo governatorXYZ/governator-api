@@ -7,7 +7,6 @@ import * as path from 'path';
 import { StrategyRequestDto } from '../strategy.dtos';
 import { formatKebab } from '../strategy.utils';
 import apiConfig from './CONFIG';
-import { ERC20BalanceOfDto, ERC20TokenBalances, TokenList } from '../../token-vote/evm/evm.dtos';
 import { ethers } from 'ethers';
 import { strategyTypes } from '../../../common/constants';
 import { ResultTransformerParams, StrategyUtils } from '../strategy.types';
@@ -16,11 +15,9 @@ const conf = {
     api_tag: apiConfig.API_TAG,
     api_url_base: apiConfig.API_TAG.toLowerCase(),
     // modify to match your startegy setting in CONFIG.ts
-    name: apiConfig.STRATEGY_DAOPUNKS,
+    name: apiConfig.STRATEGY_POAP_GNOSIS,
     strategy_type: strategyTypes.STRATEGY_TYPE_TOKEN_WEIGHTED,
-    description: 'Weighted voting strategy for DAOPUNK NFT holders ' +
-        'Your voting power will be calculated as the total number of DAOPUNKs ' +
-        'for all your verified wallets at the specified block-height.',
+    description: 'POAP gated voting strategy on gnosis chain. This strategy allows for passing a POAP event_id to the satrtegy_options used for gating the poll',
 };
 
 // do not modify
@@ -28,7 +25,7 @@ const conf = {
 @Controller(conf.api_url_base)
 
 // modify: rename class
-export class DaoPunksStrategy extends StrategyBaseController implements OnApplicationBootstrap {
+export class PoapGnosisStrategy extends StrategyBaseController implements OnApplicationBootstrap {
 
     // do not modify
     constructor(
@@ -41,39 +38,40 @@ export class DaoPunksStrategy extends StrategyBaseController implements OnApplic
     // modify: implement strategy here
     async strategy(strategyUtils: StrategyUtils) {
 
+        // const gosisBlockHeight = strategyUtils.strategyRequest.block_height.find((blockHeight) => blockHeight.chain_id === '100').block;
+
         strategyUtils.logger.debug(`blockHeights: ${JSON.stringify(strategyUtils.strategyRequest.block_height)}`);
 
-        const daopunks: ERC20BalanceOfDto = {
-            contractAddress: '0x700f045de43FcE6D2C25df0288b41669B7566BbE',
-            chain_id: 1,
-            block_height: strategyUtils.strategyRequest.block_height.find(block => block.chain_id === '1').block,
-        };
+        const poapEventId = strategyUtils.strategyRequest.strategy_options.event_id;
 
-        const tokens: TokenList = { tokens: [daopunks] };
+        strategyUtils.logger.debug(`checking balance for eventId: ${poapEventId}`);
 
+        const poapContractAbi = [
+            'function balanceOf(address owner) view returns (uint256 balance)',
+            'function tokenDetailsOfOwnerByIndex(address owner, uint256 index) view returns (uint256 tokenId, uint256 eventId)',
+        ];
 
-        strategyUtils.logger.debug(`getting balances for token list: ${JSON.stringify(tokens)}`);
+        const poapContractAddresss = '0x22C1f6050E56d2876009903609a2cC3fEf83B415';
 
-        return await strategyUtils.evmService.getErc20TokenBalances(strategyUtils.strategyRequest.account_id, tokens);
+        const contract = await strategyUtils.evmService.connectContract(poapContractAddresss, poapContractAbi, 100);
+
+        const poapBalance = (await contract.balanceOf(strategyUtils.strategyRequest.account_id) as ethers.BigNumber).toNumber();
+
+        strategyUtils.logger.log(poapBalance);
+
+        if(poapBalance > 0) {
+            for(let i = 0; i < poapBalance; i++) {
+                const tokenDetails = await contract.tokenDetailsOfOwnerByIndex(strategyUtils.strategyRequest.account_id, i).catch(e => strategyUtils.logger.error(e));
+                if (tokenDetails[1].toString() === poapEventId) return '1';
+            }
+        }
+
+        return '0';
     }
 
     // transform strategy result, or use to chain strategies
     responseTransformer(resultTransformerParams: ResultTransformerParams): string {
-        const votingPower = ethers.BigNumber.from('0');
-
-
-        for (const token of (resultTransformerParams.strategyResult as ERC20TokenBalances).tokenBalances) {
-
-            if (ethers.BigNumber.from(token.balance).gt(ethers.BigNumber.from(0))) {
-                votingPower.add(ethers.BigNumber.from(token.balance));
-            }
-        }
-
-
-        resultTransformerParams.logger.debug(`Total voting power: ${votingPower.toString()}`);
-
-        return votingPower.toString();
-
+        return resultTransformerParams.strategyResult;
     }
 
     // do not modify

@@ -62,15 +62,15 @@ const ENV = process.env.NODE_ENV;
             ),
             inject: [ConfigService],
         }),
+        SseModule,
         PollModule,
         UserModule,
         AccountModule,
         Web3Module,
-        VoteModule,
         ClientRequestModule,
-        SseModule,
         AuthModule,
         CommunityModule,
+        VoteModule,
     ],
     providers: [
         {
