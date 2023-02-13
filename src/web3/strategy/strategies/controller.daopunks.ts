@@ -1,17 +1,16 @@
-import { Body, Controller, HttpCode, HttpStatus, Logger, OnApplicationBootstrap, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, OnApplicationBootstrap, Post } from '@nestjs/common';
 import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { StrategyBaseController } from '../strategy.base.controller';
 import { StrategyBaseService } from '../strategy.base.service';
 import { StrategyMongoService } from '../strategy.mongo.service';
 import * as path from 'path';
-import { BlockHeight, StrategyRequestDto } from '../strategy.dtos';
+import { StrategyRequestDto } from '../strategy.dtos';
 import { formatKebab } from '../strategy.utils';
 import apiConfig from './CONFIG';
 import { ERC20BalanceOfDto, ERC20TokenBalances, TokenList } from '../../token-vote/evm/evm.dtos';
-import { EvmService } from '../../token-vote/evm/evm.service';
-import { GraphqlService } from '../../token-vote/graphql/graphql.service';
 import { ethers } from 'ethers';
 import { strategyTypes } from '../../../common/constants';
+import { ResultTransformerParams, StrategyUtils } from '../strategy.types';
 
 const conf = {
     api_tag: apiConfig.API_TAG,
@@ -24,9 +23,14 @@ const conf = {
         'for all your verified wallets at the specified block-height.',
 };
 
+// do not modify
 @ApiTags(conf.api_tag)
 @Controller(conf.api_url_base)
+
+// modify: rename class
 export class DaoPunksStrategy extends StrategyBaseController implements OnApplicationBootstrap {
+
+    // do not modify
     constructor(
         protected strategyService: StrategyBaseService,
         protected strategyMongoService: StrategyMongoService,
@@ -35,40 +39,30 @@ export class DaoPunksStrategy extends StrategyBaseController implements OnApplic
     }
 
     // modify: implement strategy here
-    async strategy(
-        ethAddress: string,
-        blockHeights: BlockHeight[],
-        evmService: EvmService,
-        graphqlService: GraphqlService,
-        logger: Logger,
-        // tokenWhitelistService: TokenWhitelistMongoService,
-    ) {
+    async strategy(strategyUtils: StrategyUtils) {
 
-        logger.debug(`blockHeights: ${JSON.stringify(blockHeights)}`);
+        strategyUtils.logger.debug(`blockHeights: ${JSON.stringify(strategyUtils.strategyRequest.block_height)}`);
 
         const daopunks: ERC20BalanceOfDto = {
             contractAddress: '0x700f045de43FcE6D2C25df0288b41669B7566BbE',
             chain_id: 1,
-            block_height: blockHeights.find(block => block.chain_id === '1').block,
+            block_height: strategyUtils.strategyRequest.block_height.find(block => block.chain_id === '1').block,
         };
 
         const tokens: TokenList = { tokens: [daopunks] };
 
 
-        logger.debug(`getting balances for token list: ${JSON.stringify(tokens)}`);
+        strategyUtils.logger.debug(`getting balances for token list: ${JSON.stringify(tokens)}`);
 
-        return await evmService.getErc20TokenBalances(ethAddress, tokens);
+        return await strategyUtils.evmService.getErc20TokenBalances(strategyUtils.strategyRequest.account_id, tokens);
     }
 
     // transform strategy result, or use to chain strategies
-    responseTransformer(
-        strategyResult: any,
-        logger: Logger,
-    ): string {
+    responseTransformer(resultTransformerParams: ResultTransformerParams): string {
         const votingPower = ethers.BigNumber.from('0');
 
 
-        for (const token of (strategyResult as ERC20TokenBalances).tokenBalances) {
+        for (const token of (resultTransformerParams.strategyResult as ERC20TokenBalances).tokenBalances) {
 
             if (ethers.BigNumber.from(token.balance).gt(ethers.BigNumber.from(0))) {
                 votingPower.add(ethers.BigNumber.from(token.balance));
@@ -76,7 +70,7 @@ export class DaoPunksStrategy extends StrategyBaseController implements OnApplic
         }
 
 
-        logger.debug(`Total voting power: ${votingPower.toString()}`);
+        resultTransformerParams.logger.debug(`Total voting power: ${votingPower.toString()}`);
 
         return votingPower.toString();
 

@@ -131,9 +131,11 @@ export class PollMongoService {
     async deletePoll(id: string): Promise<any> {
         try {
 
-            this.pollModel.findOneAndDelete({ _id: id }).exec();
+            const deletePoll = this.pollModel.findOneAndDelete({ _id: id }).exec();
 
             if (this.schedulerRegistry.doesExist('cron', id)) this.schedulerRegistry.deleteCronJob(id);
+
+            return deletePoll;
 
         } catch (e) {
             this.logger.error('Failed to delete poll from db', e);
