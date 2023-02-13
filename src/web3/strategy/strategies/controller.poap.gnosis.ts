@@ -15,9 +15,9 @@ const conf = {
     api_tag: apiConfig.API_TAG,
     api_url_base: apiConfig.API_TAG.toLowerCase(),
     // modify to match your startegy setting in CONFIG.ts
-    name: apiConfig.STRATEGY_POAP_GNOSIS,
+    name: apiConfig.STRATEGY_POAP_EVENT,
     strategy_type: strategyTypes.STRATEGY_TYPE_TOKEN_WEIGHTED,
-    description: 'POAP gated voting strategy on gnosis chain. This strategy allows for passing a POAP event_id to the satrtegy_options used for gating the poll',
+    description: 'POAP gated voting strategy on gnosis & Ethereum mainnet. This strategy allows for passing a POAP event_id to the satrtegy_options used for gating the poll',
 };
 
 // do not modify
@@ -25,7 +25,7 @@ const conf = {
 @Controller(conf.api_url_base)
 
 // modify: rename class
-export class PoapGnosisStrategy extends StrategyBaseController implements OnApplicationBootstrap {
+export class PoapEventStrategy extends StrategyBaseController implements OnApplicationBootstrap {
 
     // do not modify
     constructor(
@@ -53,15 +53,26 @@ export class PoapGnosisStrategy extends StrategyBaseController implements OnAppl
 
         const poapContractAddresss = '0x22C1f6050E56d2876009903609a2cC3fEf83B415';
 
-        const contract = await strategyUtils.evmService.connectContract(poapContractAddresss, poapContractAbi, 100);
+        const contractGnosis = await strategyUtils.evmService.connectContract(poapContractAddresss, poapContractAbi, 100);
 
-        const poapBalance = (await contract.balanceOf(strategyUtils.strategyRequest.account_id) as ethers.BigNumber).toNumber();
+        const poapBalanceGnosis = (await contractGnosis.balanceOf(strategyUtils.strategyRequest.account_id) as ethers.BigNumber).toNumber();
 
-        strategyUtils.logger.log(poapBalance);
+        strategyUtils.logger.log(poapBalanceGnosis);
 
-        if(poapBalance > 0) {
-            for(let i = 0; i < poapBalance; i++) {
-                const tokenDetails = await contract.tokenDetailsOfOwnerByIndex(strategyUtils.strategyRequest.account_id, i).catch(e => strategyUtils.logger.error(e));
+        if(poapBalanceGnosis > 0) {
+            for(let i = 0; i < poapBalanceGnosis; i++) {
+                const tokenDetails = await contractGnosis.tokenDetailsOfOwnerByIndex(strategyUtils.strategyRequest.account_id, i).catch(e => strategyUtils.logger.error(e));
+                if (tokenDetails[1].toString() === poapEventId) return '1';
+            }
+        }
+
+        const contractEthereum = await strategyUtils.evmService.connectContract(poapContractAddresss, poapContractAbi, 1);
+
+        const poapBalanceEthereum = (await contractEthereum.balanceOf(strategyUtils.strategyRequest.account_id) as ethers.BigNumber).toNumber();
+
+        if(poapBalanceEthereum > 0) {
+            for(let i = 0; i < poapBalanceEthereum; i++) {
+                const tokenDetails = await contractEthereum.tokenDetailsOfOwnerByIndex(strategyUtils.strategyRequest.account_id, i).catch(e => strategyUtils.logger.error(e));
                 if (tokenDetails[1].toString() === poapEventId) return '1';
             }
         }

@@ -5,6 +5,6 @@ export default Object.freeze({
     STRATEGY_NONE: 'Standard (1 Vote = 1 Vote)',
     STRATEGY_POOLY: 'POOLY - ERC721 Weighted',
     STRATEGY_DAOPUNKS: 'DAOPUNKS - ERC721 Weighted',
-    STRATEGY_POAP_GNOSIS: 'POAP - Event gated - gnosis',
+    STRATEGY_POAP_EVENT: 'POAP - Event gated - gnosis & mainnet',
     // add strategy names here
 });
