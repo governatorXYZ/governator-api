@@ -4,14 +4,18 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { OpenAPI } from 'openapi-types';
 import helmet from 'helmet';
 import { Reflector } from '@nestjs/core';
-import { AuthGuard } from './auth/auth.guard';
+import { ApiKeyAuthGuard } from './auth/api-key.guard';
+import session from 'express-session';
+import passport from 'passport';
+import Redis from 'ioredis';
+import connectRedis from 'connect-redis';
 
 export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
 
     // Makes .env available
     const configService = app.get(ConfigService);
 
-    // // Get global prefix from .env
+    // Get global prefix from .env
     const globalPrefix: string = configService.get('API_GLOBAL_PREFIX');
 
     // Versioning system
@@ -41,9 +45,29 @@ export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
     // Put a helmet on
     app.use(helmet());
 
+    // Configure session
+    const redisClient = new Redis({ port: 6379, host: 'localhost' });
+    // redisClient.connect().catch(console.error)
+    const RedisStore = connectRedis(session);
+
+   
+    app.use(session({
+        cookie: {
+            maxAge: 1000 * 60 * 60 * 24 * 7,
+        },
+        secret: process.env.SESSION_SECRET,
+        resave: false,
+        saveUninitialized: false,
+        store: new RedisStore({ client: redisClient }),
+    }),
+    );
+
+    app.use(passport.initialize());
+    app.use(passport.session());
+
     // use global auth guard
-    const reflector = app.get(Reflector);
-    app.useGlobalGuards(new AuthGuard(reflector));
+    // const reflector = app.get(Reflector);
+    // app.useGlobalGuards(new AuthGuard(reflector));
 
     // Swagger setup
     const swaggerConfig = new DocumentBuilder()

@@ -15,6 +15,7 @@ import { Web3Module } from './web3/web3.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CommunityModule } from './community/community.module';
 import { BullModule } from '@nestjs/bull';
+import { PassportModule } from '@nestjs/passport';
 
 const ENV = process.env.NODE_ENV;
 
@@ -31,6 +32,7 @@ const ENV = process.env.NODE_ENV;
                 API_GLOBAL_PREFIX: Joi.string().default('api'),
             }),
         }),
+        PassportModule.register({ session: true }),
         MongooseModule.forRootAsync({
             imports: [ConfigModule],
             useFactory: async (configService: ConfigService) => (

@@ -3,7 +3,7 @@ import { Reflector } from '@nestjs/core';
 import { AuthGuard as PassportAuthGaurd } from '@nestjs/passport';
 
 @Injectable()
-export class AuthGuard extends PassportAuthGaurd('api-key') {
+export class ApiKeyAuthGuard extends PassportAuthGaurd('api-key') {
     constructor(private readonly reflector: Reflector) {
         super();
     }

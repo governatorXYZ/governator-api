@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import Strategy from 'passport-headerapikey';
 
 @Injectable()
-export class HeaderApiKeyStrategy extends PassportStrategy(Strategy, 'api-key') {
+export class ApiKeyStrategy extends PassportStrategy(Strategy, 'api-key') {
     constructor(
         private readonly configService: ConfigService,
     ) {
