@@ -1,10 +1,11 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard as PassportAuthGaurd } from '@nestjs/passport';
+import { ApiKeyAuthGuard } from '../api-key/api-key.guard';
 
 @Injectable()
 export class DiscordAuthGuard extends PassportAuthGaurd('discord') {
-    constructor(private readonly reflector: Reflector) {
+    constructor() {
         super();
     }
 
@@ -17,9 +18,17 @@ export class DiscordAuthGuard extends PassportAuthGaurd('discord') {
 }
 
 @Injectable()
-export class IsAuthenticatedGuard implements CanActivate {
+export class IsAuthenticatedGuard extends ApiKeyAuthGuard implements CanActivate {
+    constructor(protected readonly reflector: Reflector) {
+        super(reflector);
+    }
+
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest();
-        return request.isAuthenticated();
+        if (request.isAuthenticated()) {
+            return true;
+        }
+
+        return await super.canActivate(context) as boolean;
     }
 }

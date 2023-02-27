@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Aggregate, Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { DiscordAccountCreateDto } from './account.dtos';
+import { DiscordAccountCreateDto, DiscordAccountResponseDto, DiscordAccountUpdateDto } from './account.dtos';
 import { DiscordAccount, DiscordAccountDocument } from './discordAccount.schema';
 
 @Injectable()
@@ -12,9 +12,9 @@ export class DiscordAccountMongoService {
         // do nothing
     }
 
-    async findOneAccount(filter): Promise<DiscordAccount | null> {
+    async findOneAccount(filter): Promise<DiscordAccountResponseDto | null> {
         try {
-            return await this.discordAccountModel.findOne(filter).exec().catch((e) => {
+            return await this.discordAccountModel.findOne(filter).lean().exec().catch((e) => {
                 this.logger.error(e);
                 return null;
             });
@@ -27,7 +27,7 @@ export class DiscordAccountMongoService {
 
     async findManyAccount(filter): Promise<DiscordAccount[] | null> {
         try {
-            return await this.discordAccountModel.find(filter).exec().catch((e) => {
+            return await this.discordAccountModel.find(filter).lean().exec().catch((e) => {
                 this.logger.error(e);
                 return null;
             });
@@ -62,9 +62,9 @@ export class DiscordAccountMongoService {
         }
     }
 
-    async findOneAndUpdateAccount(filter, updateDoc) {
+    async findOneAndUpdateAccount(filter, updateDoc): Promise<DiscordAccountUpdateDto> {
         try {
-            return this.discordAccountModel.findOneAndUpdate(filter, updateDoc, { new: true, upsert: false }).exec();
+            return this.discordAccountModel.findOneAndUpdate(filter, updateDoc, { new: true, upsert: false }).lean().exec();
         } catch (e) {
             this.logger.error('Failed to update account', e);
 

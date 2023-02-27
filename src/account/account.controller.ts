@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import {
     DiscordAccountCreateDto,
@@ -14,9 +14,11 @@ import { EthereumAccountMongoService } from './ethereumAccount.mongo.service';
 import { EthereumAccount } from './ethereumAccount.schema';
 import { DiscordAccount } from './discordAccount.schema';
 import { DiscordAccountMongoService } from './discordAccount.mongo.service';
+import { ApiKeyAdminAuthGuard } from '../auth/api-key/api-key.guard';
 
 @ApiTags('Account')
 @ApiSecurity('api_key')
+@UseGuards(ApiKeyAdminAuthGuard)
 @Controller()
 export class AccountController {
     constructor(
@@ -91,7 +93,7 @@ export class AccountController {
     @Get('account/discord/get-by-account-id/:_id')
     @ApiOperation({ description: 'Find a discord account' })
     @ApiOkResponse({ description: 'Returns a Discord account object', type: DiscordAccountResponseDto })
-    async findOneDiscordAccountByProviderAccountId(@Param() params: DiscordAccountValidateAccountIdDto): Promise<DiscordAccount> {
+    async findOneDiscordAccountByProviderAccountId(@Param() params: DiscordAccountValidateAccountIdDto): Promise<DiscordAccountResponseDto> {
         return await this.discordMongoService.findOneAccount({ _id: params._id });
     }
 
@@ -105,7 +107,7 @@ export class AccountController {
     @Patch('account/discord/update/:_id')
     @ApiOperation({ description: 'Update a discord account' })
     @ApiCreatedResponse({ description: 'Returns the updated account object', type: DiscordAccountResponseDto })
-    async findByIdAndUpdateDiscordAccount(@Param() params: DiscordAccountValidateAccountIdDto, @Body() discordAccount: DiscordAccountUpdateDto): Promise<DiscordAccount> {
+    async findByIdAndUpdateDiscordAccount(@Param() params: DiscordAccountValidateAccountIdDto, @Body() discordAccount: DiscordAccountUpdateDto): Promise<DiscordAccountUpdateDto> {
         return await this.discordMongoService.findOneAndUpdateAccount({ _id: params._id }, discordAccount);
     }
 
