@@ -1,4 +1,4 @@
-import { Module, CacheModule } from '@nestjs/common';
+import { Module, CacheModule, NestModule, Inject, MiddlewareConsumer } from '@nestjs/common';
 import * as Joi from 'joi';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -16,6 +16,13 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { CommunityModule } from './community/community.module';
 import { BullModule } from '@nestjs/bull';
 import { PassportModule } from '@nestjs/passport';
+import session from 'express-session';
+import passport from 'passport';
+import RedisStore from 'connect-redis';
+import { RedisModule } from './redis/redis.module';
+import { REDIS } from './redis/redis.constants';
+import Redis from 'ioredis';
+
 
 const ENV = process.env.NODE_ENV;
 
@@ -51,18 +58,15 @@ const ENV = process.env.NODE_ENV;
         ScheduleModule.forRoot(),
         CacheModule.register({ isGlobal: true }),
         BullModule.forRootAsync({
-            imports: [ConfigModule],
-            useFactory: async (configService: ConfigService) => (
+            imports: [RedisModule],
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            useFactory: async (redis: Redis) => (
                 {
-                    redis: {
-                        host: configService.get('REDIS_HOST_QUEUE'),
-                        port: configService.get('REDIS_PORT_QUEUE'),
-                        password: configService.get('REDIS_PASSWORD_QUEUE'),
-                        username: configService.get('REDIS_USERNAME_QUEUE'),
-                    },
+                    redis: redis,
                 }
             ),
-            inject: [ConfigService],
+            inject: [REDIS],
         }),
         SseModule,
         PollModule,
@@ -73,6 +77,7 @@ const ENV = process.env.NODE_ENV;
         AuthModule,
         CommunityModule,
         VoteModule,
+        RedisModule,
     ],
     providers: [
         {
@@ -81,4 +86,36 @@ const ENV = process.env.NODE_ENV;
         },
     ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+    constructor(
+        @Inject(REDIS) private readonly redis: Redis,
+        private readonly configService: ConfigService,
+    ) {
+        // do nothing
+    }
+
+    configure(consumer: MiddlewareConsumer) {
+        consumer
+            .apply(
+                session({
+                    store: new (RedisStore(session))({ client: this.redis, logErrors: true }),
+                    saveUninitialized: false,
+                    secret: this.configService.get('SESSION_SECRET'),
+                    resave: false,
+                    cookie: {
+                        sameSite: true,
+                        httpOnly: true,
+                        secure: true,
+                        maxAge: 1000 * 60 * 60 * 24,
+                    },
+                }),
+                passport.initialize(),
+                passport.session(),
+            )
+            .forRoutes('*');
+    }
+
+    onModuleDestroy() {
+        this.redis.disconnect();
+    }
+}

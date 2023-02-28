@@ -3,10 +3,6 @@ import { VersioningType, ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { OpenAPI } from 'openapi-types';
 import helmet from 'helmet';
-import session from 'express-session';
-import passport from 'passport';
-import Redis from 'ioredis';
-import connectRedis from 'connect-redis';
 
 export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
 
@@ -42,21 +38,6 @@ export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
 
     // Put a helmet on
     app.use(helmet());
-
-    // Configure session
-    const redisClient = new Redis(configService.get('REDIS_SESSION_STORE_URI'));
-    const RedisStore = connectRedis(session);
-    app.use(session({
-        cookie: {
-            maxAge: 1000 * 60 * 60 * 24,
-        },
-        secret: process.env.SESSION_SECRET,
-        resave: false,
-        saveUninitialized: false,
-        store: new RedisStore({ client: redisClient }),
-    }));
-    app.use(passport.initialize());
-    app.use(passport.session());
 
     // use global auth guard
     // const reflector = app.get(Reflector);
