@@ -7,7 +7,7 @@ import { REDIS } from './redis.constants';
     providers: [
         {
             provide: REDIS,
-            useValue: new Redis(process.env.REDIS_SESSION_STORE_URI),
+            useValue: new Redis(process.env.REDIS_URL),
         },
     ],
     exports: [REDIS],

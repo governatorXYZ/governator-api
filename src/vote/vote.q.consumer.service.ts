@@ -48,6 +48,7 @@ export class VoteCreateConsumer {
         this.logger.log(
             `Job ${job.id} completed with exit status ${result}`,
         );
+        job.remove();
     }
 
     @OnQueueActive()

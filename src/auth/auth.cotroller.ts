@@ -22,6 +22,11 @@ export class AuthController {
         return;
     }
 
+    @Get('auth/logout')
+    logout(@Req() req: Request, @Res() res: Response) {
+        req.logout(() => res.redirect('/'));
+    }
+
     @Get('auth/redirect')
     @UseGuards(DiscordAuthGuard)
     @ApiOperation({ description: 'Discord OAuth redirect url' })
@@ -67,3 +72,4 @@ export class AuthController {
         return this.apiKeyAuthService.validateApiKey(params.api_key);
     }
 }
+
