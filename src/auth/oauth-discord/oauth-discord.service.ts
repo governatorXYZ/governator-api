@@ -2,16 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { UserService } from '../../user/user.service';
 import { DiscordAccountResponseDto, DiscordAccountUpdateDto } from '../../account/account.dtos';
 import { DiscordAccountMongoService } from '../../account/discordAccount.mongo.service';
-
-interface DiscordUser {
-    username: string,
-    discriminator: string,
-    account_id: string,
-    avatar: string,
-    provider_id: string,
-    accessToken: string,
-    refreshToken: string,
-}
+import { OauthSession, DiscordUser } from '../auth.dtos';
+import axios from 'axios';
 
 @Injectable()
 export class DiscordAuthService {
@@ -24,7 +16,7 @@ export class DiscordAuthService {
     }
     async validateUser(discordUser: DiscordUser) {
 
-        let existingAccount = await this.findDiscordAccount(discordUser.account_id);
+        let existingAccount = await this.findDiscordAccount(discordUser._id);
 
         if (!existingAccount) {
             existingAccount = await this.createAccount(discordUser);
@@ -32,26 +24,36 @@ export class DiscordAuthService {
         } else if (
             existingAccount.avatar !== discordUser.avatar ||
             existingAccount.accessToken !== discordUser.accessToken ||
-            existingAccount.discord_username !== discordUser.username ||
-            existingAccount.refreshToken !== discordUser.refreshToken
+            existingAccount.discord_username !== discordUser.discord_username ||
+            existingAccount.refreshToken !== discordUser.refreshToken ||
+            existingAccount.discriminator !== discordUser.discriminator
         ) {
             existingAccount = await this.updateAccount(discordUser);
         }
 
-        const safeAccount = { ...existingAccount };
-        delete safeAccount.accessToken;
-        delete safeAccount.refreshToken;
-        safeAccount.avatar = `https://cdn.discordapp.com/avatars/${(safeAccount as DiscordAccountResponseDto)._id}/${safeAccount.avatar}`;
+        const { discord_username, discriminator, _id, avatar, provider_id, user_id: governatorId } = existingAccount as DiscordAccountResponseDto;
 
-        return safeAccount;
+        const sessionAccount: OauthSession = {
+            governatorId,
+            status: 200,
+            oauthProfile: {
+                discord_username,
+                discriminator,
+                _id,
+                avatar: `https://cdn.discordapp.com/avatars/${_id}/${avatar}`,
+                provider_id,
+            },
+        };
+
+        return sessionAccount;
 
     }
 
     async createAccount(discordUser: DiscordUser) {
         return this.discordAccountService.createAccount(
             {
-                _id: discordUser.account_id,
-                discord_username: discordUser.username,
+                _id: discordUser._id,
+                discord_username: discordUser.discord_username,
                 discriminator: discordUser.discriminator,
                 accessToken: discordUser.accessToken,
                 refreshToken: discordUser.refreshToken,
@@ -62,11 +64,12 @@ export class DiscordAuthService {
 
     async updateAccount(discordUser: DiscordUser) {
         return this.discordAccountService.findOneAndUpdateAccount(
-            { _id: discordUser.account_id },
+            { _id: discordUser._id },
             {
                 avatar: discordUser.avatar,
+                discriminator: discordUser.discriminator,
                 accessToken: discordUser.accessToken,
-                discord_username: discordUser.username,
+                discord_username: discordUser.discord_username,
                 refreshToken: discordUser.refreshToken,
             },
         );
@@ -79,5 +82,19 @@ export class DiscordAuthService {
     async getUser(governatorId: string) {
         return this.userService.fetchUserById(governatorId);
     }
+
+    async getGuilds(user: DiscordUser) {
+        const account = await this.findDiscordAccount(user._id);
+        const axiosResponse = await axios.get('https://discord.com/api/users/@me/guilds', {
+            headers: {
+                authorization: `Bearer ${account.accessToken}`,
+            },
+        });
+        return axiosResponse.data;
+    }
+
+    // TODO
+    // async getGuildChannels(user: DiscordUser) {
+    // }
     
 }

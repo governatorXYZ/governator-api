@@ -1,13 +1,15 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiOkResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { EthereumAccount } from '../../account/ethereumAccount.schema';
 import { EthereumAccountResponseDto } from '../../account/account.dtos';
 import { EthAddress } from '../web3.dtos';
 import { SiweService } from './siwe.service';
 import { SiweVerifyDto } from './siwe.dtos';
+import { ApiKeyAdminAuthGuard } from '../../auth/api-key/api-key.guard';
 
 @ApiTags('w3 - SIWE')
 @ApiSecurity('api_key')
+@UseGuards(ApiKeyAdminAuthGuard)
 @Controller()
 export class SiweController {
     constructor(protected siweService: SiweService) {

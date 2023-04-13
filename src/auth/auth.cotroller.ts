@@ -1,15 +1,20 @@
 import { Controller, Get, UseGuards, Res, Param, Req } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ApiOkResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { DiscordAuthGuard, IsAuthenticatedGuard } from '../auth/oauth-discord/oauth-discord.guard';
 import { ApiKeyAdminAuthGuard } from './api-key/api-key.guard';
 import { ApiKeyAuthService } from './api-key/api-key.service';
+import { OauthSession } from './auth.dtos';
+import { DiscordAuthService } from './oauth-discord/oauth-discord.service';
 
 @ApiTags('Auth')
 @Controller()
 export class AuthController {
     constructor(
         private readonly apiKeyAuthService: ApiKeyAuthService,
+        private readonly discordAuthService: DiscordAuthService,
+        private readonly configService: ConfigService,
     ) {
         // do nothing
     }
@@ -24,22 +29,30 @@ export class AuthController {
 
     @Get('auth/logout')
     logout(@Req() req: Request, @Res() res: Response) {
-        req.logout(() => res.redirect('/'));
+        req.logout(() => res.redirect(this.configService.get('FE_HOST')));
     }
 
     @Get('auth/redirect')
     @UseGuards(DiscordAuthGuard)
     @ApiOperation({ description: 'Discord OAuth redirect url' })
-    @ApiOkResponse({ description: 'Redirecting..' })
+    @ApiOkResponse({ description: 'Redirect' })
     async redirect(@Res() res: Response) {
-        return res.sendStatus(200);
+        return res.redirect(this.configService.get('FE_HOST'));
     }
 
-    @Get('auth/status')
-    @ApiSecurity('api_key')
+    @Get('auth/session')
+    // @ApiSecurity('api_key')
     @UseGuards(IsAuthenticatedGuard)
-    async status(@Req() req: Request) {
-        return req.user;
+    @ApiOkResponse({ description: 'Returns an Ethereum account object', type: OauthSession })
+    async status(@Req() req: Request): Promise<OauthSession> {
+        return req.user as OauthSession;
+    }
+
+    @Get('auth/discord/servers')
+    @UseGuards(IsAuthenticatedGuard)
+    @ApiOkResponse({ description: 'Returns a list of discord servers' })
+    async listServers(@Req() req: Request) {
+        return this.discordAuthService.getGuilds((req.user as OauthSession).oauthProfile);
     }
 
     @ApiSecurity('api_key')

@@ -64,7 +64,7 @@ export class DiscordAccountMongoService {
 
     async findOneAndUpdateAccount(filter, updateDoc): Promise<DiscordAccountUpdateDto> {
         try {
-            return this.discordAccountModel.findOneAndUpdate(filter, updateDoc, { new: true, upsert: false }).lean().exec();
+            return this.discordAccountModel.findOneAndUpdate(filter, updateDoc, { new: true, upsert: true }).lean().exec();
         } catch (e) {
             this.logger.error('Failed to update account', e);
 

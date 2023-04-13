@@ -1,11 +1,13 @@
 import { ApiOkResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserResponseDto } from './user.dtos';
 import constants from '../common/constants';
+import { ApiKeyAuthGuard } from '../auth/api-key/api-key.guard';
 
 @ApiTags('User')
 @ApiSecurity('api_key')
+@UseGuards(ApiKeyAuthGuard)
 @Controller()
 export class UserController {
     constructor(protected userService: UserService) {
