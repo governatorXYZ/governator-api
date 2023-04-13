@@ -35,6 +35,13 @@ export class StrategyRequestDto {
         type: BlockHeight,
     })
         block_height: BlockHeight[];
+    
+    @IsOptional()
+    @ApiProperty({
+        description: 'strategy specific options',
+        required: false,
+    })
+        strategy_options: Record<string, any>;
 }
 
 export class StrategyResponseDto {
@@ -59,6 +66,13 @@ export class StrategyResponseDto {
         required: true,
     })
         endpoint: string;
+
+    @IsString()
+    @ApiProperty({
+        description: 'Type of strategy',
+        required: true,
+    })
+        strategy_type: string;
 
     @IsString()
     @ApiProperty({

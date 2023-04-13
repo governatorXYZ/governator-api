@@ -17,7 +17,7 @@ import { ObjectId } from 'mongodb';
 import constants from '../common/constants';
 import { IsAfterNow } from '../common/isAfterNowConstraint';
 import { DiscordEmbedFieldLength } from './discordEmbedFieldLengthConstraint';
-import { BlockHeight } from 'src/web3/strategy/strategy.dtos';
+import { BlockHeight } from '../web3/strategy/strategy.dtos';
 
 // Maximum number of fields to be used by poll_options and role_restrictions combined
 // Discord limit is 25, leaving 5 fields for date, vote count, strategy name, and misc
@@ -111,6 +111,13 @@ export class StrategyConfig {
         required: true,
     })
         strategy_id: string;
+    
+    @IsOptional()
+    @ApiProperty({
+        description: 'Strategy specific options',
+        required: false,
+    })
+        strategy_options: Record<string, any>;
 
     @IsArray()
     @ApiProperty({
@@ -122,7 +129,7 @@ export class StrategyConfig {
         block_height: BlockHeight[];
 }
 
-export class StrategyConfigCreate extends PickType(StrategyConfig, ['strategy_id', 'block_height'] as const) {
+export class StrategyConfigCreate extends PickType(StrategyConfig, ['strategy_id', 'block_height', 'strategy_options'] as const) {
     @IsOptional()
     @IsIn(constants.STRATEGY_TYPES)
     @ApiProperty({

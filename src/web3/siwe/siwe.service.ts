@@ -5,7 +5,7 @@ import { SiweNonceMongoService } from './siweNonce.mongo.service';
 import { SiweVerifyDto } from './siwe.dtos';
 import { UserService } from '../../user/user.service';
 import { VoteRequestHandlerService } from '../../vote/vote.request-handler.service';
-import { EthereumAccountResponseDto } from 'src/account/account.dtos';
+import { EthereumAccountResponseDto } from '../../account/account.dtos';
 
 @Injectable()
 export class SiweService {

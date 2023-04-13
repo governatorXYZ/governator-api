@@ -1,0 +1,47 @@
+name: Build and publish SDK
+run-name: ${{ github.actor }} is publishing a new SDK release 🚀
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - develop
+jobs:
+  Generate-SDK-And-Push:
+    if: |
+      github.event.pull_request.merged == true &&
+      contains(github.event.pull_request.labels.*.name, 'SDK-release')
+    runs-on: ubuntu-22.04
+    steps:
+      - run: echo "Job running on ${{ runner.os }} with ref ${{ github.ref }} on repo ${{ github.repository }}"
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+           node-version: 16.13.0
+      - name: Install Dependencies
+        run: |
+          yarn install
+      - name: Build & Push
+        env:
+          NODE_ENV: development
+          MONGO_LOCAL: ${{ secrets.SDK_MONGO_LOCAL }}
+          GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
+          SDK_GIT_ORG_OR_USER: ${{ vars.SDK_GIT_ORG_OR_USER }}
+          SDK_GIT_USER: ${{ vars.SDK_GIT_USER }}
+          SDK_GIT_REPO: ${{ vars.SDK_GIT_REPO }}
+          GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
+          API_CLIENT_NPM_PACKAGE_NAME: "governator-sdk"
+          API_CLIENT_REPOSITORY_URL: "https://github.com/governatorXYZ/governator-sdk"
+        run: |
+          yarn codegen
+          cd ./src/api-client
+          sed -i -e 's/pull origin/pull -Xtheirs origin/g' ./git_push.sh
+          sed -i -e 's/master/main/g' ./git_push.sh
+          sed -i '48s#.*#git remote add origin https://${git_user_id}:"${GIT_TOKEN}"@${git_host}/"${SDK_GIT_ORG_OR_USER}"/${git_repo_id}.git#' git_push.sh
+          sed -i -e 's#GIT_USER_ID/GIT_REPO_ID#governatorXYZ/governator-sdk#g' ./package.json
+          git config --global init.defaultBranch main
+          git config --global user.email "$GIT_EMAIL"
+          git config --global user.name "$SDK_GIT_USER"
+          git config --global pull.rebase true
+          /bin/sh ./git_push.sh "$SDK_GIT_USER" "$SDK_GIT_REPO" "SDK release" github.com
+      - run: echo "Job completed with exit status ${{ job.status }}."   
