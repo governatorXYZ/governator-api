@@ -40,6 +40,8 @@ export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
     // Put a helmet on
     app.use(helmet());
 
+    app.set('trust proxy', 1);
+
     // specify cors and credentials for oauth session with FE
     app.use(function(req, res, next) {
         res.header('Access-Control-Allow-Origin', configService.get('FE_HOST'));
@@ -48,8 +50,6 @@ export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
         res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
         next();
     });
-
-    app.set('trust proxy', 1);
 
     // use global auth guard
     // const reflector = app.get(Reflector);
