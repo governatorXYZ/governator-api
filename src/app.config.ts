@@ -34,7 +34,7 @@ export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
         app.enableCors();
     } else if (configService.get('NODE_ENV') === 'production') {
         // app.enableCors({ origin: configService.get('CORS_ORIGIN').split(' ') });
-        app.enableCors();
+        app.enableCors(configService.get('FE_HOST'));
     }
 
     // Put a helmet on
