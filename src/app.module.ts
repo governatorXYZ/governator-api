@@ -103,9 +103,9 @@ export class AppModule implements NestModule {
                     secret: this.configService.get('SESSION_SECRET'),
                     resave: false,
                     cookie: {
-                        sameSite: 'none',
+                        sameSite: true,
                         httpOnly: true,
-                        secure: true,
+                        // secure: true,
                         maxAge: 1000 * 60 * 60 * 24,
                     },
                 }),
