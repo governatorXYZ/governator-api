@@ -107,7 +107,6 @@ export class AppModule implements NestModule {
                         httpOnly: true,
                         secure: true,
                         maxAge: 1000 * 60 * 60 * 24,
-                        domain: 'https://governator-staging-git-feat-oauth-migration-governator.vercel.app/',
                     },
                 }),
                 passport.initialize(),
