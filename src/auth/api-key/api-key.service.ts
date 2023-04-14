@@ -30,7 +30,11 @@ export class ApiKeyAuthService {
     }
 
     async getApiKeys() {
-        return (await this.authMongoService.findOne()).api_key_hashes;
+        try {
+            return (await this.authMongoService.findOne()).api_key_hashes;
+        } catch {
+            return [];
+        }
     }
 
     async cacheKeys() {
