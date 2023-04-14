@@ -49,6 +49,8 @@ export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
         next();
     });
 
+    app.set('trust proxy', 1);
+
     // use global auth guard
     // const reflector = app.get(Reflector);
     // app.useGlobalGuards(new AuthGuard(reflector));
