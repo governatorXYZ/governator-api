@@ -3,6 +3,7 @@ import { VersioningType, ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { OpenAPI } from 'openapi-types';
 import helmet from 'helmet';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 
 export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
 
@@ -39,6 +40,14 @@ export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
 
     // Put a helmet on
     app.use(helmet());
+
+    app.use(
+        '/api/auth',
+        createProxyMiddleware({
+            target: configService.get('FE_HOST'),
+            changeOrigin: true,
+        }),
+    );
 
     app.set('trust proxy', 1);
 
