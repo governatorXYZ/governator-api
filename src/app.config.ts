@@ -41,17 +41,6 @@ export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
     // Put a helmet on
     app.use(helmet());
 
-    app.use(
-        '/api/auth/redirect',
-        createProxyMiddleware({
-            hostRewrite: configService.get('FE_HOST'),
-            cookieDomainRewrite: {
-                'governator-api-test.herokuapp.com': configService.get('FE_HOST'),
-            },
-            // changeOrigin: true,
-        }),
-    );
-
     app.set('trust proxy', 1);
 
     // specify cors and credentials for oauth session with FE
@@ -62,6 +51,17 @@ export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
         res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
         next();
     });
+
+    app.use(
+        '/api/auth/redirect',
+        createProxyMiddleware({
+            hostRewrite: configService.get('FE_HOST'),
+            cookieDomainRewrite: {
+                'governator-api-test.herokuapp.com': configService.get('FE_HOST'),
+            },
+            changeOrigin: true,
+        }),
+    );
 
     // use global auth guard
     // const reflector = app.get(Reflector);
