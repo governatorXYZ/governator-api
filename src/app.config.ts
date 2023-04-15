@@ -44,8 +44,11 @@ export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
     app.use(
         '/api/auth/redirect',
         createProxyMiddleware({
-            target: configService.get('FE_HOST'),
-            changeOrigin: true,
+            hostRewrite: configService.get('FE_HOST'),
+            cookieDomainRewrite: {
+                'governator-api-test.herokuapp.com': configService.get('FE_HOST'),
+            },
+            // changeOrigin: true,
         }),
     );
 
