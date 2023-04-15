@@ -42,7 +42,7 @@ export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
     app.use(helmet());
 
     app.use(
-        '/api',
+        '/api/auth/session',
         createProxyMiddleware({
             target: configService.get('FE_HOST'),
             changeOrigin: true,
