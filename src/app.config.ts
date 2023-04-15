@@ -52,17 +52,17 @@ export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
         next();
     });
 
-    app.use(
-        '/api/auth/redirect',
-        createProxyMiddleware({
-            target: 'governator-api-test.herokuapp.com',
-            hostRewrite: configService.get('FE_HOST'),
-            // cookieDomainRewrite: {
-            //     'governator-api-test.herokuapp.com': configService.get('FE_HOST'),
-            // },
-            changeOrigin: true,
-        }),
-    );
+    // app.use(
+    //     '/api/auth/redirect',
+    //     createProxyMiddleware({
+    //         target: 'governator-api-test.herokuapp.com',
+    //         hostRewrite: configService.get('FE_HOST'),
+    //         // cookieDomainRewrite: {
+    //         //     'governator-api-test.herokuapp.com': configService.get('FE_HOST'),
+    //         // },
+    //         changeOrigin: false,
+    //     }),
+    // );
 
     // use global auth guard
     // const reflector = app.get(Reflector);
