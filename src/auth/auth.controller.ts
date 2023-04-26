@@ -2,7 +2,7 @@ import { Controller, Get, Patch, Delete, UseGuards, Res, Param, Req } from '@nes
 import { ConfigService } from '@nestjs/config';
 import { ApiOkResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
-import { DiscordAuthGuard, IsAuthenticatedGuard } from '../auth/oauth-discord/oauth-discord.guard';
+import { DiscordAuthGuard, IsAuthenticatedGuard } from './oauth-discord/oauth-discord.guard';
 import { ApiKeyAdminAuthGuard } from './api-key/api-key.guard';
 import { ApiKeyAuthService } from './api-key/api-key.service';
 import { OauthSession } from './auth.dtos';

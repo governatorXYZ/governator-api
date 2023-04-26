@@ -3,7 +3,7 @@ import { PassportModule } from '@nestjs/passport';
 import { ApiKeyStrategy, ApiKeyStrategyAdmin } from './api-key/api-key.strategy';
 import { ConfigModule } from '@nestjs/config';
 import { DiscordStrategy } from './oauth-discord/oauth-discord.strategy';
-import { AuthController } from './auth.cotroller';
+import { AuthController } from './auth.controller';
 import { DiscordAuthService } from './oauth-discord/oauth-discord.service';
 import { SessionSerializer } from './oauth-discord/serializer';
 import { AuthMongoService } from './auth.mongo.service';
