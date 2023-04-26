@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Res, Param, Req } from '@nestjs/common';
+import { Controller, Get, Patch, Delete, UseGuards, Res, Param, Req } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiOkResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
@@ -41,7 +41,6 @@ export class AuthController {
     }
 
     @Get('auth/session')
-    // @ApiSecurity('api_key')
     @UseGuards(IsAuthenticatedGuard)
     @ApiOkResponse({ description: 'Returns an Ethereum account object', type: OauthSession })
     async status(@Req() req: Request): Promise<OauthSession> {
@@ -57,14 +56,14 @@ export class AuthController {
 
     @ApiSecurity('api_key')
     @UseGuards(ApiKeyAdminAuthGuard)
-    @Get('auth/create-key')
+    @Patch('auth/create-key')
     async createApiKey() {
         return this.apiKeyAuthService.createApiKey();
     }
 
     @ApiSecurity('api_key')
     @UseGuards(ApiKeyAdminAuthGuard)
-    @Get('auth/delete-key:api_key')
+    @Delete('auth/delete-key:api_key')
     @ApiParam({ name: 'api_key', description: 'Key to be deleted' })
     async deleteApiKey(@Param() params) {
         return this.apiKeyAuthService.deleteApiKey(params.api_key);
