@@ -60,7 +60,12 @@ const ENV = process.env.NODE_ENV;
             imports: [ConfigModule],
             useFactory: async (configService: ConfigService) => (
                 {
-                    redis: configService.get('REDIS_URL'),
+                    redis: {
+                        host: configService.get('REDIS_HOST_QUEUE'),
+                        port: configService.get('REDIS_PORT_QUEUE'),
+                        password: configService.get('REDIS_PASSWORD_QUEUE'),
+                        username: configService.get('REDIS_USERNAME_QUEUE'),
+                    },
                 }
             ),
             inject: [ConfigService],
