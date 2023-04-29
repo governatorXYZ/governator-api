@@ -25,6 +25,7 @@ import Redis from 'ioredis';
 
 
 const ENV = process.env.NODE_ENV;
+const REDIS_URL = process.env.REDIS_URL;
 
 @Module({
     imports: [
@@ -57,19 +58,8 @@ const ENV = process.env.NODE_ENV;
         }),
         ScheduleModule.forRoot(),
         CacheModule.register({ isGlobal: true }),
-        BullModule.forRootAsync({
-            imports: [RedisModule],
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            useFactory: async (redis: Redis) => {
-                console.log(redis);
-                return (
-                    {
-                        redis: redis,
-                    }
-                );
-            },
-            inject: [REDIS],
+        BullModule.forRoot({
+            redis: REDIS_URL,
         }),
         SseModule,
         PollModule,
