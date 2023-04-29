@@ -61,11 +61,14 @@ const ENV = process.env.NODE_ENV;
             imports: [RedisModule],
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
-            useFactory: async (redis: Redis) => (
-                {
-                    redis: redis,
-                }
-            ),
+            useFactory: async (redis: Redis) => {
+                console.log(redis);
+                return (
+                    {
+                        redis: redis,
+                    }
+                );
+            },
             inject: [REDIS],
         }),
         SseModule,
