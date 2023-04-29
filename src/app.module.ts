@@ -23,9 +23,7 @@ import { RedisModule } from './redis/redis.module';
 import { REDIS } from './redis/redis.constants';
 import Redis from 'ioredis';
 
-
 const ENV = process.env.NODE_ENV;
-const REDIS_URL = process.env.REDIS_URL;
 
 @Module({
     imports: [
@@ -58,8 +56,14 @@ const REDIS_URL = process.env.REDIS_URL;
         }),
         ScheduleModule.forRoot(),
         CacheModule.register({ isGlobal: true }),
-        BullModule.forRoot({
-            redis: REDIS_URL,
+        BullModule.forRootAsync({
+            imports: [ConfigModule],
+            useFactory: async (configService: ConfigService) => (
+                {
+                    redis: configService.get('REDIS_URL'),
+                }
+            ),
+            inject: [ConfigService],
         }),
         SseModule,
         PollModule,
