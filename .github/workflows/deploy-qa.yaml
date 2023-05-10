@@ -29,6 +29,13 @@ jobs:
           heroku_email: ${{secrets.HEROKU_EMAIL}}
           branch: develop
         env:
+          HD_DISCORD_CLIENT_ID: ${{secrets.QA_DISCORD_CLIENT_ID}}
+          HD_DISCORD_CLIENT_SECRET: ${{secrets.QA_DISCORD_CLIENT_SECRET}}
+          HD_DISCORD_CALLBACK_URL: ${{secrets.QA_DISCORD_CALLBACK_URL}}
+          HD_DISCORD_OAUTH_SCOPES: ${{secrets.QA_DISCORD_OAUTH_SCOPES}}
+          HD_SESSION_SECRET: ${{secrets.QA_SESSION_SECRET}}
+          HD_FE_HOST: ${{secrets.QA_FE_HOST}}
+          HD_REDIS_URL: ${{secrets.QA_REDIS_URL}}         
           HD_ALCHEMY_API_KEY_ETHEREUM_MAIN: ${{secrets.ALCHEMY_API_KEY_ETHEREUM_MAIN}}
           HD_ALCHEMY_API_KEY_POLYGON_MAIN: ${{secrets.ALCHEMY_API_KEY_POLYGON_MAIN}}
           HD_API_GLOBAL_PREFIX: ${{vars.GOVERNATOR_API_GLOBAL_PREFIX}}
@@ -44,7 +51,7 @@ jobs:
           HD_MONGODB_PASS: ${{secrets.QA_MONGODB_PASS}}
           HD_MONGODB_PREFIX: ${{secrets.QA_MONGODB_PREFIX}}
           HD_MONGODB_USERNAME: ${{secrets.QA_MONGODB_USERNAME}}
-          HD_MONGO_LOCAL: ""            
+          HD_MONGO_LOCAL: ""
           HD_REDIS_HOST_QUEUE: ${{secrets.QA_REDIS_HOST_QUEUE}}
           HD_REDIS_PASSWORD_QUEUE: ${{secrets.QA_REDIS_PASSWORD_QUEUE}}
           HD_REDIS_PORT_QUEUE: ${{secrets.QA_REDIS_PORT_QUEUE}}
