@@ -17,7 +17,7 @@ const conf = {
     api_url_base: apiConfig.API_TAG.toLowerCase(),
     // modify to match your startegy setting in CONFIG.ts
     name: apiConfig.STRATEGY_BANKLESS_DAO_MEMBERSHIP,
-    strategy_type: strategyTypes.STRATEGY_TYPE_TOKEN_WEIGHTED,
+    strategy_type: strategyTypes.STRATEGY_TYPE_TOKEN_GATED,
     description: '1 vote if any of your wallets has >= 35k BANK',
 };
 
@@ -75,7 +75,7 @@ export class BdaoMembershipStrategy extends StrategyBaseController implements On
 
     // transform strategy result, or use to chain strategies
     responseTransformer(resultTransformerParams: ResultTransformerParams): string {
-        let votingPower = '0';
+        let votingPower = ethers.BigNumber.from('0');
         const MEMBERSHIP_THRESHOLD = '35000000000000000000000';
 
 
@@ -85,16 +85,16 @@ export class BdaoMembershipStrategy extends StrategyBaseController implements On
             resultTransformerParams.logger.debug(`balance ${token.balance}`);
             resultTransformerParams.logger.debug(`balanceBigN ${bigNumber}`);
 
-            if(bigNumber.gte(ethers.BigNumber.from(MEMBERSHIP_THRESHOLD))) {
-                votingPower = '1';
-            }
+            votingPower = votingPower.add(bigNumber);
         }
 
         resultTransformerParams.logger.debug(`Total voting power: ${votingPower}`);
 
-        // return ethers.utils.formatEther(votingPower).toString();
-        return votingPower;
+        if(votingPower.gte(ethers.BigNumber.from(MEMBERSHIP_THRESHOLD))) {
+            return '1';
+        }
 
+        return '0';
     }
 
     // do not modify

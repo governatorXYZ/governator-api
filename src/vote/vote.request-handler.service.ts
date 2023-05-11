@@ -83,6 +83,8 @@ export class VoteRequestHandlerService {
                 break;
 
             case strategyTypes.STRATEGY_TYPE_TOKEN_WEIGHTED:
+            case strategyTypes.STRATEGY_TYPE_TOKEN_GATED:
+
                 if (!(account.provider_id === 'ethereum')) break;
 
                 this.logger.warn(account.provider_id);
@@ -187,6 +189,16 @@ export class VoteRequestHandlerService {
 
     async createBatchVotes(voteCreateDtos: VoteCreateDto[], poll: Poll): Promise<VoteResponseDto[]> {
         const voteResponseDtos: VoteResponseDto[] = [];
+
+        if (poll.strategy_config[0].strategy_type === strategyTypes.STRATEGY_TYPE_TOKEN_GATED) {
+
+            for (let i = 0; i < voteCreateDtos.length; i++) {
+
+                if (voteCreateDtos.length > 1 && voteCreateDtos[i].vote_power === '0') {
+                    voteCreateDtos.splice(i, 1);
+                }
+            }
+        }
 
         // we have one voteCreateDto per account
         for (const voteCreateDto of voteCreateDtos) {
