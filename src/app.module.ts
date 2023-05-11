@@ -107,7 +107,7 @@ export class AppModule implements NestModule {
                     cookie: {
                         sameSite: true,
                         httpOnly: true,
-                        secure: true,
+                        secure: this.configService.get('NODE_ENV') !== 'development',
                         maxAge: 1000 * 60 * 60 * 24,
                     },
                 }),

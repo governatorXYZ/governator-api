@@ -16,11 +16,9 @@ const conf = {
     api_tag: apiConfig.API_TAG,
     api_url_base: apiConfig.API_TAG.toLowerCase(),
     // modify to match your startegy setting in CONFIG.ts
-    name: apiConfig.STRATEGY_BANKLESS_DAO,
+    name: apiConfig.STRATEGY_BANKLESS_DAO_MEMBERSHIP,
     strategy_type: strategyTypes.STRATEGY_TYPE_TOKEN_WEIGHTED,
-    description: 'Weighted voting strategy for BANK token on Ethereum mainnet and polygon. ' +
-        'Your voting power will be calculated as the total balance of BANK (mainnet & polygon) ' +
-        'for all your verified wallets at the speciefied block-height.',
+    description: '1 vote if any of your wallets has >= 35k BANK',
 };
 
 // do not modify
@@ -28,7 +26,7 @@ const conf = {
 @Controller(conf.api_url_base)
 
 // modify: rename class
-export class BankTokenWeightedStrategy extends StrategyBaseController implements OnApplicationBootstrap {
+export class BdaoMembershipStrategy extends StrategyBaseController implements OnApplicationBootstrap {
 
     // do not modify
     constructor(
@@ -77,7 +75,8 @@ export class BankTokenWeightedStrategy extends StrategyBaseController implements
 
     // transform strategy result, or use to chain strategies
     responseTransformer(resultTransformerParams: ResultTransformerParams): string {
-        let votingPower = ethers.BigNumber.from('0');
+        let votingPower = '0';
+        const MEMBERSHIP_THRESHOLD = '35000000000000000000000';
 
 
         for (const token of (resultTransformerParams.strategyResult as ERC20TokenBalances).tokenBalances) {
@@ -86,14 +85,15 @@ export class BankTokenWeightedStrategy extends StrategyBaseController implements
             resultTransformerParams.logger.debug(`balance ${token.balance}`);
             resultTransformerParams.logger.debug(`balanceBigN ${bigNumber}`);
 
-            votingPower = votingPower.add(bigNumber);
+            if(bigNumber.gte(ethers.BigNumber.from(MEMBERSHIP_THRESHOLD))) {
+                votingPower = '1';
+            }
         }
 
-
-        resultTransformerParams.logger.debug(`Total voting power: ${votingPower.toString()}`);
+        resultTransformerParams.logger.debug(`Total voting power: ${votingPower}`);
 
         // return ethers.utils.formatEther(votingPower).toString();
-        return votingPower.toString();
+        return votingPower;
 
     }
 
