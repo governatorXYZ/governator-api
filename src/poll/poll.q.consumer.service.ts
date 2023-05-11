@@ -55,6 +55,7 @@ export class PollCreateConsumer {
         this.logger.log(
             `Job ${job.id} completed with exit status ${result}`,
         );
+        job.remove();
     }
 
     @OnQueueActive()

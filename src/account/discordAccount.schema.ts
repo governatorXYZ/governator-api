@@ -6,8 +6,6 @@ export type DiscordAccountDocument = DiscordAccount & Document;
 
 @Schema({ collection: 'discordAccount', toObject: { getters: true }, optimisticConcurrency: true, timestamps: true })
 export class DiscordAccount {
-    // @Prop({ required: true, auto: true, type: mongoose.Schema.Types.ObjectId })
-    //     _id: string;
 
     @Prop({ required: true, type: String })
         _id: string;
@@ -19,12 +17,20 @@ export class DiscordAccount {
     @Prop({ required: true, default: 'discord' })
         provider_id: string;
 
-    // discord user id
-    // @Prop({ required: false })
-    //     provider_account_id: string;
-
     @Prop({ required: true })
         discord_username: string;
+
+    @Prop({ required: true })
+        discriminator: string;
+    
+    @Prop({ required: true })
+        avatar: string;
+    
+    @Prop({ required: true })
+        accessToken: string;
+
+    @Prop({ required: true })
+        refreshToken: string;
 }
 
 export const DiscordAccountSchema = SchemaFactory.createForClass(DiscordAccount);

@@ -136,7 +136,7 @@ export class VoteRequestHandlerService {
 
         const key = Utils.formatCacheKey(accountProviderId, accountId, pollId);
 
-        const votePower = await this.cacheManager.get(key);
+        const votePower = await this.cacheManager.get(key) as string;
 
         if (process.env.NODE_ENV === 'development') this.logger.debug(`Key ${key}`);
 

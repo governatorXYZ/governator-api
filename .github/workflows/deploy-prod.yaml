@@ -29,6 +29,13 @@ jobs:
           heroku_email: ${{secrets.HEROKU_EMAIL}}
           branch: main
         env:
+          HD_DISCORD_CLIENT_ID: ${{secrets.PROD_DISCORD_CLIENT_ID}}
+          HD_DISCORD_CLIENT_SECRET: ${{secrets.PROD_DISCORD_CLIENT_SECRET}}
+          HD_DISCORD_CALLBACK_URL: ${{secrets.PROD_DISCORD_CALLBACK_URL}}
+          HD_DISCORD_OAUTH_SCOPES: ${{secrets.PROD_DISCORD_OAUTH_SCOPES}}
+          HD_SESSION_SECRET: ${{secrets.PROD_SESSION_SECRET}}
+          HD_FE_HOST: ${{secrets.PROD_FE_HOST}}
+          HD_REDIS_URL: ${{secrets.PROD_REDIS_URL}}  
           HD_ALCHEMY_API_KEY_ETHEREUM_MAIN: ${{secrets.ALCHEMY_API_KEY_ETHEREUM_MAIN}}
           HD_ALCHEMY_API_KEY_POLYGON_MAIN: ${{secrets.ALCHEMY_API_KEY_POLYGON_MAIN}}
           HD_API_GLOBAL_PREFIX: ${{vars.GOVERNATOR_API_GLOBAL_PREFIX}}

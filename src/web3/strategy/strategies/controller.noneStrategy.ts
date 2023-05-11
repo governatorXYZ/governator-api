@@ -8,6 +8,7 @@ import { StrategyRequestDto } from '../strategy.dtos';
 import { formatKebab } from '../strategy.utils';
 import apiConfig from './CONFIG';
 import { strategyTypes } from '../../../common/constants';
+import { ResultTransformerParams } from '../strategy.types';
 
 const conf = {
     api_tag: apiConfig.API_TAG,
@@ -35,10 +36,8 @@ export class NoneStrategy extends StrategyBaseController implements OnApplicatio
     }
 
     // transform strategy result, or use to chain strategies
-    responseTransformer(
-        strategyResult: any,
-    ): string {
-        return strategyResult;
+    responseTransformer(resultTransformerParams: ResultTransformerParams): string {
+        return resultTransformerParams.strategyResult;
 
     }
 
