@@ -86,6 +86,7 @@ export class VoteRequestHandlerService {
             case strategyTypes.STRATEGY_TYPE_TOKEN_GATED:
 
                 if (!(account.provider_id === 'ethereum')) break;
+                if (((account as EthereumAccountResponseDto).verified === false)) break;
 
                 this.logger.warn(account.provider_id);
 
@@ -190,14 +191,20 @@ export class VoteRequestHandlerService {
     async createBatchVotes(voteCreateDtos: VoteCreateDto[], poll: Poll): Promise<VoteResponseDto[]> {
         const voteResponseDtos: VoteResponseDto[] = [];
 
-        if (poll.strategy_config[0].strategy_type === strategyTypes.STRATEGY_TYPE_TOKEN_GATED) {
+        if (poll.strategy_config[0].strategy_type === strategyTypes.STRATEGY_TYPE_TOKEN_GATED && voteCreateDtos.length > 1) {
 
-            for (let i = 0; i < voteCreateDtos.length; i++) {
+            try {
 
-                if (voteCreateDtos.length > 1 && voteCreateDtos[i].vote_power === '0') {
-                    voteCreateDtos.splice(i, 1);
-                }
+                voteCreateDtos[0].vote_power = voteCreateDtos.find((voteCreateDto) => voteCreateDto.vote_power === '1').vote_power;
+
+                if (!voteCreateDtos[0].vote_power) voteCreateDtos[0].vote_power = '0';
+
+            } catch {
+                
+                voteCreateDtos[0].vote_power = '0';
             }
+
+            voteCreateDtos.length = 1;
         }
 
         // we have one voteCreateDto per account
