@@ -120,7 +120,7 @@ export class EthereumAccountResponseDto extends AccountBase {
     @IsEthAddress()
     @Transform(({ value: value }) => {
         try {
-            return ethers.utils.getAddress(value);
+            return ethers.getAddress(value);
 
         } catch (e) {
             const error = e as Error;

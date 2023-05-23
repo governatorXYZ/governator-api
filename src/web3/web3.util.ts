@@ -9,19 +9,19 @@ const web3Utils = {
         
         // eth mainnet
         case 1:
-            return new ethers.providers.AlchemyProvider(chainId, process.env.ALCHEMY_API_KEY_ETHEREUM_MAIN);
+            return new ethers.AlchemyProvider(chainId, process.env.ALCHEMY_API_KEY_ETHEREUM_MAIN);
 
         // polygon
         case 137:
             // TODO try some different providers here and only return if it is working.
-            return new ethers.providers.AlchemyProvider(chainId, process.env.ALCHEMY_API_KEY_POLYGON_MAIN);
+            return new ethers.AlchemyProvider(chainId, process.env.ALCHEMY_API_KEY_POLYGON_MAIN);
         
         // gnosis
         case 100:
-            return new ethers.providers.JsonRpcProvider('https://rpc.gnosis.gateway.fm');
+            return new ethers.JsonRpcProvider('https://rpc.gnosis.gateway.fm');
 
         default:
-            return ethers.providers.getDefaultProvider(chainId, {
+            return ethers.getDefaultProvider(chainId, {
                 alchemy: process.env.ALCHEMY_API_KEY_ETHEREUM_MAIN,
                 infura: process.env.INFURA_ETHEREUM_MAIN_ID,
                 etherscan: process.env.ETHERSCAN_API_KEY,

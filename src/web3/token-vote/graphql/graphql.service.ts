@@ -23,7 +23,6 @@ export class GraphqlService {
 
         const httpLink = createHttpLink({
             uri: url,
-            fetch: fetch,
         });
 
         const client = new ApolloClient({

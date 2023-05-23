@@ -46,7 +46,7 @@ export class ERC721OwnerOfDto {
     @IsEthAddress()
     @Transform(({ value: value }) => {
         try {
-            return ethers.utils.getAddress(value);
+            return ethers.getAddress(value);
 
         } catch (e) {
             const error = e as Error;
@@ -97,7 +97,7 @@ export class ERC721Owner {
     @IsEthAddress()
     @Transform(({ value: value }) => {
         try {
-            return ethers.utils.getAddress(value);
+            return ethers.getAddress(value);
 
         } catch (e) {
             const error = e as Error;
@@ -160,7 +160,7 @@ export class ERC20TokenBalanceDetail {
     @IsEthAddress()
     @Transform(({ value: value }) => {
         try {
-            return ethers.utils.getAddress(value);
+            return ethers.getAddress(value);
 
         } catch (e) {
             const error = e as Error;
@@ -222,7 +222,7 @@ export class ERC20TokenBalances {
     @IsEthAddress()
     @Transform(({ value: value }) => {
         try {
-            return ethers.utils.getAddress(value);
+            return ethers.getAddress(value);
 
         } catch (e) {
             const error = e as Error;

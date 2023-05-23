@@ -38,15 +38,15 @@ export class EvmService {
         for (const token of tokenList.tokens) {
 
             try {
-                const connectedToken = await this.connectContract(token.contractAddress, erc20json.abi, token.chain_id) as ERC20;
+                const tokenContract = await this.getContract(token.contractAddress, erc20json.abi, token.chain_id);
 
                 // const blockNumber = (!token.block_height) ? await web3Utils.getEthersProvider(token.chain_id).getBlockNumber() : token.block_height;
 
                 tokenBalances.push({
                     contractAddress: token.contractAddress,
-                    tokenName: await connectedToken.name(),
-                    tokenSymbol: await connectedToken.symbol(),
-                    balance: (await connectedToken.balanceOf(ethAddress, { blockTag: token.block_height })).toString(),
+                    tokenName: await tokenContract.name(),
+                    tokenSymbol: await tokenContract.symbol(),
+                    balance: (await tokenContract.balanceOf(ethAddress, { blockTag: token.block_height })).toString(),
                     chain_id: token.chain_id,
                     block_height: token.block_height,
                 } as ERC20TokenBalanceDetail);
@@ -70,13 +70,13 @@ export class EvmService {
         for (const token of tokenList.tokens) {
 
             try {
-                const connectedToken = await this.connectContract(token.contractAddress, erc721json.abi, token.chain_id) as ERC721;
+                const tokenContract = await this.getContract(token.contractAddress, erc721json.abi, token.chain_id);
 
                 const blockNumber = (!token.block_height) ? await web3Utils.getEthersProvider(token.chain_id).getBlockNumber() : token.block_height;
 
                 tokenBalances.push({
                     contractAddress: token.contractAddress,
-                    balance: (await connectedToken.balanceOf(ethAddress, { blockTag: blockNumber ? blockNumber : 'latest' })).toString(),
+                    balance: (await tokenContract.balanceOf(ethAddress, { blockTag: blockNumber ? blockNumber : 'latest' })).toString(),
                     chain_id: token.chain_id,
                     block_height: blockNumber,
                 } as ERC20TokenBalanceDetail);
@@ -94,7 +94,7 @@ export class EvmService {
 
         if (ownerOfDto.token_ids.length === 0) throw new HttpException('Failed to fetch token balances', HttpStatus.BAD_REQUEST);
 
-        const connectedToken = await this.connectContract(ownerOfDto.contractAddress, erc721json.abi, ownerOfDto.chain_id) as ERC721;
+        const tokenContract = await this.getContract(ownerOfDto.contractAddress, erc721json.abi, ownerOfDto.chain_id);
 
         const blockNumber = (!ownerOfDto.block_height) ? await web3Utils.getEthersProvider(ownerOfDto.chain_id).getBlockNumber() : ownerOfDto.block_height;
 
@@ -104,7 +104,7 @@ export class EvmService {
             let owner = null;
 
             try {
-                owner = await connectedToken.ownerOf(tokenId.token_id, { blockTag: blockNumber ? blockNumber : 'latest' });
+                owner = await tokenContract.ownerOf(tokenId.token_id, { blockTag: blockNumber ? blockNumber : 'latest' });
 
             } catch (e) {
                 this.logger.error(`failed to fetch owner for token ID ${tokenId}`, e);
@@ -120,12 +120,12 @@ export class EvmService {
     async getErc1155BalanceOf(ownerAddress: string, balanceOfDto: ERC1155BalanceOfDto): Promise<number> {
         this.logger.log(`Fetching ERC721 token owner for contract ${balanceOfDto.contractAddress}`);
 
-        const connectedToken = await this.connectContract(balanceOfDto.contractAddress, erc1155json.abi, balanceOfDto.chain_id) as ERC1155;
+        const tokenContract = await this.getContract(balanceOfDto.contractAddress, erc1155json.abi, balanceOfDto.chain_id);
 
         const blockNumber = (!balanceOfDto.block_height) ? await web3Utils.getEthersProvider(balanceOfDto.chain_id).getBlockNumber() : balanceOfDto.block_height;
 
         try {
-            return Number(await connectedToken.balanceOf(ownerAddress, balanceOfDto.token_id, { blockTag: blockNumber ? blockNumber : 'latest' }));
+            return Number(await tokenContract.balanceOf(ownerAddress, balanceOfDto.token_id, { blockTag: blockNumber ? blockNumber : 'latest' }));
 
         } catch (e) {
             this.logger.error(`failed to fetch owner for token ID ${balanceOfDto.token_id}`, e);
@@ -133,7 +133,7 @@ export class EvmService {
         }
     }
 
-    async connectContract(tokenAddress, abi, chainId) {
+    async getContract(tokenAddress: string, abi: any, chainId: number) {
         this.logger.debug(`Connecting token contract for: ${ tokenAddress }`);
 
         const provider = web3Utils.getEthersProvider(chainId);
@@ -141,9 +141,10 @@ export class EvmService {
         const tokenContract = new Contract(
             tokenAddress,
             abi,
+            provider,
         );
 
-        return tokenContract.connect(provider);
+        return tokenContract;
     }
 
     async getEthersProvider(chainId) {

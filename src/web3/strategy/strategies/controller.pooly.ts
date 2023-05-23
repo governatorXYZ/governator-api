@@ -78,11 +78,11 @@ export class PoolyErc721WeightedStrategy extends StrategyBaseController implemen
 
         for (const token of (resultTransformerParams.strategyResult as ERC20TokenBalances).tokenBalances) {
 
-            if (token.tokenSymbol === 'POOLY3' && ethers.BigNumber.from(token.balance).gt(ethers.BigNumber.from(0))) {
+            if (token.tokenSymbol === 'POOLY3' && (BigInt(token.balance) > 0n)) {
                 votingPower = 3;
-            } else if (token.tokenSymbol === 'POOLY2' && ethers.BigNumber.from(token.balance).gt(ethers.BigNumber.from(0))) {
+            } else if (token.tokenSymbol === 'POOLY2' && (BigInt(token.balance) > 0n)) {
                 votingPower = 2;
-            } else if (token.tokenSymbol === 'POOLY1' && ethers.BigNumber.from(token.balance).gt(ethers.BigNumber.from(0))) {
+            } else if (token.tokenSymbol === 'POOLY1' && (BigInt(token.balance) > 0n)) {
                 votingPower = 1;
             }
         }

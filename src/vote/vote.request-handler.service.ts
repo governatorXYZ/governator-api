@@ -1,4 +1,5 @@
-import { HttpException, HttpStatus, Injectable, Logger, CACHE_MANAGER, Inject } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger, Inject } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { VoteCreateDto, VoteRawResponseDto, VoteRequestDto, VoteResponseDto } from './vote.dtos';
 import { Poll } from '../poll/poll.schema';
 import { UserService } from '../user/user.service';
@@ -152,8 +153,8 @@ export class VoteRequestHandlerService {
     async setCachedVotePower(accountProviderId: string, accountId: string, poll: Poll, votePower: string): Promise<string> {
         const key = Utils.formatCacheKey(accountProviderId, accountId, poll._id);
 
-        // TODO cache-manager v4 uses seconds, needs to be changed to ms when upgrade to cache-manager v5
-        const ttl = (new Date(poll.end_time).getTime() - new Date(Date.now()).getTime()) / 1000;
+        // ms
+        const ttl = (new Date(poll.end_time).getTime() - new Date(Date.now()).getTime());
 
         this.logger.debug(`caching vote power of account ${accountId}`);
         this.logger.debug(`setting cache with key: ${key} value: ${votePower} ttl: ${ttl}`);

@@ -1,4 +1,5 @@
-import { Module, CacheModule, NestModule, Inject, MiddlewareConsumer } from '@nestjs/common';
+import { Module, NestModule, Inject, MiddlewareConsumer } from '@nestjs/common';
+import { CacheModule } from '@nestjs/cache-manager';
 import * as Joi from 'joi';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -100,7 +101,7 @@ export class AppModule implements NestModule {
         consumer
             .apply(
                 session({
-                    store: new (RedisStore(session))({ client: this.redis, logErrors: true }),
+                    store: new RedisStore({ client: this.redis }),
                     saveUninitialized: false,
                     secret: this.configService.get('SESSION_SECRET'),
                     resave: true,

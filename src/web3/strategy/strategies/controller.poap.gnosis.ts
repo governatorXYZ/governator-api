@@ -53,25 +53,25 @@ export class PoapEventStrategy extends StrategyBaseController implements OnAppli
 
         const poapContractAddresss = '0x22C1f6050E56d2876009903609a2cC3fEf83B415';
 
-        const contractGnosis = await strategyUtils.evmService.connectContract(poapContractAddresss, poapContractAbi, 100);
+        const contractGnosis = await strategyUtils.evmService.getContract(poapContractAddresss, poapContractAbi, 100);
 
-        const poapBalanceGnosis = (await contractGnosis.balanceOf(strategyUtils.strategyRequest.account_id) as ethers.BigNumber).toNumber();
+        const poapBalanceGnosis = BigInt(await contractGnosis.balanceOf(strategyUtils.strategyRequest.account_id));
 
         strategyUtils.logger.log(poapBalanceGnosis);
 
-        if(poapBalanceGnosis > 0) {
-            for(let i = 0; i < poapBalanceGnosis; i++) {
+        if(poapBalanceGnosis > 0n) {
+            for(let i = 0n; i < poapBalanceGnosis; i++) {
                 const tokenDetails = await contractGnosis.tokenDetailsOfOwnerByIndex(strategyUtils.strategyRequest.account_id, i).catch(e => strategyUtils.logger.error(e));
                 if (tokenDetails[1].toString() === poapEventId) return '1';
             }
         }
 
-        const contractEthereum = await strategyUtils.evmService.connectContract(poapContractAddresss, poapContractAbi, 1);
+        const contractEthereum = await strategyUtils.evmService.getContract(poapContractAddresss, poapContractAbi, 1);
 
-        const poapBalanceEthereum = (await contractEthereum.balanceOf(strategyUtils.strategyRequest.account_id) as ethers.BigNumber).toNumber();
+        const poapBalanceEthereum = BigInt(await contractEthereum.balanceOf(strategyUtils.strategyRequest.account_id));
 
-        if(poapBalanceEthereum > 0) {
-            for(let i = 0; i < poapBalanceEthereum; i++) {
+        if(poapBalanceEthereum > 0n) {
+            for(let i = 0n; i < poapBalanceEthereum; i++) {
                 const tokenDetails = await contractEthereum.tokenDetailsOfOwnerByIndex(strategyUtils.strategyRequest.account_id, i).catch(e => strategyUtils.logger.error(e));
                 if (tokenDetails[1].toString() === poapEventId) return '1';
             }
