@@ -17,7 +17,7 @@ const conf = {
     // modify to match your startegy setting in CONFIG.ts
     name: apiConfig.STRATEGY_BANKLESS_DAO_MEMBERSHIP,
     strategy_type: strategyTypes.STRATEGY_TYPE_TOKEN_GATED,
-    description: '1 vote if any of your wallets has >= 35k BANK',
+    description: 'One vote if any of your wallets have >= 35k BANK (not combined, yet)',
 };
 
 // do not modify
