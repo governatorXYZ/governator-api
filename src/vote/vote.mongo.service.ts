@@ -172,23 +172,23 @@ export class VoteMongoService {
         if (process.env.NODE_ENV === 'development') this.logger.debug(`votePowers aggregate: \n${JSON.stringify(votePowers)}`);
 
         const sumVotePowers = votePowers.map((poll_option) => {
-            let sum = ethers.BigNumber.from('0');
+            let sum = 0n;
             for (const value of poll_option.vote_power) {
-                sum = sum.add(ethers.BigNumber.from(value));
+                sum = sum + BigInt(value);
             }
             return { _id: poll_option._id, vote_power: sum.toString() };
         });
 
         if (process.env.NODE_ENV === 'development') this.logger.debug(`sumVotePowers: \n${JSON.stringify(sumVotePowers)}`);
 
-        let totalVotePower = ethers.BigNumber.from('0');
+        let totalVotePower = 0n;
         for (const poll_option of sumVotePowers) {
-            totalVotePower = totalVotePower.add(ethers.BigNumber.from(poll_option.vote_power));
+            totalVotePower = totalVotePower + BigInt(poll_option.vote_power);
         }
 
         const sumVotePowersWithPercentages = sumVotePowers.map((poll_option) => {
 
-            const percent = Math.round(100.0 / parseFloat(ethers.utils.formatEther(totalVotePower)) * parseFloat(ethers.utils.formatEther(ethers.BigNumber.from(poll_option.vote_power))));
+            const percent = Math.round(100.0 / parseFloat(ethers.formatEther(totalVotePower)) * parseFloat(ethers.formatEther(BigInt(poll_option.vote_power))));
             poll_option['percent'] = percent.toString();
             return poll_option;
         });

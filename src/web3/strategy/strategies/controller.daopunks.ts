@@ -8,7 +8,6 @@ import { StrategyRequestDto } from '../strategy.dtos';
 import { formatKebab } from '../strategy.utils';
 import apiConfig from './CONFIG';
 import { ERC20BalanceOfDto, ERC20TokenBalances, TokenList } from '../../token-vote/evm/evm.dtos';
-import { ethers } from 'ethers';
 import { strategyTypes } from '../../../common/constants';
 import { ResultTransformerParams, StrategyUtils } from '../strategy.types';
 
@@ -59,13 +58,13 @@ export class DaoPunksStrategy extends StrategyBaseController implements OnApplic
 
     // transform strategy result, or use to chain strategies
     responseTransformer(resultTransformerParams: ResultTransformerParams): string {
-        const votingPower = ethers.BigNumber.from('0');
+        const votingPower = 0n;
 
 
         for (const token of (resultTransformerParams.strategyResult as ERC20TokenBalances).tokenBalances) {
 
-            if (ethers.BigNumber.from(token.balance).gt(ethers.BigNumber.from(0))) {
-                votingPower.add(ethers.BigNumber.from(token.balance));
+            if (BigInt(token.balance) > 0n) {
+                votingPower + BigInt(token.balance);
             }
         }
 
