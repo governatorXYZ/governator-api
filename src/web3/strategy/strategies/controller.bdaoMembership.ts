@@ -8,7 +8,6 @@ import { StrategyRequestDto } from '../strategy.dtos';
 import { formatKebab } from '../strategy.utils';
 import apiConfig from './CONFIG';
 import { ERC20BalanceOfDto, ERC20TokenBalances, TokenList } from '../../token-vote/evm/evm.dtos';
-import { ethers } from 'ethers';
 import { strategyTypes } from '../../../common/constants';
 import { ResultTransformerParams, StrategyUtils } from '../strategy.types';
 

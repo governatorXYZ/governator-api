@@ -7,7 +7,6 @@ import * as path from 'path';
 import { StrategyRequestDto } from '../strategy.dtos';
 import { formatKebab } from '../strategy.utils';
 import apiConfig from './CONFIG';
-import { ethers } from 'ethers';
 import { strategyTypes } from '../../../common/constants';
 import { ResultTransformerParams, StrategyUtils } from '../strategy.types';
 

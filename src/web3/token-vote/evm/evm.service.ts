@@ -3,9 +3,6 @@ import { Contract } from 'ethers';
 import * as erc20json from './ERC20.json';
 import * as erc721json from './ERC721.json';
 import * as erc1155json from './ERC1155.json';
-import { ERC20 } from './ERC20';
-import { ERC721 } from './ERC721';
-import { ERC1155 } from './ERC1155';
 import {
     ERC1155BalanceOfDto,
     ERC20TokenBalanceDetail,

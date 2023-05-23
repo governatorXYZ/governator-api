@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 
 import gql from 'graphql-tag';
 import { ApolloClient } from 'apollo-client';
-import fetch from 'node-fetch';
 import { createHttpLink } from 'apollo-link-http';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import { EvmService } from '../../token-vote/evm/evm.service';
