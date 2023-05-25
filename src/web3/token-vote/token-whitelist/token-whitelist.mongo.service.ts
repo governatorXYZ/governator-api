@@ -84,18 +84,17 @@ export class TokenWhitelistMongoService {
         const tokenContract = new Contract(
             token.contractAddress,
             abi,
+            provider,
         );
 
-        const connectedToken = tokenContract.connect(provider);
-
         try {
-            tokenMeta.name = await connectedToken.name();
+            tokenMeta.name = await tokenContract.name();
         } catch (e) {
             this.logger.error(`failed to fetch token name for token address ${token.contractAddress}`, e);
         }
 
         try {
-            tokenMeta.symbol = await connectedToken.symbol();
+            tokenMeta.symbol = await tokenContract.symbol();
         } catch (e) {
             this.logger.error(`failed to fetch token symbol for token address ${token.contractAddress}`, e);
         }

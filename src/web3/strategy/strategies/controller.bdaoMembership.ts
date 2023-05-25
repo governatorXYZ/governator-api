@@ -15,11 +15,9 @@ const conf = {
     api_tag: apiConfig.API_TAG,
     api_url_base: apiConfig.API_TAG.toLowerCase(),
     // modify to match your startegy setting in CONFIG.ts
-    name: apiConfig.STRATEGY_DAOPUNKS,
-    strategy_type: strategyTypes.STRATEGY_TYPE_TOKEN_WEIGHTED,
-    description: 'Weighted voting strategy for DAOPUNK NFT holders ' +
-        'Your voting power will be calculated as the total number of DAOPUNKs ' +
-        'for all your verified wallets at the specified block-height.',
+    name: apiConfig.STRATEGY_BANKLESS_DAO_MEMBERSHIP,
+    strategy_type: strategyTypes.STRATEGY_TYPE_TOKEN_GATED,
+    description: 'One vote if any of your wallets have >= 35k BANK (not combined, yet)',
 };
 
 // do not modify
@@ -27,7 +25,7 @@ const conf = {
 @Controller(conf.api_url_base)
 
 // modify: rename class
-export class DaoPunksStrategy extends StrategyBaseController implements OnApplicationBootstrap {
+export class BdaoMembershipStrategy extends StrategyBaseController implements OnApplicationBootstrap {
 
     // do not modify
     constructor(
@@ -40,16 +38,34 @@ export class DaoPunksStrategy extends StrategyBaseController implements OnApplic
     // modify: implement strategy here
     async strategy(strategyUtils: StrategyUtils) {
 
+        const polygonBlockHeight = strategyUtils.strategyRequest.block_height.find((blockHeight) => blockHeight.chain_id === '137').block;
+        const mainnetBlockHeight = strategyUtils.strategyRequest.block_height.find((blockHeight) => blockHeight.chain_id === '1').block;
+
         strategyUtils.logger.debug(`blockHeights: ${JSON.stringify(strategyUtils.strategyRequest.block_height)}`);
 
-        const daopunks: ERC20BalanceOfDto = {
-            contractAddress: '0x700f045de43FcE6D2C25df0288b41669B7566BbE',
+        strategyUtils.logger.debug(`equivalentBlockHeight: ${polygonBlockHeight}`);
+
+        const banklessTokenMain: ERC20BalanceOfDto = {
+            contractAddress: '0x2d94aa3e47d9d5024503ca8491fce9a2fb4da198',
             chain_id: 1,
-            block_height: strategyUtils.strategyRequest.block_height.find(block => block.chain_id === '1').block,
+            block_height: mainnetBlockHeight,
         };
 
-        const tokens: TokenList = { tokens: [daopunks] };
+        const banklessTokenPolygon: ERC20BalanceOfDto = {
+            contractAddress: '0xDB7Cb471dd0b49b29CAB4a1C14d070f27216a0Ab',
+            chain_id: 137,
+            block_height: polygonBlockHeight,
+        };
 
+        let tokens: TokenList;
+
+        if (banklessTokenPolygon.block_height) {
+            tokens = { tokens: [banklessTokenMain, banklessTokenPolygon] };
+
+        } else {
+            tokens = { tokens: [banklessTokenMain] };
+
+        }
 
         strategyUtils.logger.debug(`getting balances for token list: ${JSON.stringify(tokens)}`);
 
@@ -58,21 +74,26 @@ export class DaoPunksStrategy extends StrategyBaseController implements OnApplic
 
     // transform strategy result, or use to chain strategies
     responseTransformer(resultTransformerParams: ResultTransformerParams): string {
-        const votingPower = 0n;
+        let votingPower = 0n;
+        const MEMBERSHIP_THRESHOLD = '35000000000000000000000';
 
 
         for (const token of (resultTransformerParams.strategyResult as ERC20TokenBalances).tokenBalances) {
+            const bigNumber = BigInt(token.balance);
 
-            if (BigInt(token.balance) > 0n) {
-                votingPower + BigInt(token.balance);
-            }
+            resultTransformerParams.logger.debug(`balance ${token.balance}`);
+            resultTransformerParams.logger.debug(`balanceBigN ${bigNumber}`);
+
+            votingPower = votingPower + bigNumber;
         }
 
+        resultTransformerParams.logger.debug(`Total voting power: ${votingPower}`);
 
-        resultTransformerParams.logger.debug(`Total voting power: ${votingPower.toString()}`);
+        if(votingPower >= BigInt(MEMBERSHIP_THRESHOLD)) {
+            return '1';
+        }
 
-        return votingPower.toString();
-
+        return '0';
     }
 
     // do not modify

@@ -1,4 +1,5 @@
-import { HttpException, HttpStatus, Injectable, Logger, CACHE_MANAGER, Inject } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger, Inject } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { VoteCreateDto, VoteRawResponseDto, VoteRequestDto, VoteResponseDto } from './vote.dtos';
 import { Poll } from '../poll/poll.schema';
 import { UserService } from '../user/user.service';
@@ -83,7 +84,10 @@ export class VoteRequestHandlerService {
                 break;
 
             case strategyTypes.STRATEGY_TYPE_TOKEN_WEIGHTED:
+            case strategyTypes.STRATEGY_TYPE_TOKEN_GATED:
+
                 if (!(account.provider_id === 'ethereum')) break;
+                if (((account as EthereumAccountResponseDto).verified === false)) break;
 
                 this.logger.warn(account.provider_id);
 
@@ -149,8 +153,8 @@ export class VoteRequestHandlerService {
     async setCachedVotePower(accountProviderId: string, accountId: string, poll: Poll, votePower: string): Promise<string> {
         const key = Utils.formatCacheKey(accountProviderId, accountId, poll._id);
 
-        // TODO cache-manager v4 uses seconds, needs to be changed to ms when upgrade to cache-manager v5
-        const ttl = (new Date(poll.end_time).getTime() - new Date(Date.now()).getTime()) / 1000;
+        // ms
+        const ttl = (new Date(poll.end_time).getTime() - new Date(Date.now()).getTime());
 
         this.logger.debug(`caching vote power of account ${accountId}`);
         this.logger.debug(`setting cache with key: ${key} value: ${votePower} ttl: ${ttl}`);
@@ -187,6 +191,22 @@ export class VoteRequestHandlerService {
 
     async createBatchVotes(voteCreateDtos: VoteCreateDto[], poll: Poll): Promise<VoteResponseDto[]> {
         const voteResponseDtos: VoteResponseDto[] = [];
+
+        if (poll.strategy_config[0].strategy_type === strategyTypes.STRATEGY_TYPE_TOKEN_GATED && voteCreateDtos.length > 1) {
+
+            try {
+
+                voteCreateDtos[0].vote_power = voteCreateDtos.find((voteCreateDto) => voteCreateDto.vote_power === '1').vote_power;
+
+                if (!voteCreateDtos[0].vote_power) voteCreateDtos[0].vote_power = '0';
+
+            } catch {
+                
+                voteCreateDtos[0].vote_power = '0';
+            }
+
+            voteCreateDtos.length = 1;
+        }
 
         // we have one voteCreateDto per account
         for (const voteCreateDto of voteCreateDtos) {

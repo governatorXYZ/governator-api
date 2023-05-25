@@ -8,7 +8,6 @@ import { StrategyRequestDto } from '../strategy.dtos';
 import { formatKebab } from '../strategy.utils';
 import apiConfig from './CONFIG';
 import { ERC20BalanceOfDto, ERC20TokenBalances, TokenList } from '../../token-vote/evm/evm.dtos';
-import { ethers } from 'ethers';
 import { strategyTypes } from '../../../common/constants';
 import { ResultTransformerParams, StrategyUtils } from '../strategy.types';
 
@@ -77,16 +76,16 @@ export class BankTokenWeightedStrategy extends StrategyBaseController implements
 
     // transform strategy result, or use to chain strategies
     responseTransformer(resultTransformerParams: ResultTransformerParams): string {
-        let votingPower = ethers.BigNumber.from('0');
+        let votingPower = 0n;
 
 
         for (const token of (resultTransformerParams.strategyResult as ERC20TokenBalances).tokenBalances) {
-            const bigNumber = ethers.BigNumber.from(token.balance);
+            const bigNumber = BigInt(token.balance);
 
             resultTransformerParams.logger.debug(`balance ${token.balance}`);
-            resultTransformerParams.logger.debug(`balanceBigN ${token.balance}`);
+            resultTransformerParams.logger.debug(`balanceBigN ${bigNumber}`);
 
-            votingPower = votingPower.add(bigNumber);
+            votingPower = votingPower + bigNumber;
         }
 
 

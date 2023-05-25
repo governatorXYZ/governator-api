@@ -9,10 +9,9 @@ import {
     Get,
     Logger,
     UseInterceptors,
-    CacheInterceptor,
-    CacheTTL,
     UseGuards,
 } from '@nestjs/common';
+import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { SseService } from '../sse/sse.service';
 import constants from '../common/constants';
