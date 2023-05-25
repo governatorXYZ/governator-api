@@ -1,4 +1,4 @@
-import { Controller, Logger } from '@nestjs/common';
+import { Controller, Logger, UseGuards } from '@nestjs/common';
 import { StrategyBaseService } from './strategy.base.service';
 import crypto from 'crypto';
 import { StrategyMongoService } from './strategy.mongo.service';
@@ -6,8 +6,10 @@ import { ApiSecurity } from '@nestjs/swagger';
 import { StrategyRequestDto } from './strategy.dtos';
 import { formatKebab } from './strategy.utils';
 import { ResultTransformerFunction, StrategyFunction } from './strategy.types';
+import { ApiKeyAuthGuard } from '../../auth/api-key/api-key.guard';
 
 @ApiSecurity('api_key')
+@UseGuards(ApiKeyAuthGuard)
 @Controller()
 export class StrategyBaseController {
     readonly logger = new Logger(StrategyBaseController.name);

@@ -1,6 +1,7 @@
 export const strategyTypes = Object.freeze({
     STRATEGY_TYPE_TOKEN_WEIGHTED: 'TOKEN_WEIGHTED',
     STRATEGY_TYPE_ONE_EQUALS_ONE: 'ONE_EQUALS_ONE',
+    STRATEGY_TYPE_TOKEN_GATED: 'TOKEN_GATED',
 });
 
 export default Object.freeze({

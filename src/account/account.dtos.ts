@@ -63,6 +63,34 @@ export class DiscordAccountResponseDto extends AccountBase {
         example: 'governator',
     })
         discord_username: string;
+    
+    @IsString()
+    @ApiProperty({
+        description: 'Discord discriminator',
+        required: true,
+        example: '6789',
+    })
+        discriminator: string;
+    
+    @IsString()
+    @ApiProperty({
+        description: 'Discord avatar',
+        required: true,
+        example: 'avatar-id',
+    })
+        avatar: string;
+    
+    @IsString()
+    @ApiProperty({
+        required: true,
+    })
+        accessToken: string;
+    
+    @IsString()
+    @ApiProperty({
+        required: true,
+    })
+        refreshToken: string;
 
     @IsString()
     @ApiProperty({
@@ -92,7 +120,7 @@ export class EthereumAccountResponseDto extends AccountBase {
     @IsEthAddress()
     @Transform(({ value: value }) => {
         try {
-            return ethers.utils.getAddress(value);
+            return ethers.getAddress(value);
 
         } catch (e) {
             const error = e as Error;

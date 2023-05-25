@@ -10,7 +10,7 @@ export class EthAddress {
     @IsEthAddress()
     @Transform(({ value: value }) => {
         try {
-            return ethers.utils.getAddress(value);
+            return ethers.getAddress(value);
 
         } catch (e) {
             const error = e as Error;
@@ -31,7 +31,7 @@ export class Token {
     @IsEthAddress()
     @Transform(({ value: value }) => {
         try {
-            return ethers.utils.getAddress(value);
+            return ethers.getAddress(value);
 
         } catch (e) {
             const error = e as Error;

@@ -8,9 +8,11 @@ import { VoteRequestGuard } from './vote.request.guard';
 import { Cache } from 'cache-manager';
 import { VoteCreateConsumer } from './vote.q.consumer.service';
 import { VoteCreateProducer } from './vote.q.producer.service';
+import { ApiKeyAuthGuard } from '../auth/api-key/api-key.guard';
 
 @ApiTags('Vote')
 @ApiSecurity('api_key')
+@UseGuards(ApiKeyAuthGuard)
 @Controller()
 export class VoteController {
 

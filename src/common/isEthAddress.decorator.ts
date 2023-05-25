@@ -16,7 +16,7 @@ export class IsEthAddressConstraint implements ValidatorConstraintInterface {
     validate(value: any): Promise<boolean> | boolean {
 
         try {
-            ethers.utils.getAddress(value);
+            ethers.getAddress(value);
 
             return true;
 

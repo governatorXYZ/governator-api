@@ -3,15 +3,13 @@ import { VersioningType, ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { OpenAPI } from 'openapi-types';
 import helmet from 'helmet';
-import { Reflector } from '@nestjs/core';
-import { AuthGuard } from './auth/auth.guard';
 
 export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
 
     // Makes .env available
     const configService = app.get(ConfigService);
 
-    // // Get global prefix from .env
+    // Get global prefix from .env
     const globalPrefix: string = configService.get('API_GLOBAL_PREFIX');
 
     // Versioning system
@@ -41,9 +39,18 @@ export const configure = (app, setupSwaggerModule = true): OpenAPI.Document => {
     // Put a helmet on
     app.use(helmet());
 
+    app.set('trust proxy', 1);
+
+    // specify cors and credentials for oauth session with FE
+    app.use(function(req, res, next) {
+        res.header('Access-Control-Allow-Credentials', true);
+        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+        next();
+    });
+
     // use global auth guard
-    const reflector = app.get(Reflector);
-    app.useGlobalGuards(new AuthGuard(reflector));
+    // const reflector = app.get(Reflector);
+    // app.useGlobalGuards(new AuthGuard(reflector));
 
     // Swagger setup
     const swaggerConfig = new DocumentBuilder()

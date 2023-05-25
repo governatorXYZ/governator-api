@@ -9,9 +9,9 @@ import {
     Get,
     Logger,
     UseInterceptors,
-    CacheInterceptor,
-    CacheTTL,
+    UseGuards,
 } from '@nestjs/common';
+import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { SseService } from '../sse/sse.service';
 import constants from '../common/constants';
@@ -22,9 +22,11 @@ import { firstValueFrom, throwError, timeout } from 'rxjs';
 import { Throttle } from '@nestjs/throttler';
 import { CommunityMongoService } from '../community/community.mongo.service';
 import { CommunityClientConfigDiscordDto } from '../community/community.dtos';
+import { ApiKeyAdminAuthGuard } from '../auth/api-key/api-key.guard';
 
 @ApiTags('Request data from client')
 @ApiSecurity('api_key')
+@UseGuards(ApiKeyAdminAuthGuard)
 @Controller()
 export class ClientRequestController {
     private readonly logger = new Logger(ClientRequestController.name);

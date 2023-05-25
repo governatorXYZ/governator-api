@@ -9,10 +9,11 @@ import * as fs from 'fs';
 
 describe('e2e testing of governator server', () => {
     let app: INestApplication;
+    let moduleFixture: TestingModule;
 
     beforeEach(async () => {
 
-        const moduleFixture: TestingModule = await Test.createTestingModule({
+        moduleFixture = await Test.createTestingModule({
             imports: [AppModule],
         }).compile();
 

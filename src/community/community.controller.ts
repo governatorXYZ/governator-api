@@ -1,11 +1,13 @@
-import { Body, Controller, Delete, Get, Param, Post, Patch } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Patch, UseGuards } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ApiKeyAuthGuard } from '../auth/api-key/api-key.guard';
 import { CommunityCreateDto, CommunityUpdateDto, CommunityResponseDto } from './community.dtos';
 import { CommunityMongoService } from './community.mongo.service';
 import { Community } from './community.schema';
 
 @ApiTags('Community')
 @ApiSecurity('api_key')
+@UseGuards(ApiKeyAuthGuard)
 @Controller()
 export class CommunityController {
     constructor(

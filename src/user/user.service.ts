@@ -8,7 +8,6 @@ import { EthereumAccountMongoService } from '../account/ethereumAccount.mongo.se
 import { DiscordAccountMongoService } from '../account/discordAccount.mongo.service';
 import constants from '../common/constants';
 import { EthereumAccount } from '../account/ethereumAccount.schema';
-import { DiscordAccount } from '../account/discordAccount.schema';
 import * as _ from 'lodash';
 
 @Injectable()
@@ -63,7 +62,7 @@ export class UserService {
 
         if (!Array.from(constants.PROVIDERS.keys()).includes(providerId)) throw new HttpException('Invalid provider Id', HttpStatus.NOT_FOUND);
 
-        let account: EthereumAccount | DiscordAccount | null;
+        let account: EthereumAccount | DiscordAccountResponseDto | null;
 
         switch (providerId) {
         case 'ethereum':
@@ -103,7 +102,12 @@ export class UserService {
         const discAccounts = await this.discordAccountMongoService.findManyAccount({ user_id: userId });
 
         if (discAccounts) {
-            discAccounts.forEach((account) => userObject.provider_accounts.push((account as unknown as DiscordAccountResponseDto)));
+            discAccounts.forEach((account) => {
+                const safeAccount = { ...account };
+                delete safeAccount.accessToken;
+                delete safeAccount.refreshToken;
+                userObject.provider_accounts.push((safeAccount as DiscordAccountResponseDto));
+            });
         }
 
         return userObject;
