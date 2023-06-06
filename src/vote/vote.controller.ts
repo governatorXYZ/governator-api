@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Param, Post, UseGuards, UseInterceptors, CACHE_MANAGER, Inject, Logger } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards, UseInterceptors, Inject, Logger } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { VoteMongoService } from './vote.mongo.service';
 import { VoteRequestDto, VoteResponseDto, VoteByPollAggregate } from './vote.dtos';
