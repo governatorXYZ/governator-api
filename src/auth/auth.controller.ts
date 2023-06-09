@@ -42,7 +42,7 @@ export class AuthController {
 
     @Get('auth/session')
     @UseGuards(IsAuthenticatedGuard)
-    @ApiOkResponse({ description: 'Returns an Ethereum account object', type: OauthSession })
+    @ApiOkResponse({ description: 'Returns Oauth session', type: OauthSession })
     async status(@Req() req: Request): Promise<OauthSession> {
         return req.user as OauthSession;
     }

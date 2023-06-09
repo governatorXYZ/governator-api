@@ -22,7 +22,7 @@ export class VoteCreateConsumer {
         this.eventStream = new Subject();
     }
 
-    async getReturnValueFromObservable(job): Promise<VoteResponseDto[]> {
+    async getReturnValueFromObservable(job: Job<{pollId: string, voteRequest: VoteRequestDto}>): Promise<VoteResponseDto[]> {
         return new Promise(resolve => {
             this.eventStream
                 .pipe(
@@ -37,14 +37,14 @@ export class VoteCreateConsumer {
         });
     }
     @OnQueueProgress()
-    onProgress(job: Job) {
+    onProgress(job: Job<{pollId: string, voteRequest: VoteRequestDto}>) {
         this.logger.log(
             `Job ${job.id} Progress: Step ${job.progress()}/2 completed`,
         );
     }
 
     @OnQueueCompleted()
-    onCompleted(job: Job, result: any) {
+    onCompleted(job: Job<{pollId: string, voteRequest: VoteRequestDto}>, result: any) {
         this.logger.log(
             `Job ${job.id} completed with exit status ${result}`,
         );
@@ -52,14 +52,14 @@ export class VoteCreateConsumer {
     }
 
     @OnQueueActive()
-    onActive(job: Job) {
+    onActive(job: Job<{pollId: string, voteRequest: VoteRequestDto}>) {
         this.logger.log(
             `Processing job ${job.id} with data ${JSON.stringify(job.data)}...`,
         );
     }
  
     @Process()
-    async voteCreateJob(job:Job<{voteRequest: VoteRequestDto, pollId: string}>) {
+    async voteCreateJob(job:Job<{pollId: string, voteRequest: VoteRequestDto}>) {
         
 
         const votes = await this.voteRequestHandlerService.handleVoteRequest(job.data.pollId, job.data.voteRequest);

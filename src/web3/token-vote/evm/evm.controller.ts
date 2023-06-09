@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post } from '@nestjs/common';
+import { Body, Controller, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import {
     ERC1155BalanceOfDto,
@@ -9,9 +9,12 @@ import {
 } from './evm.dtos';
 import { EthAddress } from '../../web3.dtos';
 import { EvmService } from './evm.service';
+import { ApiKeyAuthGuard } from '../../../auth/api-key/api-key.guard';
 
+// TODO: obsolete? remove when refactoring routes.
 @ApiTags('w3 - Token voting')
 @ApiSecurity('api_key')
+@UseGuards(ApiKeyAuthGuard)
 @Controller()
 export class EvmController {
     constructor(protected tokenVoteService: EvmService) {

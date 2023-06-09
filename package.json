@@ -9,7 +9,7 @@
     "precommit": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix && yarn test && yarn build",
     "prebuild": "rimraf dist",
     "build": "yarn prebuild && nest build",
-    "codegen": "yarn test:e2e && openapi-generator-cli generate -i ./governator-api-spec.json -g typescript-axios -o src/api-client --additional-properties=withoutPrefixEnums=true,withInterfaces=true,supportsES6=true,npmName=$API_CLIENT_NPM_PACKAGE_NAME,npmVersion=$npm_package_version",
+    "codegen": "yarn test:generate && openapi-generator-cli generate -i ./governator-api-spec.json -g typescript-axios -o src/api-client --additional-properties=withoutPrefixEnums=true,withInterfaces=true,supportsES6=true,npmName=$API_CLIENT_NPM_PACKAGE_NAME,npmVersion=$npm_package_version",
     "codegen:dev": "export NODE_ENV=development eval $(grep '^NPM_TOKEN' ./.env.development) eval $(grep '^API_CLIENT_NPM_PACKAGE_NAME' ./.env.development) && yarn codegen && cd ./src/api-client && yarn publish --verbose --new-version $npm_package_version",
     "build:dev": "yarn build:client:dev && yarn prebuild && nest build",
     "build:prod": "yarn build:client:prod && yarn prebuild && nest build",
@@ -22,7 +22,8 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:generate": "jest --config ./test/jest-generate.json"
   },
   "dependencies": {
     "@nestjs/bull": "^0.6.2",
@@ -93,6 +94,7 @@
     "@typescript-eslint/parser": "^5.0.0",
     "eslint": "^8.0.1",
     "jest": "^29.5.0",
+    "jest-mock-extended": "^3.0.4",
     "jest-openapi": "^0.14.2",
     "rxjs-spy": "^8.0.2",
     "source-map-support": "^0.5.20",

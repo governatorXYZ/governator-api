@@ -1,13 +1,15 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, UseGuards } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { TokenWhitelistMongoService } from './token-whitelist.mongo.service';
 import { TokenWhitelist } from './token-whitelist.schema';
 import { TokenWhitelistCreateDto, TokenWhitelistResponseDto } from './token-whitelist-dtos';
 import { Token } from '../../web3.dtos';
 import { parseEthAddressPipe } from '../../../common/parseEthAddress.pipe';
+import { ApiKeyAuthGuard } from '../../../auth/api-key/api-key.guard';
 
 @ApiTags('w3 - Token whitelist')
 @ApiSecurity('api_key')
+@UseGuards(ApiKeyAuthGuard)
 @Controller()
 export class TokenWhitelistController {
     constructor(
