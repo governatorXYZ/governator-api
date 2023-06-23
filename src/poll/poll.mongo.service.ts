@@ -4,10 +4,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Poll, PollDocument } from './poll.schema';
 import { PollCreateDto, StrategyConfig } from './poll.dtos';
 import { SchedulerRegistry } from '@nestjs/schedule';
-import { CronJob } from 'cron';
 import constants from '../common/constants';
 import { SseService } from '../sse/sse.service';
 import { StrategyMongoService } from '../web3/strategy/strategy.mongo.service';
+import { PollCronService } from './poll.cron.service';
 
 @Injectable()
 export class PollMongoService {
@@ -16,6 +16,7 @@ export class PollMongoService {
     constructor(
         @InjectModel(Poll.name) private pollModel: Model<PollDocument>,
         private schedulerRegistry: SchedulerRegistry,
+        private cronService: PollCronService,
         protected sseService: SseService,
         protected strategyService: StrategyMongoService,
     ) {
@@ -72,11 +73,21 @@ export class PollMongoService {
     }
 
     async createPollEndScheduler(poll: Poll) {
-        const job = new CronJob(new Date(poll.end_time), () => {
-            this.logger.warn(`cron job running for ${poll._id}`);
+        
+        const job = this.cronService.newCronJob(
+            {
+                cronTime: new Date(poll.end_time),
+                onTick: () => {
+                    this.logger.warn(`cron job running for ${poll._id}`);
+                    this.endPoll(poll._id);
+                },
+            });
 
-            this.endPoll(poll._id);
-        });
+        // new CronJob(new Date(poll.end_time), () => {
+        //     this.logger.warn(`cron job running for ${poll._id}`);
+
+        //     this.endPoll(poll._id);
+        // })
 
         this.schedulerRegistry.addCronJob(poll._id, job);
 

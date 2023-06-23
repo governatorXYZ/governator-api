@@ -10,6 +10,7 @@ import { PollCreateProducer } from './poll.q.producer.service';
 import { PollCreateConsumer } from './poll.q.consumer.service';
 import { BullModule } from '@nestjs/bull';
 import { Web3Module } from '../web3/web3.module';
+import { PollCronService } from './poll.cron.service';
 
 @Module({
     imports: [
@@ -29,7 +30,7 @@ import { Web3Module } from '../web3/web3.module';
         Web3Module,
     ],
     controllers: [PollController],
-    providers: [PollMongoService, PollCreateProducer, PollCreateConsumer],
+    providers: [PollMongoService, PollCreateProducer, PollCreateConsumer, PollCronService],
     exports: [PollMongoService],
 })
 export class PollModule {}
