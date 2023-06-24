@@ -23,8 +23,12 @@ import RedisStore from 'connect-redis';
 import { RedisModule } from './redis/redis.module';
 import { REDIS } from './redis/redis.constants';
 import Redis from 'ioredis';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { disconnect } from 'mongoose';
+
 
 const ENV = process.env.NODE_ENV;
+let mongo: MongoMemoryServer;
 
 @Module({
     imports: [
@@ -33,7 +37,7 @@ const ENV = process.env.NODE_ENV;
             envFilePath: !ENV ? '.env' : `.env.${ENV}`,
             validationSchema: Joi.object({
                 NODE_ENV: Joi.string()
-                    .valid('development', 'production', 'qa')
+                    .valid('test', 'development', 'production', 'qa')
                     .default('development'),
                 API_PORT: Joi.number().default(3000),
                 API_GLOBAL_PREFIX: Joi.string().default('api'),
@@ -42,13 +46,23 @@ const ENV = process.env.NODE_ENV;
         PassportModule.register({ session: true }),
         MongooseModule.forRootAsync({
             imports: [ConfigModule],
-            useFactory: async (configService: ConfigService) => (
-                configService.get('MONGO_LOCAL') === '' ?
-                    {
-                        uri: `${configService.get('MONGODB_PREFIX')}://${configService.get('MONGODB_USERNAME')}:${configService.get('MONGODB_PASS')}@${configService.get('MONGODB_CLUSTER')}/${configService.get('MONGODB_DATABASE')}`,
-                    } :
-                    { uri: configService.get('MONGO_LOCAL') }
-            ),
+            useFactory: async (configService: ConfigService) => {
+                if (ENV === 'test') {
+                    mongo = await MongoMemoryServer.create();
+                    const mongoUri = mongo.getUri();
+                    return {
+                        uri: mongoUri,
+                    };
+                } else {
+                    return (
+                        configService.get('MONGO_LOCAL') === '' ?
+                            {
+                                uri: `${configService.get('MONGODB_PREFIX')}://${configService.get('MONGODB_USERNAME')}:${configService.get('MONGODB_PASS')}@${configService.get('MONGODB_CLUSTER')}/${configService.get('MONGODB_DATABASE')}`,
+                            } :
+                            { uri: configService.get('MONGO_LOCAL') }
+                    );
+                }
+            },
             inject: [ConfigService],
         }),
         ThrottlerModule.forRoot({
@@ -120,5 +134,9 @@ export class AppModule implements NestModule {
 
     onModuleDestroy() {
         this.redis.disconnect();
+        if (ENV === 'test') {
+            disconnect();
+            if (mongo) mongo.stop();
+        }
     }
 }

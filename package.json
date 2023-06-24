@@ -22,7 +22,7 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:e2e": "export NODE_ENV=test && jest --config ./test/jest-e2e.json --detectOpenHandles --forceExit",
     "test:generate": "jest --config ./test/jest-generate.json"
   },
   "dependencies": {
@@ -76,7 +76,6 @@
   },
   "devDependencies": {
     "@golevelup/ts-jest": "^0.3.2",
-    "@jbiskur/nestjs-test-utilities": "^5.0.0",
     "@nestjs/schematics": "^9.2.0",
     "@nestjs/testing": "^9.4.1",
     "@types/bcrypt": "^5.0.0",

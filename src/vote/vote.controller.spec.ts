@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { VoteController } from '../vote.controller';
-import { VoteRequestDto } from '../vote.dtos';
+import { VoteController } from './vote.controller';
+import { VoteRequestDto } from './vote.dtos';
 import { ArgumentMetadata, ValidationPipe } from '@nestjs/common';
 import { ModuleMocker, MockFunctionMetadata } from 'jest-mock';
-import { VoteCreateConsumer } from '../vote.q.consumer.service';
-import { VoteCreateProducer } from '../vote.q.producer.service';
+import { VoteCreateConsumer } from './vote.q.consumer.service';
+import { VoteCreateProducer } from './vote.q.producer.service';
 import { BullModule, getQueueToken } from '@nestjs/bull';
 import { mock } from 'jest-mock-extended';
 import { Queue } from 'bull';
 
-import { constants, dtos, mocks } from '../../../test/mocks';
+import { constants, dtos, mocks } from '../../test/mocks';
 
 const moduleMocker = new ModuleMocker(global);
 

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable no-empty-function */
-import { getModelToken, MongooseModule } from '@nestjs/mongoose';
+import { getModelToken } from '@nestjs/mongoose';
 import { Vote } from '../src/vote/vote.schema';
 import { v4 as uuidv4 } from 'uuid';
 import { VoteMongoService } from '../src/vote/vote.mongo.service';
@@ -8,7 +8,8 @@ import { Poll } from '../src/poll/poll.schema';
 import { Strategy } from '../src/web3/strategy/strategy.schema';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { PollCronService } from '../src/poll/poll.cron.service';
-import { rootMongooseTestModule } from './mongod-in-memory';
+import { fixtures } from './fixtures';
+import { UserService } from '../src/user/user.service';
 
 export const constants = Object.freeze({
     pollId: '999a8681e47db28bf0000222',
@@ -19,8 +20,8 @@ export const constants = Object.freeze({
 
 export const dtos = new function(this: any) {
     this.voteRequestDto = {
-        poll_option_id: uuidv4(),
-        account_id: 'A',
+        poll_option_id: '110631fa-3fbb-41c9-8718-b26ca4a40af4',
+        account_id: '123456789',
         provider_id: constants.providers[0],
     };
     this.voteResponseDto = {
@@ -53,10 +54,16 @@ export const dtos = new function(this: any) {
             }],
         }],
         poll_options: [{
-            poll_option_id: uuidv4(),
+            poll_option_id: 'ad271e7c-1554-41a3-a0ff-ba6f7f54cdb4',
             poll_option_name: 'option1',
             poll_option_emoji: ':/',
-        }],
+        },
+        {
+            poll_option_id: 'ad271e7c-1554-41a3-a0ff-ba6f7f54cdb5',
+            poll_option_name: 'option2',
+            poll_option_emoji: ':\\',
+        },
+        ],
         allow_options_for_anyone: true,
         single_vote: true,
         end_time: Date.now() + 100000,
@@ -89,6 +96,14 @@ class VoteMongoServiceMockImpl {
     fetchVoteByPollSumAggregate(_pollId) { return true; }
     fetchVoteUserCount(_pollId) { return true; }
 }
+
+// class UserServiceMockImpl {
+//     fetchUserByProvider(_provider_id, _account_id) {return fixtures.user; }
+// }
+
+export const userServiceMockImpl = {
+    fetchUserByProvider: jest.fn(() => fixtures.user),
+};
 
 export const defaultMockRepository = {
     find: () => {
@@ -160,8 +175,9 @@ export const mocks = {
             },
         },
     },
-    mongooseModuleMock: {
-        provide: MongooseModule,
-        useValue: rootMongooseTestModule(),
+
+    userServiceMock: {
+        provide: UserService,
+        useValue: userServiceMockImpl,
     },
 };
