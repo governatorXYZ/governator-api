@@ -99,13 +99,15 @@ export class PollCreateConsumer {
 
         await job.progress(2);
 
-        // if (Number(process.env.CACHE)) this.voteRequestHandlerService.cacheVotePowersByPoll(dbPoll);
+        if (Number(process.env.CACHE)) this.voteRequestHandlerService.cacheVotePowersByPoll(dbPoll);
+
         await job.progress(3);
 
         this.sseService.emit({
             data: dbPoll,
             type: constants.EVENT_POLL_CREATE,
         } as MessageEvent);
+        
         await job.progress(4);
 
         try {

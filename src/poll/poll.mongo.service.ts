@@ -83,12 +83,6 @@ export class PollMongoService {
                 },
             });
 
-        // new CronJob(new Date(poll.end_time), () => {
-        //     this.logger.warn(`cron job running for ${poll._id}`);
-
-        //     this.endPoll(poll._id);
-        // })
-
         this.schedulerRegistry.addCronJob(poll._id, job);
 
         job.start();
