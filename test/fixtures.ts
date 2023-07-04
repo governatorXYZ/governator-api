@@ -47,7 +47,7 @@ export const fixtures = new function(this: any) {
         _id: '629e25279d35735622b1f960',
         provider_accounts: [
             {
-                _id: '0xc0754B937bD306fE72264274A61BC03F43FB685A',
+                _id: '0x25acDd75b45dd76AD6633b5400cE633c0B03c50e',
                 user_id: '629e25279d35735622b1f960',
                 provider_id: 'ethereum',
                 verified: false,
@@ -56,7 +56,7 @@ export const fixtures = new function(this: any) {
                 __v: 0,
             },
             {
-                _id: '0xc0754B937bD306fE72264274A61BC03F43FB685B',
+                _id: '0x33ad3066B03Dd0f3956645621Bbee859a4F6cacE',
                 user_id: '629e25279d35735622b1f960',
                 provider_id: 'ethereum',
                 verified: true,
@@ -64,6 +64,17 @@ export const fixtures = new function(this: any) {
                 updatedAt: '2023-05-23T11:07:50.123Z',
                 __v: 0,
                 signed_message: '0x14d969cb6',
+                verification_message: 'some message',
+            },
+            {
+                _id: '0xd78cdb879acc67b000588b027328af4626f0b0ef',
+                user_id: '629e25279d35735622b1f960',
+                provider_id: 'ethereum',
+                verified: true,
+                createdAt: '2023-05-23T11:07:31.344Z',
+                updatedAt: '2023-05-23T11:07:50.123Z',
+                __v: 0,
+                signed_message: '0x14d969cb63',
                 verification_message: 'some message',
             },
             {

@@ -5,7 +5,7 @@ import jestOpenAPI from 'jest-openapi';
 import { configure } from '../src/app.config';
 import { HttpStatus } from '@nestjs/common';
 import request from 'supertest';
-import { dtos, mocks } from './mocks';
+import { constants, dtos, mocks } from './mocks';
 import { VoteMongoService } from '../src/vote/vote.mongo.service';
 import { Model } from 'mongoose';
 import { getModelToken } from '@nestjs/mongoose';
@@ -14,6 +14,9 @@ import { PollCronService } from '../src/poll/poll.cron.service';
 import { Strategy, StrategyDocument } from '../src/web3/strategy/strategy.schema';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { fixtures } from './fixtures';
+import { REDIS } from '../src/redis/redis.constants';
+import { Redis } from 'ioredis';
+import { getQueueToken } from '@nestjs/bull';
   
 
 describe('e2e testing of governator server', () => {
@@ -23,41 +26,15 @@ describe('e2e testing of governator server', () => {
     const API_KEY = process.env.API_KEY;
     let pollId: string;
     let strategies: any;
+    let redis: Redis;
+    let pollQueue: any;
+    let voteQueue: any;
 
     beforeAll(async () => {
-
-        // mock return value mongodb create for Poll model
-        // const pollMockRepository = _.clone(defaultMockRepository);
-        // pollMockRepository.create = jest.fn(async () => dtos.pollResponseDto);
-        // pollMockRepository.find = () => {
-        //     return { exec: jest.fn(async () => [dtos.pollResponseDto]) };
-        // };
-        // pollMockRepository.findById = () => {
-        //     return { exec: jest.fn(async () => dtos.pollResponseDto) };
-        // };
-
-        // const pollMockRepositoryProvider = _.clone(mocks.pollMockRepository);
-        // pollMockRepositoryProvider.useValue = pollMockRepository;
-
-        // mock return value of mongodb find / findOne for Startegy model
-        // const strategyMockRepository = _.clone(defaultMockRepository);
-        // strategyMockRepository.findOne = () => {
-        //     return { exec: jest.fn(async () => dtos.strategyResponseDto) };
-        // };
-        // strategyMockRepository.find = () => {
-        //     return { exec: jest.fn(async () => [dtos.strategyResponseDto]) };
-        // };
-
-        // const strategyMockRepositoryProvider = _.clone(mocks.strategyMockRepository);
-        // strategyMockRepositoryProvider.useValue = strategyMockRepository;
 
         moduleFixture = await Test.createTestingModule({
             imports: [AppModule],
         })
-            // .overrideProvider(strategyMockRepositoryProvider.provide)
-            // .useValue(strategyMockRepositoryProvider.useValue)
-            // .overrideProvider(pollMockRepositoryProvider.provide)
-            // .useValue(pollMockRepositoryProvider.useValue)
             .overrideProvider(mocks.schedulerRegistryMock.provide)
             .useValue(mocks.schedulerRegistryMock.useValue)
             .overrideProvider(mocks.pollCronServiceMock.provide)
@@ -75,9 +52,16 @@ describe('e2e testing of governator server', () => {
 
         const strategyModel = moduleFixture.get<Model<StrategyDocument>>(getModelToken(Strategy.name));
 
+        redis = moduleFixture.get(REDIS);
+
+        pollQueue = moduleFixture.get(getQueueToken('poll-create'));
+        voteQueue = moduleFixture.get(getQueueToken('vote-create'));
+
         strategies = await strategyModel.find().lean().exec();
 
-        server = app.getHttpServer();
+        server = app.getHttpServer().listen(process.env.PORT);
+
+        // console.log(server)
     });
       
     describe('auth', () => {
@@ -237,6 +221,8 @@ describe('e2e testing of governator server', () => {
 
             const voteMongoService = moduleFixture.get<VoteMongoService>(VoteMongoService);
 
+            expect(redis).toBeDefined();
+
             expect(strategyModel).toBeDefined();
 
             expect(pollCronService).toBeDefined();
@@ -352,7 +338,116 @@ describe('e2e testing of governator server', () => {
 
     });
 
+    describe('Test token strategies', () => {
+        it('should vote correct amount on BANK strategy', async () => {
+            const holder = '0xd78cdb879acc67b000588b027328af4626f0b0ef';
+            const mainnetBlock = 17618186;
+            const mainnetBank = 553917772312377856244804n;
+            const polygonBank = 733421074177719425655939n;
+
+            // generate pollCreateDto with BANK strategy
+            const { strategy_config, ...pollCreateDto } = dtos.pollCreateDto;
+            strategy_config[0].block_height = [{ block: mainnetBlock, chain_id: '1' }];
+            strategy_config[0].strategy_id = strategies.find(strategy => strategy.name === 'BANK - Token Weighted')._id;
+            pollCreateDto.strategy_config = strategy_config;
+
+            // create poll in db - we do a full request to make sure equivalent block height is updated before db create
+            const pollResult = await request(server)
+                .post('/api/poll/create')
+                .set('Accept', 'application/json')
+                .set('X-API-KEY', API_KEY)
+                .send(pollCreateDto)
+                .expect(HttpStatus.CREATED);
+
+            const bankPollId = pollResult.body._id;
+            expect(bankPollId).toBeDefined();
+
+            // send vote request
+            const bankVoteRequestDto = {
+                poll_option_id: 'ad271e7c-1554-41a3-a0ff-ba6f7f54cdb4',
+                account_id: holder,
+                provider_id: constants.providers[1],
+            };
+
+            const voteResponse = await request(server)
+                .post(`/api/vote/${bankPollId}`)
+                .set('Accept', 'application/json')
+                .set('X-API-KEY', API_KEY)
+                .send(bankVoteRequestDto)
+                .expect(HttpStatus.CREATED);
+
+            // result matches known value of account at mainnet block specified in poll
+            expect(BigInt(voteResponse.body[0].data.vote_power)).toEqual(mainnetBank + polygonBank);
+
+        }, 200000);
+
+        it('should vote correct amount on BANKLESS DAO membership strategy', async () => {
+            const holder = '0xd78cdb879acc67b000588b027328af4626f0b0ef';
+            const mainnetBlock = 17618186;
+
+            // generate pollCreateDto with BANK strategy
+            const { strategy_config, ...pollCreateDto } = dtos.pollCreateDto;
+            strategy_config[0].block_height = [{ block: mainnetBlock, chain_id: '1' }];
+            strategy_config[0].strategy_id = strategies.find(strategy => strategy.name === 'BanklessDAO Membership')._id;
+            pollCreateDto.strategy_config = strategy_config;
+
+            // create poll in db - we do a full request to make sure equivalent block height is updated before db create
+            const pollResult = await request(server)
+                .post('/api/poll/create')
+                .set('Accept', 'application/json')
+                .set('X-API-KEY', API_KEY)
+                .send(pollCreateDto)
+                .expect(HttpStatus.CREATED);
+
+            const bankPollId = pollResult.body._id;
+            expect(bankPollId).toBeDefined();
+
+            // send vote request
+            const bankVoteRequestDto = {
+                poll_option_id: 'ad271e7c-1554-41a3-a0ff-ba6f7f54cdb4',
+                account_id: holder,
+                provider_id: constants.providers[1],
+            };
+
+            const voteResponse = await request(server)
+                .post(`/api/vote/${bankPollId}`)
+                .set('Accept', 'application/json')
+                .set('X-API-KEY', API_KEY)
+                .send(bankVoteRequestDto)
+                .expect(HttpStatus.CREATED);
+
+            // result is 1, independent of account balance
+            expect(voteResponse.body[0].data.vote_power).toEqual('1');
+
+            // delete the holder account from user and vote again
+            const filteredAccounts = fixtures.user.provider_accounts.filter(account => account._id !== holder);
+            fixtures.user.provider_accounts = filteredAccounts;
+
+            // vote again with different address
+            const bankVoteRequestDto2 = {
+                poll_option_id: 'ad271e7c-1554-41a3-a0ff-ba6f7f54cdb4',
+                account_id: '0x33ad3066B03Dd0f3956645621Bbee859a4F6cacE',
+                provider_id: constants.providers[1],
+            };
+
+            const voteResponse2 = await request(server)
+                .post(`/api/vote/${bankPollId}`)
+                .set('Accept', 'application/json')
+                .set('X-API-KEY', API_KEY)
+                .send(bankVoteRequestDto2)
+                .expect(HttpStatus.CREATED);
+
+            // no voting power
+            expect(voteResponse2.body).toEqual([]);
+
+        }, 200000);
+    });
+
     afterAll(async () => {
+        await pollQueue.close();
+        await voteQueue.close();
+        redis.disconnect();
+        await moduleFixture.close();
         await app.close();
     });
 });
