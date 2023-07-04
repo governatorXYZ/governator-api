@@ -8,13 +8,18 @@ create a file named `.env.production`.
 To run this app you will need to have the following installed and configured on your development machine.
 
 *__Required Software:__*
+| Software | Version |
+| -------- | ------- |
+| [Node.js](https://nodejs.org/en/download/) | `18.13.x` |
+| [yarn](https://yarnpkg.com/getting-started/install) | `1.x` |
+| [MongoDB](https://docs.mongodb.com/manual/installation/) | `5.0.18` | 
+| [Redis](https://redis.io/download) | `7.0.11` |
 
-- [Node.js](https://nodejs.org/en/download/)
-- [yarn](https://yarnpkg.com/getting-started/install)
-- [MongoDB](https://docs.mongodb.com/manual/installation/)
-  - if you are using WSL, you will need to install MongoDB on Windows and then follow the instructions [here](https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-database#install-mongodb)
-  - altenatively, you can use a cloud MongoDB service like [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
-- [Redis](https://redis.io/download)
+**Notes**
+
+For MongoDB, on WSL (Windows Subsystem for Linux) you will need to install MongoDB on Windows and then follow the instructions [here](https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-database#install-mongodb).
+
+altenatively, you can use a cloud MongoDB service like [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
 
 *__Other Requirements__*
 
