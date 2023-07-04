@@ -50,7 +50,7 @@ or
 $ yarn start:prod
 ```
 
-if you used the default values from `.env.template` the app will run on `localhost:3000/api`.
+if you used the default values from `.env.template` the app will run on `localhost:4500/api`.
 
 
 ## Stay in touch
