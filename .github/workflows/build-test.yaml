@@ -38,7 +38,7 @@ jobs:
                   ALCHEMY_API_KEY_POLYGON_MAIN: ${{secrets.ALCHEMY_API_KEY_POLYGON_MAIN}}
                   API_GLOBAL_PREFIX: ${{vars.GOVERNATOR_API_GLOBAL_PREFIX}}
                   API_KEY: 1
-                  API_PORT: 3000
+                  API_PORT: 4500
                   CACHE: 0
                   CORS_ORIGIN: "true"
                   ETHERSCAN_API_KEY: ${{secrets.ETHERSCAN_API_KEY}}
@@ -49,6 +49,4 @@ jobs:
                   REDIS_PASSWORD_QUEUE: ""
                   REDIS_PORT_QUEUE: 6379
                   REDIS_USERNAME_QUEUE: ""
-              run: |
-                echo "here is the secret ${{ secrets.DISCORD_OAUTH_SCOPES }}, here is the var " "$DISCORD_OAUTH_SCOPES"
-                yarn test:e2e
+              run: yarn test:e2e
