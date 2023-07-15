@@ -59,7 +59,7 @@ describe('e2e testing of governator server', () => {
 
         strategies = await strategyModel.find().lean().exec();
 
-        server = app.getHttpServer().listen(process.env.PORT);
+        server = app.getHttpServer().listen(process.env.API_PORT);
 
         // console.log(server)
     });
