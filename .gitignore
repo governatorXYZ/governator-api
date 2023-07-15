@@ -43,5 +43,6 @@ lerna-debug.log*
 /src/api-client
 governator-api-spec.json
 .yarnrc.yml
+.yarn/
 
 .off.npmrc
