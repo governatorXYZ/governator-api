@@ -25,27 +25,30 @@ jobs:
             - name: Build and Compile Typescript
               run: yarn build
             - name: Run test cases
-              run: yarn test:e2e
               env:
-                DISCORD_CLIENT_ID: ${{secrets.QA_DISCORD_CLIENT_ID}}
-                DISCORD_CLIENT_SECRET: ${{secrets.QA_DISCORD_CLIENT_SECRET}}
-                DISCORD_CALLBACK_URL: ${{secrets.QA_DISCORD_CALLBACK_URL}}
-                DISCORD_OAUTH_SCOPES: ${{secrets.QA_DISCORD_OAUTH_SCOPES}}
-                SESSION_SECRET: 1
-                FE_HOST: ${{secrets.QA_FE_HOST}}
-                REDIS_URL: "redis://:@127.0.0.1:6379"       
-                ALCHEMY_API_KEY_ETHEREUM_MAIN: ${{secrets.ALCHEMY_API_KEY_ETHEREUM_MAIN}}
-                ALCHEMY_API_KEY_POLYGON_MAIN: ${{secrets.ALCHEMY_API_KEY_POLYGON_MAIN}}
-                API_GLOBAL_PREFIX: ${{vars.GOVERNATOR_API_GLOBAL_PREFIX}}
-                API_KEY: 1
-                API_PORT: 3000
-                CACHE: 0
-                CORS_ORIGIN: "true"
-                ETHERSCAN_API_KEY: ${{secrets.ETHERSCAN_API_KEY}}
-                INFURA_ETHEREUM_MAIN_ID: ${{secrets.INFURA_ETHEREUM_MAIN_ID}}
-                INFURA_ETHEREUM_MAIN_SECRET: ${{secrets.INFURA_ETHEREUM_MAIN_SECRET}}
-                HD_MONGO_LOCAL: "mongodb://127.0.0.1:27017"
-                REDIS_HOST_QUEUE: "localhost"
-                REDIS_PASSWORD_QUEUE: ""
-                REDIS_PORT_QUEUE: 6379
-                REDIS_USERNAME_QUEUE: ""
+                  NODE_ENV: test
+                  DISCORD_CLIENT_ID: ${{secrets.QA_DISCORD_CLIENT_ID}}
+                  DISCORD_CLIENT_SECRET: ${{secrets.QA_DISCORD_CLIENT_SECRET}}
+                  DISCORD_CALLBACK_URL: ${{secrets.QA_DISCORD_CALLBACK_URL}}
+                  DISCORD_OAUTH_SCOPES: ${{secrets.QA_DISCORD_OAUTH_SCOPES}}
+                  SESSION_SECRET: 1
+                  FE_HOST: ${{secrets.QA_FE_HOST}}
+                  REDIS_URL: "redis://:@127.0.0.1:6379"       
+                  ALCHEMY_API_KEY_ETHEREUM_MAIN: ${{secrets.ALCHEMY_API_KEY_ETHEREUM_MAIN}}
+                  ALCHEMY_API_KEY_POLYGON_MAIN: ${{secrets.ALCHEMY_API_KEY_POLYGON_MAIN}}
+                  API_GLOBAL_PREFIX: ${{vars.GOVERNATOR_API_GLOBAL_PREFIX}}
+                  API_KEY: 1
+                  API_PORT: 3000
+                  CACHE: 0
+                  CORS_ORIGIN: "true"
+                  ETHERSCAN_API_KEY: ${{secrets.ETHERSCAN_API_KEY}}
+                  INFURA_ETHEREUM_MAIN_ID: ${{secrets.INFURA_ETHEREUM_MAIN_ID}}
+                  INFURA_ETHEREUM_MAIN_SECRET: ${{secrets.INFURA_ETHEREUM_MAIN_SECRET}}
+                  MONGO_LOCAL: "mongodb://127.0.0.1:27017"
+                  REDIS_HOST_QUEUE: "localhost"
+                  REDIS_PASSWORD_QUEUE: ""
+                  REDIS_PORT_QUEUE: 6379
+                  REDIS_USERNAME_QUEUE: ""
+              run: |
+                echo "here is the secret ${{ secrets.DISCORD_OAUTH_SCOPES }}, here is the var " "$DISCORD_OAUTH_SCOPES"
+                yarn test:e2e
