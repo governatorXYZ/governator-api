@@ -1,12 +1,14 @@
-import { Controller, Get, Logger, Param } from '@nestjs/common';
+import { Controller, Get, Logger, Param, UseGuards } from '@nestjs/common';
 import { StrategyMongoService } from './strategy.mongo.service';
 import { ApiOkResponse, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import apiConfig from './strategies/CONFIG';
 import { StrategyResponseDto } from './strategy.dtos';
+import { ApiKeyAuthGuard } from '../../auth/api-key/api-key.guard';
 
 
 @ApiSecurity('api_key')
 @ApiTags(apiConfig.API_TAG)
+@UseGuards(ApiKeyAuthGuard)
 @Controller(apiConfig.API_TAG.toLowerCase())
 export class StrategyController {
     readonly logger = new Logger(StrategyController.name);

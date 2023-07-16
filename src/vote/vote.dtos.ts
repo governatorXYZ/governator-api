@@ -1,7 +1,7 @@
 import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { ObjectId } from 'mongodb';
 import { VoteRawResponseUpdate } from './types';
-import { IsIn, IsMongoId, IsOptional, IsString } from 'class-validator';
+import { IsIn, IsMongoId, IsOptional, IsString, IsUUID } from 'class-validator';
 import constants from '../common/constants';
 import { VoteDocument } from './vote.schema';
 import { Types } from 'mongoose';
@@ -32,7 +32,7 @@ export class VoteRawResponseDto {
     })
         poll_id: string;
 
-    @IsString()
+    @IsUUID()
     @ApiProperty({
         description: 'Vote record object',
         required: true,

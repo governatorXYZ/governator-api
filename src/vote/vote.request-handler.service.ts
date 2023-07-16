@@ -172,7 +172,7 @@ export class VoteRequestHandlerService {
         const strategyRequestDto: StrategyRequestDto = { account_id: account._id, block_height: strategyConf.block_height, strategy_options: strategyConf.strategy_options ?? {} };
 
         const votePowerOfAccount = await axios.post(
-            `http://localhost:${process.env.PORT}/${process.env.API_GLOBAL_PREFIX}/${strategyEndpoint}`,
+            `http://localhost:${process.env.API_PORT}/${process.env.API_GLOBAL_PREFIX}/${strategyEndpoint}`,
             strategyRequestDto,
             {
                 transformResponse: (r) => r,

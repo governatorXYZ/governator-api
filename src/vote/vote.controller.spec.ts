@@ -1,71 +1,109 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { VoteController } from './vote.controller';
-import { VoteMongoService } from './vote.mongo.service';
 import { VoteRequestDto } from './vote.dtos';
 import { ArgumentMetadata, ValidationPipe } from '@nestjs/common';
+import { ModuleMocker, MockFunctionMetadata } from 'jest-mock';
+import { VoteCreateConsumer } from './vote.q.consumer.service';
+import { VoteCreateProducer } from './vote.q.producer.service';
+import { BullModule, getQueueToken } from '@nestjs/bull';
+import { mock } from 'jest-mock-extended';
+import { Queue } from 'bull';
+
+import { constants, dtos, mocks } from '../../test/mocks';
+
+const moduleMocker = new ModuleMocker(global);
 
 describe('Test VoteController', () => {
 
-    const testPollId = '999a8681e47db28bf0000222';
-    const testUserId = '999a8681e47db28bf0000111';
-
-    const testVoteRequest: VoteRequestDto = {
-        user_id: '999a8681e47db28bf0000111',
-        poll_option_id: 'A',
-    };
-
     let voteController: VoteController;
+    let moduleFixture: TestingModule;
+    let voteCreateConsumer: VoteCreateConsumer;
+    let mockQueue: any;
+
     beforeEach(async () => {
 
-        class VoteMongoServiceMock {
-            validateVoteRequest() { return true; }
-            // eslint-disable-next-line
-            fetchVoteByPoll(pollId) { return true; }
-            // eslint-disable-next-line
-            fetchVoteByPollAggregate(pollId) { return true; }
-            // eslint-disable-next-line
-            fetchVoteByPollAndUserAggregate(pollId, userId) { return true; }
-        }
+        mockQueue = mock<Queue>();
+        mockQueue.add.mockReturnValue(1);
 
-        // Mock mongo service response
-        const MongoFake = {
-            provide: VoteMongoService,
-            useClass: VoteMongoServiceMock,
-        };
-
-        const moduleFixture: TestingModule = await Test.createTestingModule({
+        moduleFixture = await Test.createTestingModule({
+            imports: [BullModule.registerQueue({
+                name: 'vote-create',
+            })],
             controllers: [VoteController],
-            providers: [MongoFake],
-        }).compile();
+            providers: [VoteCreateProducer, mocks.voteMongoServiceMock],
+        })
+            .useMocker((token) => {
+                if (token === VoteCreateConsumer) {
+                    return { getReturnValueFromObservable: jest.fn().mockResolvedValue(true) };
+                }
+                if (typeof token === 'function') {
+                    const mockMetadata = moduleMocker.getMetadata(token) as MockFunctionMetadata<any, any>;
+                    const Mock = moduleMocker.generateFromMetadata(mockMetadata);
+                    return new Mock();
+                }
+            })
+            .overrideProvider(getQueueToken('vote-create'))
+            .useValue(mockQueue)
+            .compile();
 
+        voteCreateConsumer = moduleFixture.get<VoteCreateConsumer>(VoteCreateConsumer);
+        
         voteController = moduleFixture.get<VoteController>(VoteController);
     });
 
-    it('checks if controller invokes VoteMongoService', async () => {
+    describe('Test vote creation (createVote())', () => {
+        it('triggers producer and adds job to the queue', async () => {
+        
+            await voteController.createVote(constants.pollId, dtos.voteRequestDto);
+    
+            expect(mockQueue.add).toBeCalledTimes(1);
+        });
+    
+        it('attaches to consumer (observable) to receive job return value', async () => {
+    
+            expect(await voteController.createVote(constants.pollId, dtos.voteRequestDto)).toBe(true);
+    
+            expect(voteCreateConsumer.getReturnValueFromObservable).toBeCalledTimes(1);
+        });
+    
+        it('invokes VoteMongoService', async () => {
+    
+            expect(await voteController.fetchVoteByPollCountAggregate(constants.pollId)).toEqual({
+                aggregate: true,
+                votes: true,
+            });
+    
+            expect(await voteController.fetchVoteByPollAndUserCountAggregate(constants.pollId, constants.userId)).toEqual(true);
+    
+            expect(await voteController.fetchVoteByPollSumAggregate(constants.pollId)).toEqual({
+                aggregate: true,
+                votes: true,
+            });
+        });
 
-        expect(await voteController.createVote(testPollId, testVoteRequest)).toBe(true);
-        expect(await voteController.fetchVoteByPollAggregate(testPollId)).toEqual({ aggregate: true, votes: true });
-        expect(await voteController.fetchVoteByPollAndUserAggregate(testPollId, testUserId)).toEqual(true);
     });
+
 });
 
 describe('Validation Unit Tests - test DTO against nestjs validation pipeline', () => {
 
     it('tests validation pipeline - using VoteRequestDto', async () => {
 
-        const testVote = {
-            user_id: '999a8681e47db28bf0000111',
-            poll_option_id: 'A',
+        const validVoteDiscord = dtos.voteRequestDto;
+
+        const validVoteEthereum = {
+            ...validVoteDiscord,
+            provider_id: constants.providers[1],
         };
 
-        const testVoteInvalidUserId = {
-            user_id: 'invalid ID',
-            poll_option_id: 'A',
+        const invalidPollOption = {
+            ...validVoteDiscord,
+            poll_option_id: 'not a uuid',
         };
 
-        const testVoteInvalidPollOption = {
-            user_id: 'invalid ID',
-            poll_option_id: 1,
+        const invalidProvider = {
+            ...validVoteDiscord,
+            provider_id: 'not a valid provider',
         };
 
         const target: ValidationPipe = new ValidationPipe({ transform: true, whitelist: true });
@@ -76,12 +114,13 @@ describe('Validation Unit Tests - test DTO against nestjs validation pipeline', 
         };
 
         // valid
-        await expect(target.transform(testVote, metadata)).resolves.toEqual(testVote);
-
-        // violates user ID constraint
-        await expect(target.transform(testVoteInvalidUserId, metadata)).rejects.toThrowError();
+        await expect(target.transform(validVoteDiscord, metadata)).resolves.toEqual(validVoteDiscord);
+        await expect(target.transform(validVoteEthereum, metadata)).resolves.toEqual(validVoteEthereum);
 
         // violates Poll Option constraint
-        await expect(target.transform(testVoteInvalidPollOption, metadata)).rejects.toThrowError();
+        await expect(target.transform(invalidPollOption, metadata)).rejects.toThrowError('Bad Request Exception');
+
+        // violates provider constraint
+        await expect(target.transform(invalidProvider, metadata)).rejects.toThrowError('Bad Request Exception');
     });
 });

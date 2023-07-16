@@ -1,11 +1,10 @@
-import { Body, Controller, Get, Param, Post, UseGuards, UseInterceptors, CACHE_MANAGER, Inject, Logger } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards, UseInterceptors, Logger } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { VoteMongoService } from './vote.mongo.service';
 import { VoteRequestDto, VoteResponseDto, VoteByPollAggregate } from './vote.dtos';
 import { VoteRequestHandlerService } from './vote.request-handler.service';
 import { VoteResultInterceptor } from './vote.result.interceptor';
 import { VoteRequestGuard } from './vote.request.guard';
-import { Cache } from 'cache-manager';
 import { VoteCreateConsumer } from './vote.q.consumer.service';
 import { VoteCreateProducer } from './vote.q.producer.service';
 import { ApiKeyAuthGuard } from '../auth/api-key/api-key.guard';
@@ -21,7 +20,6 @@ export class VoteController {
     constructor(
         protected mongoService: VoteMongoService,
         protected voteRequestHandlerService: VoteRequestHandlerService,
-        @Inject(CACHE_MANAGER) private cacheManager: Cache,
         private readonly voteCreateProducer: VoteCreateProducer,
         private readonly voteCreateConsumer: VoteCreateConsumer,
     ) {
